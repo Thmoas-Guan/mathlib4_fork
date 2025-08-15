@@ -119,9 +119,12 @@ lemma isRegularRing_of_ringEquiv {R R' : Type*} [CommRing R] [CommRing R']
     (IsLocalization.ringEquivOfRingEquiv (Localization.AtPrime p) (Localization.AtPrime p') e this)
 
 open Polynomial in
-lemma polynomial_isRegularRing_of_isRegularRing [IsRegularRing R] : IsRegularRing R[X] := by
+lemma Polynomial.isRegularRing_of_isRegularRing [IsRegularRing R] : IsRegularRing R[X] := by
   sorry
 
-lemma mvPolynomial_isRegularRing_of_isRegularRing [IsRegularRing R] (n : ℕ) :
+lemma MvPolynomial.isRegularRing_of_isRegularRing [IsRegularRing R] (n : ℕ) :
     IsRegularRing (MvPolynomial (Fin n) R) := by
-  sorry
+  induction' n with n ih
+  · exact isRegularRing_of_ringEquiv (isEmptyRingEquiv R (Fin 0)).symm
+  · let _ := Polynomial.isRegularRing_of_isRegularRing (MvPolynomial (Fin n) R)
+    exact isRegularRing_of_ringEquiv (MvPolynomial.finSuccEquiv R n).toRingEquiv.symm
