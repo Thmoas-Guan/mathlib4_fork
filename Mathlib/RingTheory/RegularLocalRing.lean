@@ -61,6 +61,8 @@ lemma isRegularLocalRing_of_equiv [IsRegularLocalRing R] (R' : Type*) [CommRing 
   · simpa [← ringKrullDim_eq_of_ringEquiv e, ← IsRegularLocalRing.reg,
       ← Submodule.FG.generators_ncard fg] using le_of_eq (Set.ncard_eq_toFinset_card' _).symm
 
+section
+
 variable [IsLocalRing R]
 
 lemma spanFinrank_eq_finrank_quotient (M : Type*) [AddCommGroup M] [Module R M]
@@ -89,3 +91,5 @@ open RingTheory.Sequence in
 theorem isRegular_of_span_eq_maximalIdeal (rs : List R) (eq : Ideal.ofList rs = maximalIdeal R)
     (len : rs.length = ringKrullDim R) : IsRegular R rs := by
   sorry
+
+end
