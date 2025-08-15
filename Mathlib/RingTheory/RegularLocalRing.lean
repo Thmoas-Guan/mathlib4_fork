@@ -46,7 +46,8 @@ lemma IsLocalRing.map_maximalIdeal [IsLocalRing R] {R' : Type*} [CommRing R'] [I
   rw [← Ideal.map_comap_of_surjective _ e.surjective (maximalIdeal R'),
     IsLocalRing.comap_maximalIdeal e]
 
-lemma isRegularLocalRing_of_equiv [IsRegularLocalRing R] (R' : Type*) [CommRing R']
+variable {R} in
+lemma isRegularLocalRing_of_ringEquiv [IsRegularLocalRing R] (R' : Type*) [CommRing R']
     (e : R ≃+* R') : IsRegularLocalRing R' := by
   let _ := e.isLocalRing
   let _ := isNoetherianRing_of_ringEquiv R e
