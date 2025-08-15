@@ -48,7 +48,8 @@ lemma IsLocalRing.map_maximalIdeal [IsLocalRing R] {R' : Type*} [CommRing R'] [I
   rw [← Ideal.map_comap_of_surjective _ e.surjective (maximalIdeal R'),
     IsLocalRing.comap_maximalIdeal e]
 
-lemma isRegularLocalRing_of_equiv [IsRegularLocalRing R] (R' : Type*) [CommRing R']
+variable {R} in
+lemma isRegularLocalRing_of_ringEquiv [IsRegularLocalRing R] {R' : Type*} [CommRing R']
     (e : R ≃+* R') : IsRegularLocalRing R' := by
   let _ := e.isLocalRing
   let _ := isNoetherianRing_of_ringEquiv R e
@@ -99,6 +100,23 @@ end
 class IsRegularRing : Prop where
   localization_isRegular : ∀ p : Ideal R, ∀ (_ : p.IsPrime),
     IsRegularLocalRing (Localization.AtPrime p)
+
+lemma isRegularRing_iff : IsRegularRing R ↔ ∀ p : Ideal R, ∀ (_ : p.IsPrime),
+    IsRegularLocalRing (Localization.AtPrime p) :=
+  ⟨fun ⟨h⟩ ↦ h, fun h ↦ ⟨h⟩⟩
+
+lemma isRegularRing_of_ringEquiv {R R' : Type*} [CommRing R] [CommRing R']
+    (e : R ≃+* R') [reg : IsRegularRing R] : IsRegularRing R' := by
+  apply (isRegularRing_iff R').mpr (fun p' hp' ↦ ?_)
+  let p := p'.comap e
+  have : Submonoid.map e.toMonoidHom p.primeCompl = p'.primeCompl := by
+    ext x
+    have : (∃ y, e y ∉ p' ∧ e y = x) ↔ x ∉ p' := ⟨fun ⟨y, hy, eq⟩ ↦ by simpa [← eq],
+      fun h ↦ ⟨e.symm x, by simpa, RingEquiv.apply_symm_apply e x⟩⟩
+    simpa only [Ideal.primeCompl, p]
+  let _ := (isRegularRing_iff R).mp ‹_› p (Ideal.comap_isPrime e p')
+  exact isRegularLocalRing_of_ringEquiv
+    (IsLocalization.ringEquivOfRingEquiv (Localization.AtPrime p) (Localization.AtPrime p') e this)
 
 open Polynomial in
 lemma polynomial_isRegularRing_of_isRegularRing [IsRegularRing R] : IsRegularRing R[X] := by
