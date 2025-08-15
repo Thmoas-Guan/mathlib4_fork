@@ -6,6 +6,8 @@ Authors: Nailin Guan
 import Mathlib.RingTheory.Ideal.Cotangent
 import Mathlib.RingTheory.Ideal.KrullsHeightTheorem
 import Mathlib.RingTheory.Regular.RegularSequence
+import Mathlib.Algebra.Polynomial.Basic
+
 /-!
 # Define Regular Local Ring
 -/
@@ -44,4 +46,16 @@ theorem isDomain_of_isRegularLocalRing [IsRegularLocalRing R] : IsDomain R := by
 open RingTheory.Sequence in
 theorem isRegular_of_span_eq_maximalIdeal (rs : List R) (eq : Ideal.ofList rs = maximalIdeal R)
     (len : rs.length = ringKrullDim R) : IsRegular R rs := by
+  sorry
+
+class IsRegularRing : Prop where
+  localization_isRegular : ∀ p : Ideal R, ∀ (_ : p.IsPrime),
+    IsRegularLocalRing (Localization.AtPrime p)
+
+open Polynomial in
+lemma polynomial_isRegularRing_of_isRegularRing [IsRegularRing R] : IsRegularRing R[X] := by
+  sorry
+
+lemma mvPolynomial_isRegularRing_of_isRegularRing [IsRegularRing R] (n : ℕ) :
+    IsRegularRing (MvPolynomial (Fin n) R) := by
   sorry
