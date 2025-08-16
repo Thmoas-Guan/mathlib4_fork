@@ -137,12 +137,39 @@ lemma quotient_isRegularLocalRing_tfae [IsRegularLocalRing R] (S : Finset R)
     simpa [← Function.comp_assoc, ← inc] using li
   tfae_have 2 → 3 := by
     intro li
-
+    #check Module.Basis.sumExtend li
     sorry
   tfae_have 3 → 1 := by
+    classical
     rintro ⟨reg, dim⟩
-
-    sorry
+    simp only [← (isRegularLocalRing_iff _).mp reg, ← Nat.cast_add, ←
+      (isRegularLocalRing_iff R).mp ‹_›, Nat.cast_inj] at dim
+    let fg : (maximalIdeal (R ⧸ Ideal.span S.toSet)).FG :=
+      (isNoetherianRing_iff_ideal_fg _).mp inferInstance _
+    have fin : (maximalIdeal (R ⧸ Ideal.span S.toSet)).generators.Finite :=
+      Submodule.FG.finite_generators fg
+    let U := Quotient.out '' (maximalIdeal (R ⧸ Ideal.span S.toSet)).generators
+    let _ : Fintype U := (Set.Finite.image _ fin).fintype
+    use S ∪ U.toFinset
+    have span : Ideal.span (S ∪ U) = maximalIdeal R := by
+      rw [Ideal.span_union, ← Ideal.mk_ker (I := Ideal.span S.toSet), sup_comm,
+        ← Ideal.comap_map_of_surjective' _ Ideal.Quotient.mk_surjective, Ideal.map_span]
+      have : Ideal.span (⇑(Ideal.Quotient.mk (Ideal.span ↑S)) '' U) =
+        Submodule.span _ (maximalIdeal (R ⧸ Ideal.span S.toSet)).generators := by
+        simp [U, ← Set.image_comp]
+      rw [this, Submodule.span_generators]
+      have : IsLocalHom (Ideal.Quotient.mk (Ideal.span S.toSet)) :=
+        IsLocalHom.of_surjective _ (Ideal.Quotient.mk_surjective)
+      exact ((IsLocalRing.local_hom_TFAE _).out 0 4).mp this
+    simp only [Finset.subset_union_left, true_and, ← (isRegularLocalRing_iff R).mp ‹_›,
+      Finset.coe_union, Set.coe_toFinset]
+    refine ⟨le_antisymm ?_ ?_, span⟩
+    · apply Nat.cast_le.mpr (le_trans (Finset.card_union_le _ _) _)
+      simp only [Set.toFinset_card, ← dim, add_comm, add_le_add_iff_left]
+      rw [Fintype.card_eq_nat_card, Nat.card_coe_set_eq]
+      apply le_trans (Set.ncard_image_le fin) (le_of_eq (Submodule.FG.generators_ncard fg))
+    · simp only [← span, ← Set.ncard_coe_finset, Finset.coe_union, Set.coe_toFinset, Nat.cast_le]
+      exact Submodule.spanFinrank_span_le_ncard_of_finite (Set.toFinite (S ∪ U))
   tfae_finish
 
 theorem isDomain_of_isRegularLocalRing [IsRegularLocalRing R] : IsDomain R := by
