@@ -5414,6 +5414,7 @@ import Mathlib.RingTheory.Coalgebra.MulOpposite
 import Mathlib.RingTheory.Coalgebra.TensorProduct
 import Mathlib.RingTheory.CohenMacaulay.Basic
 import Mathlib.RingTheory.CohenMacaulay.Maximal
+import Mathlib.RingTheory.CohenMacaulay.Polynomial
 import Mathlib.RingTheory.Complex
 import Mathlib.RingTheory.Conductor
 import Mathlib.RingTheory.Congruence.Basic
