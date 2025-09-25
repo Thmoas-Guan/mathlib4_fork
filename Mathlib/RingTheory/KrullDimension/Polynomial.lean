@@ -34,11 +34,6 @@ theorem Polynomial.ringKrullDim_le {R : Type*} [CommRing R] :
 
 variable (R : Type*) [CommRing R]
 
-lemma comap_eq_maximalIdeal_of_IsMaximal (m : Ideal R[X]) [m.IsMaximal] :
-    (m.comap C).IsMaximal := by
-  --Polynomial.constantCoeff
-  sorry
-
 variable [IsLocalRing R]
 
 open IsLocalRing
@@ -75,8 +70,8 @@ lemma height_map_maximalIdeal : ((maximalIdeal R).map C).height = (maximalIdeal 
       (isNoetherianRing_iff_ideal_fg R[X]).mp inferInstance _
     simp only [Submodule.fg_iff_spanRank_eq_spanFinrank.mpr fg, map_natCast, ← card, Nat.cast_le]
     rw [Ideal.map_span, ← Set.ncard_coe_finset s]
-    apply le_trans (Submodule.spanFinrank_span_le_ncard_of_finite
-      (Set.Finite.image _ s.finite_toSet)) (Set.ncard_image_le s.finite_toSet)
+    apply le_trans (Submodule.spanFinrank_span_le_ncard_of_finite (Set.toFinite _))
+      (Set.ncard_image_le s.finite_toSet)
   · simp only [Ideal.height_eq_primeHeight, Ideal.primeHeight]
     let map' : PrimeSpectrum R → PrimeSpectrum R[X] := fun p ↦
       ⟨p.1.map C, Ideal.isPrime_map_C_of_isPrime p.2⟩
@@ -91,37 +86,42 @@ lemma height_map_maximalIdeal : ((maximalIdeal R).map C).height = (maximalIdeal 
     use 0
     simpa using hx.2
 
-lemma height_maximal (m : Ideal R[X]) [m.IsMaximal] : m.height = (maximalIdeal R).height + 1 := by
+lemma height_of_comap_eq_maximalIdeal (m : Ideal R[X]) [h : m.IsPrime]
+    (eqm : m.comap C = maximalIdeal R) : m.height ≤ (maximalIdeal R).height + 1 := by
   let : (Ideal.map C (maximalIdeal R)).IsPrime := Ideal.isPrime_map_C_of_isPrime
     (Ideal.IsMaximal.isPrime' (maximalIdeal R))
-  have eqm : m.comap C = maximalIdeal R := eq_maximalIdeal (comap_eq_maximalIdeal_of_IsMaximal R m)
-  apply le_antisymm
-  · let _ : IsPrincipalIdealRing (IsLocalRing.ResidueField R)[X] := inferInstance
-    rcases IsPrincipalIdealRing.principal (Ideal.map (mapRingHom (residue R)) m) with ⟨x, hx⟩
-    rcases map_surjective (residue R) residue_surjective x with ⟨y, hy⟩
-    have eqsup : m = (maximalIdeal R).map C ⊔ Ideal.span {y} := by
-
-      sorry
-    rcases (maximalIdeal R).exists_finset_card_eq_height_of_isNoetherianRing with ⟨s, min, card⟩
-    have eq := eq_radical_of_maximalIdeal_mem_minimalPrimes R _ min
-    have eqrad : Ideal.map C (maximalIdeal R) = ((Ideal.span s).map C).radical := by
-      apply le_antisymm _ ((Ideal.IsPrime.radical_le_iff ‹_›).mpr (Ideal.map_mono min.1.2))
-      simpa [eq_radical_of_maximalIdeal_mem_minimalPrimes R _ min] using Ideal.map_radical_le _
-    have : m ∈ (((Ideal.span s).map C) ⊔ Ideal.span {y}).minimalPrimes := by
-      refine ⟨?_, fun p ⟨prime, le⟩ _ ↦ by
-        simpa [eqsup, eqrad, Ideal.IsPrime.radical_le_iff prime] using le⟩
-      simp only [Ideal.IsMaximal.isPrime' m, sup_le_iff, true_and]
-      simp only [eqsup, le_sup_right, and_true]
-      exact le_sup_of_le_left (Ideal.map_mono min.1.2)
-
-    sorry
-  · rw [← height_map_maximalIdeal, Ideal.height_eq_primeHeight, Ideal.height_eq_primeHeight]
-    apply Ideal.primeHeight_add_one_le_of_lt
-
-    sorry
-
-theorem ringKrullDim_of_isNoetherianRing_of_isLocalRing :
-    ringKrullDim R[X] = ringKrullDim R + 1 := by
-  sorry
+  have maple : (maximalIdeal R).map C ≤ m := by simp [Ideal.map_le_iff_le_comap, eqm]
+  let _ : IsPrincipalIdealRing (IsLocalRing.ResidueField R)[X] := inferInstance
+  rcases IsPrincipalIdealRing.principal (Ideal.map (mapRingHom (residue R)) m) with ⟨x, hx⟩
+  rcases map_surjective (residue R) residue_surjective x with ⟨y, hy⟩
+  have eqsup : m = (maximalIdeal R).map C ⊔ Ideal.span {y} := by
+    calc
+      m = m ⊔ RingHom.ker (mapRingHom (residue R)) := by
+        simpa only [ker_mapRingHom, left_eq_sup, ker_residue] using maple
+      _ = ((Ideal.span {y}).map (mapRingHom (residue R))).comap (mapRingHom (residue R)) := by
+        simp [← Ideal.comap_map_of_surjective' (mapRingHom (residue R))
+          (map_surjective (residue R) residue_surjective), hx, Ideal.map_span, hy]
+      _ = _ := by
+        simp only [Ideal.comap_map_of_surjective' (mapRingHom (residue R))
+          (map_surjective (residue R) residue_surjective), sup_comm, ker_mapRingHom, ker_residue]
+  rcases (maximalIdeal R).exists_finset_card_eq_height_of_isNoetherianRing with ⟨s, min, card⟩
+  have eq := eq_radical_of_maximalIdeal_mem_minimalPrimes R _ min
+  have eqrad : Ideal.map C (maximalIdeal R) = ((Ideal.span s).map C).radical := by
+    apply le_antisymm _ ((Ideal.IsPrime.radical_le_iff ‹_›).mpr (Ideal.map_mono min.1.2))
+    simpa [eq_radical_of_maximalIdeal_mem_minimalPrimes R _ min] using Ideal.map_radical_le _
+  have : m ∈ (((Ideal.span s).map C) ⊔ Ideal.span {y}).minimalPrimes := by
+    refine ⟨?_, fun p ⟨prime, le⟩ _ ↦ by
+      simpa [eqsup, eqrad, Ideal.IsPrime.radical_le_iff prime] using le⟩
+    simp only [h, sup_le_iff, true_and]
+    simpa only [eqsup, le_sup_right, and_true] using le_sup_of_le_left (Ideal.map_mono min.1.2)
+  rw [Ideal.map_span, ← Ideal.span_union] at this
+  apply le_trans (Ideal.height_le_spanRank_toENat_of_mem_minimal_primes _ _ this)
+  have fg : (Ideal.span (⇑C '' ↑s ∪ {y})).FG :=
+    (isNoetherianRing_iff_ideal_fg R[X]).mp inferInstance _
+  simp only [Submodule.fg_iff_spanRank_eq_spanFinrank.mpr fg, map_natCast, ← card]
+  rw [← ENat.coe_one, ← ENat.coe_add, ENat.coe_le_coe, ← Set.ncard_coe_finset s]
+  apply le_trans (Submodule.spanFinrank_span_le_ncard_of_finite (Set.toFinite _))
+  apply le_trans (Set.ncard_union_le _ _)
+  simpa only [Set.ncard_singleton, add_le_add_iff_right] using (Set.ncard_image_le s.finite_toSet)
 
 end Polynomial
