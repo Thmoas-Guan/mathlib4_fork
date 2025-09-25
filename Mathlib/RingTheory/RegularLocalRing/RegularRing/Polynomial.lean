@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nailin Guan
 -/
 import Mathlib.RingTheory.RegularLocalRing.RegularRing.Basic
+import Mathlib.RingTheory.KrullDimension.Polynomial
 /-!
 
 # Polynomial over Regular Ring
@@ -27,9 +28,7 @@ lemma Polynomial.localization_at_comap_maximal_isRegularRing_isRegularRing
   have reg := (isRegularLocalRing_def R).mp ‹_›
   have fg : (maximalIdeal R).FG := (isNoetherianRing_iff_ideal_fg R).mp inferInstance _
   have fg' := (Submodule.FG.finite_generators fg)
-  have ht : (maximalIdeal R).height ≤ q.height := by
-    --exact le_of_eq (Polynomial.height_map_C (maximalIdeal R)).symm
-    sorry
+  have ht : (maximalIdeal R).height ≤ q.height := le_of_eq (height_map_maximalIdeal R).symm
   by_cases eq0 : p.map (Polynomial.mapRingHom (IsLocalRing.residue R)) = ⊥
   · have eq : p = (maximalIdeal R).map C := le_antisymm
       (by simpa [← Ker, ← Ideal.map_eq_bot_iff_le_ker, q]) qle
