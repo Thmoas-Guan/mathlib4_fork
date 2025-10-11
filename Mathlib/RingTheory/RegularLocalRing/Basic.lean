@@ -5,6 +5,7 @@ Authors: Nailin Guan
 -/
 import Mathlib.RingTheory.RegularLocalRing.Defs
 import Mathlib.RingTheory.KrullDimension.Field
+import Mathlib.RingTheory.KrullDimension.Regular
 import Mathlib.RingTheory.Regular.RegularSequence
 /-!
 
@@ -40,12 +41,6 @@ lemma IsLocalRing.ResidueField.map_bijective_of_surjective [IsLocalRing R] {S : 
   refine ⟨ResidueField.map_injective f, ?_⟩
   apply Ideal.Quotient.lift_surjective_of_surjective
   convert Function.Surjective.comp (Ideal.Quotient.mk_surjective (I := (maximalIdeal S))) surj
-
-variable {R} in
-lemma _root_.ringKrullDim_le_ringKrullDim_add_card [IsLocalRing R] [IsNoetherianRing R]
-    {S : Finset R} (hS : (S : Set R) ⊆ maximalIdeal R) :
-    ringKrullDim R ≤ ringKrullDim (R ⧸ Ideal.span S.toSet) + S.card := by
-  sorry
 
 lemma quotient_isRegularLocalRing_tfae [IsRegularLocalRing R] (S : Finset R)
     (sub : (S : Set R) ⊆ maximalIdeal R) :
