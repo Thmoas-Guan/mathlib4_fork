@@ -24,6 +24,8 @@ This file proves properties of the krull dimension of the polynomial ring over a
 
 @[expose] public section
 
+open Polynomial
+
 theorem Polynomial.ringKrullDim_le {R : Type*} [CommRing R] :
     ringKrullDim R[X] ≤ 2 * (ringKrullDim R) + 1 := by
   rw [ringKrullDim, ringKrullDim]
@@ -62,13 +64,13 @@ lemma height_map_maximalIdeal [IsLocalRing R] :
     have eqrad : Ideal.map C (maximalIdeal R) = ((Ideal.span s).map C).radical := by
       apply le_antisymm _ ((Ideal.IsPrime.radical_le_iff ‹_›).mpr (Ideal.map_mono min.1.2))
       simpa [eq_radical_of_maximalIdeal_mem_minimalPrimes R _ min] using Ideal.map_radical_le _
-    let _ : ((Ideal.span s.toSet).map C).radical.IsPrime := by simpa [← eqrad]
+    let _ : ((Ideal.span (s : Set R)).map C).radical.IsPrime := by simpa [← eqrad]
     have : Ideal.map C (maximalIdeal R) ∈ ((Ideal.span s).map C).minimalPrimes := by
       rw [eqrad]
       refine ⟨?_, fun p ⟨prime, Ile⟩ _ ↦ (Ideal.IsPrime.radical_le_iff prime).mpr Ile⟩
       simpa [Ideal.radical_le_radical_iff.mp (le_refl _)]
     apply le_trans (Ideal.height_le_spanRank_toENat_of_mem_minimal_primes _ _ this)
-    have fg : (Ideal.map C (Ideal.span s.toSet)).FG :=
+    have fg : (Ideal.map C (Ideal.span (s : Set R))).FG :=
       (isNoetherianRing_iff_ideal_fg R[X]).mp inferInstance _
     simp only [Submodule.fg_iff_spanRank_eq_spanFinrank.mpr fg, map_natCast, ← card, Nat.cast_le]
     rw [Ideal.map_span, ← Set.ncard_coe_finset s]
@@ -136,7 +138,7 @@ lemma height_le_height_comap_succ (p : Ideal R[X]) [p.IsPrime] :
   have _ : IsLocalization pc S := {
     map_units x := by
       rcases x.2 with ⟨y, mem, eq⟩
-      apply isUnit_of_mul_eq_one _ (C (Localization.mk 1 ⟨y, mem⟩))
+      apply IsUnit.of_mul_eq_one (C (Localization.mk 1 ⟨y, mem⟩))
       simp [← eq, S, ← map_mul, ← Localization.mk_one_eq_algebraMap, Localization.mk_mul]
     surj z := by
       induction z using Polynomial.induction_on'
@@ -211,7 +213,7 @@ lemma ringKrullDim_of_isNoetherianRing : ringKrullDim R[X] = ringKrullDim R + 1 
     apply le_trans (height_le_height_comap_succ R p) (WithBot.coe_le_coe.mp _)
     let _ : (Ideal.comap C p).IsPrime := Ideal.comap_isPrime C p
     simpa [Ideal.height_eq_primeHeight] using
-      add_le_add_right Ideal.primeHeight_le_ringKrullDim 1
+      add_le_add_left Ideal.primeHeight_le_ringKrullDim 1
   · have : Subsingleton R := not_nontrivial_iff_subsingleton.mp ntr
     have : Subsingleton R[X] := subsingleton_iff_subsingleton.mpr this
     simp [ringKrullDim_eq_bot_of_subsingleton]

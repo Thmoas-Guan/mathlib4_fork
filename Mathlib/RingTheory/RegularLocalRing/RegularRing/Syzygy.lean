@@ -77,6 +77,5 @@ theorem Hilberts_Syzygy (k : Type u) [Field k] [Small.{v, u} k] (n : ℕ) :
     globalDimension.{v} (MvPolynomial (Fin n) k) = n := by
   let _ : IsRegularRing k := IsRegularRing.of_isField k (Field.toIsField k)
   let _ : IsRegularRing (MvPolynomial (Fin n) k) := MvPolynomial.isRegularRing_of_isRegularRing k n
-  rw [IsRegularRing.globalDimension_eq_ringKrullDim]
-
-  sorry
+  simp [IsRegularRing.globalDimension_eq_ringKrullDim,
+    MvPolynomial.ringKrullDim_of_isNoetherianRing]
