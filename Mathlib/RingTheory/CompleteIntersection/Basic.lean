@@ -17,7 +17,7 @@ public import Mathlib.RingTheory.RegularLocalRing.Defs
 
 @[expose] public section
 
-open IsLocalRing  RingTheory.Sequence
+open IsLocalRing RingTheory.Sequence
 
 universe u
 
@@ -25,9 +25,51 @@ variable (R : Type u) [CommRing R]
 
 def Epsilon1 [IsNoetherianRing R] [IsLocalRing R] : ℕ := sorry
 
+section Cohen
+
+variable [IsNoetherianRing R] [IsLocalRing R]
+
+lemma exist_isRegularLocalRing_surjective_of_isAdicComplete [IsAdicComplete (maximalIdeal R) R] :
+    ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S) (f : S →+* R),
+    Function.Surjective f := by
+  sorry
+
+lemma exist_isRegularLocalRing_surjective_ker_le_of_isAdicComplete
+    [IsAdicComplete (maximalIdeal R) R] : ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S)
+    (f : S →+* R), Function.Surjective f ∧ RingHom.ker f ≤ (maximalIdeal S) ^ 2 := by
+  --quotient by elements outside of `m²`
+  sorry
+
+lemma exist_isRegularLocalRing_surjective_adicCompletion :
+    ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S)
+    (f : S →+* (AdicCompletion (maximalIdeal R) R)), Function.Surjective f := by
+  -- use `exist_isRegularLocalRing_surjective_of_isAdicComplete`
+  sorry
+
+lemma exist_isRegularLocalRing_surjective_adicCompletion_ker_le :
+    ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S)
+    (f : S →+* (AdicCompletion (maximalIdeal R) R)),
+    Function.Surjective f ∧ RingHom.ker f ≤ (maximalIdeal S) ^ 2 := by
+  -- use `exist_isRegularLocalRing_surjective_ker_le_of_isAdicComplete`
+  sorry
+
+end Cohen
+
 section
 
 variable [IsNoetherianRing R] [IsLocalRing R]
+
+lemma epsilon1_eq_spanFinrank (S : Type u) [CommRing S] [IsRegularLocalRing S] (I : Ideal S)
+    (le : I ≤ (maximalIdeal S) ^ 2) :
+    letI : IsLocalRing (S ⧸ I) :=
+      have : Nontrivial (S ⧸ I) :=
+        Submodule.Quotient.nontrivial_iff.mpr (ne_top_of_le_ne_top Ideal.IsPrime.ne_top'
+          (le.trans (Ideal.pow_le_self (Nat.zero_ne_add_one 1).symm)))
+      have : IsLocalHom (Ideal.Quotient.mk I) :=
+        IsLocalHom.of_surjective _ Ideal.Quotient.mk_surjective
+      IsLocalRing.of_surjective (Ideal.Quotient.mk I) Ideal.Quotient.mk_surjective
+    Epsilon1 (S ⧸ I) = I.spanFinrank := by
+  sorry
 
 instance : IsNoetherianRing (AdicCompletion (maximalIdeal R) R) := sorry
 
@@ -49,7 +91,7 @@ class IsCompleteIntersectionLocalRing extends IsLocalRing R, IsNoetherianRing R 
 
 lemma quotient_isCompleteIntersectionLocalRing (S : Type u) [CommRing S] [IsRegularLocalRing S]
     (I : Ideal S) [IsCompleteIntersectionLocalRing (S ⧸ I)] :
-    ∃(rs : List S), I = Ideal.ofList rs ∧ IsRegular S rs := by
+    ∃ (rs : List S), I = Ideal.ofList rs ∧ IsRegular S rs := by
   sorry
 
 lemma completion_isCompleteIntersectionLocalRing_iff :
