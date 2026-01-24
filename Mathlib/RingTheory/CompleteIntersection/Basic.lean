@@ -23,7 +23,15 @@ universe u
 
 variable (R : Type u) [CommRing R]
 
-def Epsilon1 [IsNoetherianRing R] [IsLocalRing R] : ℕ := sorry
+section preliminaries
+
+variable [IsNoetherianRing R] [IsLocalRing R]
+
+instance : IsNoetherianRing (AdicCompletion (maximalIdeal R) R) := sorry
+
+instance : IsLocalRing (AdicCompletion (maximalIdeal R) R) := sorry
+
+end preliminaries
 
 section Cohen
 
@@ -55,6 +63,13 @@ lemma exist_isRegularLocalRing_surjective_adicCompletion_ker_le :
 
 end Cohen
 
+def Epsilon1 [IsNoetherianRing R] [IsLocalRing R] : ℕ := sorry
+
+lemma epsilon1_eq_of_equiv {R : Type*} [CommRing R] [IsNoetherianRing R] [IsLocalRing R]
+    {R' : Type*} [CommRing R'] [IsNoetherianRing R'] [IsLocalRing R'] (e : R ≃+* R') :
+    Epsilon1 R = Epsilon1 R' := by
+  sorry
+
 section
 
 variable [IsNoetherianRing R] [IsLocalRing R]
@@ -71,15 +86,13 @@ lemma epsilon1_eq_spanFinrank (S : Type u) [CommRing S] [IsRegularLocalRing S] (
     Epsilon1 (S ⧸ I) = I.spanFinrank := by
   sorry
 
-instance : IsNoetherianRing (AdicCompletion (maximalIdeal R) R) := sorry
-
-instance : IsLocalRing (AdicCompletion (maximalIdeal R) R) := sorry
-
 lemma completion_epsilon1_eq : Epsilon1 R = Epsilon1 (AdicCompletion (maximalIdeal R) R) := by
   sorry
 
 lemma epsilon1_add_ringKrullDim_ge :
     Epsilon1 R + ringKrullDim R ≥ (maximalIdeal R).spanFinrank := by
+  --take completion, `R = S ⧸ I` with `S` regular, `I ≤ m²`
+  --use catenary from CM to obtain `ht(I) = dim(S) - dim(R)`
   sorry
 
 end
@@ -89,14 +102,22 @@ variable [IsNoetherianRing R] [IsLocalRing R]
 class IsCompleteIntersectionLocalRing extends IsLocalRing R, IsNoetherianRing R where
   ci : Epsilon1 R + ringKrullDim R = (maximalIdeal R).spanFinrank
 
+lemma isCompleteIntersectionLocalRing_of_equiv {R : Type*} [CommRing R] [IsNoetherianRing R]
+    [IsLocalRing R] {R' : Type*} [CommRing R'] [IsNoetherianRing R'] [IsLocalRing R']
+    (e : R ≃+* R') [IsCompleteIntersectionLocalRing R] : IsCompleteIntersectionLocalRing R' := by
+  sorry
+
 lemma quotient_isCompleteIntersectionLocalRing (S : Type u) [CommRing S] [IsRegularLocalRing S]
     (I : Ideal S) [IsCompleteIntersectionLocalRing (S ⧸ I)] :
     ∃ (rs : List S), I = Ideal.ofList rs ∧ IsRegular S rs := by
+  -- `ht(I) = dim(S) - dim(S⧸I) = Epsilon1 (S⧸I) = I.spanFinrank`
+  -- generate by regular by results in CM
   sorry
 
 lemma completion_isCompleteIntersectionLocalRing_iff :
     IsCompleteIntersectionLocalRing R ↔
     IsCompleteIntersectionLocalRing (AdicCompletion (maximalIdeal R) R) := by
+  --use invariance of `Epsilon1`, `dim`!!, span rank of maximal ideal!.
   sorry
 
 theorem isCompleteIntersectionLocalRing_iff :
