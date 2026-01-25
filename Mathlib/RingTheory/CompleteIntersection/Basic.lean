@@ -7,7 +7,8 @@ module
 
 public import Mathlib.RingTheory.AdicCompletion.Algebra
 public import Mathlib.RingTheory.Regular.RegularSequence
-public import Mathlib.RingTheory.RegularLocalRing.Defs
+public import Mathlib.RingTheory.CohenMacaulay.Catenary
+public import Mathlib.RingTheory.CohenMacaulay.Maximal
 
 /-!
 
