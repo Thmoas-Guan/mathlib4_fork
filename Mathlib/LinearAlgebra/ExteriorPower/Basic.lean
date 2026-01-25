@@ -262,10 +262,14 @@ theorem map_comp (f : M →ₗ[R] N) (g : N →ₗ[R] N') :
     map n (g ∘ₗ f) = map n g ∘ₗ map n f := by
   aesop
 
+theorem subtype_comp_map_eq (f : M →ₗ[R] N) :
+    (Submodule.subtype _) ∘ₗ (map n f) =
+    (ExteriorAlgebra.map f).toLinearMap ∘ₗ (Submodule.subtype _) :=
+  linearMap_ext <| AlternatingMap.ext fun m ↦ (by simp)
+
 @[simp]
 theorem coe_map (f : M →ₗ[R] N) (x : ⋀[R]^n M) :
-    map n f x = ExteriorAlgebra.map f x.1 := by
-  sorry
+    map n f x = ExteriorAlgebra.map f x.1 := congr($(subtype_comp_map_eq f) x)
 
 /-! Linear equivalences in degrees 0 and 1. -/
 
