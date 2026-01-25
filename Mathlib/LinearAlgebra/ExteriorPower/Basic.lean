@@ -262,6 +262,11 @@ theorem map_comp (f : M →ₗ[R] N) (g : N →ₗ[R] N') :
     map n (g ∘ₗ f) = map n g ∘ₗ map n f := by
   aesop
 
+@[simp]
+theorem coe_map (f : M →ₗ[R] N) (x : ⋀[R]^n M) :
+    map n f x = ExteriorAlgebra.map f x.1 := by
+  sorry
+
 /-! Linear equivalences in degrees 0 and 1. -/
 
 variable (R M) in
