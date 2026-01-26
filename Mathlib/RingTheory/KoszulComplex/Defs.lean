@@ -202,13 +202,16 @@ noncomputable def map (f : M →ₗ[R] N) {x : M} {y : N} (h : f x = y) :
 lemma map_hom (f : M →ₗ[R] N) (x : M) (y : N) (h : f x = y) (i : ℕ) :
     (map R f h).f i = (ModuleCat.exteriorPower.functor R i).map (ModuleCat.ofHom f) := rfl
 
-lemma map_id (x y : M) (h : x = y) : koszulComplex.map R (M := M) .id h = eqToHom (by rw [h]) := by
-  subst h
+lemma map_id_refl (x : M) : koszulComplex.map R (M := M) .id (Eq.refl x) = 𝟙 _ := by
   ext i x
   simp only [map_hom, ModuleCat.ofHom_id, ModuleCat.exteriorPower.functor_map,
-    ModuleCat.exteriorPower.map, ModuleCat.hom_id, exteriorPower.map_id, eqToHom_refl,
-    HomologicalComplex.id_f, LinearMap.id_coe, id_eq]
+    ModuleCat.exteriorPower.map, ModuleCat.hom_id, exteriorPower.map_id, HomologicalComplex.id_f,
+    LinearMap.id_coe, id_eq]
   rfl
+
+lemma map_id (x y : M) (h : x = y) : koszulComplex.map R (M := M) .id h = eqToHom (by rw [h]) := by
+  subst h
+  exact map_id_refl R x
 
 lemma map_comp {P : Type v} [AddCommGroup P] [Module R P]
     (f : M →ₗ[R] N) (g : N →ₗ[R] P) {x : M} {y : N} {z : P} (hxy : f x = y) (hyz : g y = z) :
@@ -216,6 +219,19 @@ lemma map_comp {P : Type v} [AddCommGroup P] [Module R P]
     koszulComplex.map R (g ∘ₗ f) (hxy ▸ hyz : g (f x) = z) := by
   refine HomologicalComplex.hom_ext _ _ fun i ↦ ?_
   simp only [HomologicalComplex.comp_f, map_hom, ModuleCat.ofHom_comp, Functor.map_comp]
+
+noncomputable def isoOfEquiv (f : M ≃ₗ[R] N) {x : M} {y : N} (h : f x = y) :
+    koszulComplex R x ≅ koszulComplex R y where
+  hom := koszulComplex.map R f h
+  inv := koszulComplex.map R f.symm (f.injective (by simpa using h.symm))
+  hom_inv_id := by
+    simp only [map_comp, LinearEquiv.comp_coe, LinearEquiv.self_trans_symm,
+      LinearEquiv.refl_toLinearMap]
+    exact map_id_refl R x
+  inv_hom_id := by
+    simp only [map_comp, LinearEquiv.comp_coe, LinearEquiv.symm_trans_self,
+      LinearEquiv.refl_toLinearMap]
+    exact map_id_refl R y
 
 noncomputable abbrev ofList (l : List R) :=
   koszulComplex R l.get

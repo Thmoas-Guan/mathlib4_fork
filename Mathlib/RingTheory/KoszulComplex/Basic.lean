@@ -25,7 +25,13 @@ lemma koszulComplex.mem_annihilator_homology (M : Type u) [AddCommGroup M] [Modu
 
 lemma koszulComplex.mem_annihilator_homology_ofList (l : List R) (i : ℕ) :
     Ideal.ofList l ≤ Module.annihilator R ((koszulComplex.ofList R l).homology i) := by
-  sorry
+  intro r hr
+  have hr' : r ∈ Ideal.span (Set.range l.get) := by simpa only [Set.range_list_get l]
+  rcases (Ideal.mem_span_range_iff_exists_fun (R := R) (x := r) (v := l.get)).1 hr' with ⟨c, hc⟩
+  let φ : (Fin l.length → R) →ₗ[R] R := Fintype.linearCombination R c
+  have hφ : φ l.get = r := by
+    simp only [φ, ← hc, Fintype.linearCombination_apply, mul_comm (c _), smul_eq_mul]
+  exact hφ ▸ mem_annihilator_homology (R := R) (M := Fin l.length → R) (x := l.get) φ i
 
 end homology_annihilator
 
@@ -33,12 +39,12 @@ section change_generators
 
 variable [IsNoetherianRing R] [IsLocalRing R]
 
-def koszulComplex.iso_of_minimal_generators {I : Ideal R} {l : List R} (eq : Ideal.ofList l = I)
-    (min : l.length = I.spanFinrank) :
-    letI : Fintype I.generators :=
-      (Submodule.FG.finite_generators I.fg_of_isNoetherianRing).fintype
-    koszulComplex.ofList R I.generators.toFinset.toList ≅ koszulComplex.ofList R l :=
-  sorry
+noncomputable def koszulComplex.isoOfMinimalGenerators {I : Ideal R} {l : List R}
+    (eq : Ideal.ofList l = I) (min : l.length = I.spanFinrank) :
+    koszulComplex.ofList R I.finite_generators_of_isNoetherian.toFinset.toList ≅
+    koszulComplex.ofList R l := by
+  refine isoOfEquiv R ?_ ?_
+  all_goals sorry
 
 end change_generators
 
