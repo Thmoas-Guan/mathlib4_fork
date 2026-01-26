@@ -10,6 +10,11 @@ public import Mathlib.LinearAlgebra.ExteriorAlgebra.Grading
 public import Mathlib.Algebra.Homology.HomologicalComplex
 public import Mathlib.Algebra.Category.ModuleCat.ExteriorPower
 public import Mathlib.Algebra.Homology.Monoidal
+public import Mathlib.Algebra.Homology.ShortComplex.Abelian
+public import Mathlib.Algebra.Homology.ShortComplex.HomologicalComplex
+public import Mathlib.Algebra.Category.ModuleCat.Abelian
+public import Mathlib.RingTheory.Regular.RegularSequence
+public import Mathlib.Algebra.Category.ModuleCat.Monoidal.Basic
 
 /-!
 # Definition of Koszul complex
@@ -17,7 +22,7 @@ public import Mathlib.Algebra.Homology.Monoidal
 
 @[expose] public section
 
-universe u v
+universe u v w w'
 
 open CategoryTheory Category MonoidalCategory
 
@@ -34,6 +39,15 @@ lemma GradedAlgebra.linearGMul_eq_mul (h : k = i + j) (x : 𝒜 i) (y : 𝒜 j) 
     (GradedAlgebra.linearGMul 𝒜 h) x y = x.1 * y.1 := sorry
 
 end GradedAlgebra
+
+section ModuleCat
+
+variable {R : Type u} [CommRing R]
+
+def ModuleCat.tensorFunctor (M : ModuleCat.{v} R) [Small.{w'} M] [UnivLE.{w, w'}] :
+    ModuleCat.{w} R ⥤ ModuleCat.{w'} R := sorry
+
+end ModuleCat
 
 section
 
@@ -96,5 +110,11 @@ lemma map_comp {P : Type v} [AddCommGroup P] [Module R P]
     koszulComplex.map R (g ∘ₗ f) (hxy ▸ hyz : g (f x) = z) := by
   refine HomologicalComplex.hom_ext _ _ fun i ↦ ?_
   simp only [HomologicalComplex.comp_f, map_hom, ModuleCat.ofHom_comp, Functor.map_comp]
+
+noncomputable abbrev ofList (l : List R) :=
+  koszulComplex R l.get
+
+def topHomologyLinearEquiv (l : List R) :
+    (koszulComplex.ofList R l).homology l.length ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
 
 end koszulComplex
