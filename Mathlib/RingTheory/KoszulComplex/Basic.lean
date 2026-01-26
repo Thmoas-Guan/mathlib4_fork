@@ -39,12 +39,12 @@ section change_generators
 
 variable [IsNoetherianRing R] [IsLocalRing R]
 
-def koszulComplex.iso_of_minimal_generators {I : Ideal R} {l : List R} (eq : Ideal.ofList l = I)
-    (min : l.length = I.spanFinrank) :
-    letI : Fintype I.generators :=
-      (Submodule.FG.finite_generators I.fg_of_isNoetherianRing).fintype
-    koszulComplex.ofList R I.generators.toFinset.toList ≅ koszulComplex.ofList R l :=
-  sorry
+noncomputable def koszulComplex.isoOfMinimalGenerators {I : Ideal R} {l : List R}
+    (eq : Ideal.ofList l = I) (min : l.length = I.spanFinrank) :
+    koszulComplex.ofList R I.finite_generators_of_isNoetherian.toFinset.toList ≅
+    koszulComplex.ofList R l := by
+  refine isoOfEquiv R ?_ ?_
+  all_goals sorry
 
 end change_generators
 
