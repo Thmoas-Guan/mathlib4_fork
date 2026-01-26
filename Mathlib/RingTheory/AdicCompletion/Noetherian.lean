@@ -7,6 +7,7 @@ module
 
 public import Mathlib.RingTheory.AdicCompletion.LocalRing
 public import Mathlib.RingTheory.Filtration
+public import Mathlib.RingTheory.Ideal.Quotient.Noetherian
 
 /-!
 # Hausdorff-ness for Noetherian rings
@@ -41,8 +42,9 @@ theorem IsHausdorff.of_isDomain [IsDomain R] (h : I ≠ ⊤) : IsHausdorff I R :
 
 end
 
-lemma AdicCompletion.isNoetherianRing_of_fg [IsNoetherianRing (R⧸ I)] (fg : I.FG) :
+lemma AdicCompletion.isNoetherianRing_of_fg [IsNoetherianRing (R ⧸ I)] (fg : I.FG) :
     IsNoetherianRing (AdicCompletion I R) := by
   sorry
 
-instance [IsNoetherianRing R] : IsNoetherianRing (AdicCompletion I R) := sorry
+instance [IsNoetherianRing R] : IsNoetherianRing (AdicCompletion I R) :=
+  AdicCompletion.isNoetherianRing_of_fg I I.fg_of_isNoetherianRing
