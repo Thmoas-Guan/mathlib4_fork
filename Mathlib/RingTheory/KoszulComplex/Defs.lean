@@ -121,6 +121,14 @@ def topHomologyLinearEquiv (l : List R) :
 
 end koszulComplex
 
+section homologyannihilator
+
+lemma koszulComplex.mem_annihilator_homology (M : Type u) [AddCommGroup M] [Module R M] (x : M)
+    (φ : M →ₗ[R] R) (i : ℕ) : φ x ∈ Module.annihilator R ((koszulComplex R x).homology i) := by
+  sorry
+
+end homologyannihilator
+
 section changegenerators
 
 variable [IsNoetherianRing R] [IsLocalRing R]
