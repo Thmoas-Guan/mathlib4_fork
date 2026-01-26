@@ -155,7 +155,7 @@ noncomputable def basis (b : Module.Basis ι R M) (n : ℕ) :
 
 end exteriorPower
 
-theorem Module.Free.exteriorPower (n : ℕ) [Module.Free R M] : Module.Free R (⋀[R]^n M) := by
+instance Module.Free.exteriorPower (n : ℕ) [Module.Free R M] : Module.Free R (⋀[R]^n M) := by
   classical
   let ι := Module.Free.ChooseBasisIndex R M
   letI : LinearOrder ι := linearOrderOfSTO (WellOrderingRel (α := ι))
@@ -269,7 +269,7 @@ theorem koszulComplex.exactAt_of_ne_length_of_isRegular (rs : List R) (reg : IsR
   sorry
 
 lemma koszulComplex.free_of_free (M : Type u) [AddCommGroup M] [Module R M] [Module.Free R M]
-    (x : M) (i : ℕ) : Module.Free R ((koszulComplex R x).X i) := by
-  sorry
+    (x : M) (i : ℕ) : Module.Free R ((koszulComplex R x).X i) :=
+  inferInstanceAs <| Module.Free R (⋀[R]^i M)
 
 end IsRegular
