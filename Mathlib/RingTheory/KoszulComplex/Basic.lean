@@ -25,7 +25,13 @@ lemma koszulComplex.mem_annihilator_homology (M : Type u) [AddCommGroup M] [Modu
 
 lemma koszulComplex.mem_annihilator_homology_ofList (l : List R) (i : ℕ) :
     Ideal.ofList l ≤ Module.annihilator R ((koszulComplex.ofList R l).homology i) := by
-  sorry
+  intro r hr
+  have hr' : r ∈ Ideal.span (Set.range l.get) := by simpa only [Set.range_list_get l]
+  rcases (Ideal.mem_span_range_iff_exists_fun (R := R) (x := r) (v := l.get)).1 hr' with ⟨c, hc⟩
+  let φ : (Fin l.length → R) →ₗ[R] R := Fintype.linearCombination R c
+  have hφ : φ l.get = r := by
+    simp only [φ, ← hc, Fintype.linearCombination_apply, mul_comm (c _), smul_eq_mul]
+  exact hφ ▸ mem_annihilator_homology (R := R) (M := Fin l.length → R) (x := l.get) φ i
 
 end homology_annihilator
 
