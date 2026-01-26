@@ -36,6 +36,7 @@ lemma spanFinrank_le_of_surjective {R : Type*} [CommRing R] [IsNoetherianRing R]
     (f : R →+* R') (surj : Function.Surjective f) :
     (maximalIdeal R').spanFinrank ≤ (maximalIdeal R).spanFinrank := by
   sorry
+
 lemma spanFinrank_eq_of_surjective_of_ker_le {R : Type*} [CommRing R] [IsNoetherianRing R]
     [IsLocalRing R] {R' : Type*} [CommRing R'] [IsNoetherianRing R'] [IsLocalRing R']
     (f : R →+* R') (surj : Function.Surjective f) (le : RingHom.ker f ≤ (maximalIdeal R) ^ 2) :
@@ -132,9 +133,10 @@ lemma epsilon1_add_ringKrullDim_eq_spanFinrank_add_spanFinrank (S : Type u) [Com
 lemma adicCompletion_epsilon1_eq : Epsilon1 (AdicCompletion (maximalIdeal R) R) = Epsilon1 R := by
   sorry
 
+attribute [local instance] isCohenMacaulayLocalRing_of_isRegularLocalRing in
 lemma epsilon1_add_ringKrullDim_ge :
     Epsilon1 R + ringKrullDim R ≥ (maximalIdeal R).spanFinrank := by
-  rcases exist_isRegularLocalRing_surjective_adicCompletion_ker_le R with ⟨S, _, _, f, surj, le⟩
+  rcases exist_isRegularLocalRing_surjective_adicCompletion_ker_le R with ⟨S, _, reg, f, surj, le⟩
   let e := RingHom.quotientKerEquivOfSurjective surj
   let _ : Nontrivial (S ⧸ RingHom.ker f) := e.nontrivial
   have ne : RingHom.ker f ≠ ⊤ := by simpa [← Submodule.Quotient.nontrivial_iff]
@@ -147,8 +149,10 @@ lemma epsilon1_add_ringKrullDim_ge :
     ← ringKrullDim_eq_of_ringEquiv e, epsilon1_eq_spanFinrank S (RingHom.ker f) le, ge_iff_le]
   apply le_trans _ (add_le_add_left (WithBot.coe_le_coe.mpr (Ideal.height_le_spanFinrank _ ne))
     (ringKrullDim (S ⧸ RingHom.ker f)))
-  --use catenary from CM to obtain `ht(I) = dim(S) - dim(R)`
-  sorry
+  rw [Ideal.height_add_ringKrullDim_quotient_eq_ringKrullDim _ ne]
+  simp only [← (isRegularLocalRing_def S).mp reg, Nat.cast_le]
+  --rw [spanFinrank_eq_of_surjective_of_ker_le f surj le]
+  exact spanFinrank_le_of_surjective f surj
 
 end epsilon1
 
@@ -168,20 +172,45 @@ lemma isCompleteIntersectionLocalRing_of_ringEquiv {R : Type*} [CommRing R] [IsN
     ← ringKrullDim_eq_of_ringEquiv e, ← spanFinrank_eq_of_ringEquiv e]
     using (isCompleteIntersectionLocalRing_def R).mp ‹_›
 
+attribute [local instance] isCohenMacaulayLocalRing_of_isRegularLocalRing in
 lemma quotient_isCompleteIntersectionLocalRing (S : Type u) [CommRing S] [IsRegularLocalRing S]
     (I : Ideal S) [IsCompleteIntersectionLocalRing (S ⧸ I)] :
     ∃ (rs : List S), I = Ideal.ofList rs ∧ IsRegular S rs := by
-  have : I.height = I.spanFinrank := by
-    have ne : I ≠ ⊤ :=  Submodule.Quotient.nontrivial_iff.mp inferInstance
-    have := epsilon1_add_ringKrullDim_eq_spanFinrank_add_spanFinrank S I ne
-    rw [← (isCompleteIntersectionLocalRing_def (S ⧸ I)).mp ‹_›] at this
-    rw [add_comm (Epsilon1 (S ⧸ I) : WithBot ℕ∞), add_comm (Epsilon1 (S ⧸ I) : WithBot ℕ∞),
-      ← add_assoc] at this
-
-    --from CM, `I.height + ringKrullDim (S ⧸ I) = ringKrullDim S`
-    sorry
-  -- generate by regular by results in CM
-  sorry
+  obtain ⟨d, hd⟩ : ∃ (d : ℕ), ringKrullDim (S ⧸ I) = d := by
+    generalize hn : ringKrullDim (S ⧸ I) = n
+    induction n with
+    | bot =>
+      absurd hn
+      exact ringKrullDim_ne_bot
+    | coe n =>
+      induction n with
+      | top =>
+        absurd hn
+        exact ringKrullDim_ne_top
+      | coe n => exact ⟨n, rfl⟩
+  have ne : I ≠ ⊤ :=  Submodule.Quotient.nontrivial_iff.mp inferInstance
+  have := epsilon1_add_ringKrullDim_eq_spanFinrank_add_spanFinrank S I ne
+  rw [← (isCompleteIntersectionLocalRing_def (S ⧸ I)).mp ‹_›,
+    add_comm (Epsilon1 (S ⧸ I) : WithBot ℕ∞), add_comm (Epsilon1 (S ⧸ I) : WithBot ℕ∞),
+    ← add_assoc, WithBot.add_natCast_cancel,
+    ← Ideal.height_add_ringKrullDim_quotient_eq_ringKrullDim I ne, hd,
+    WithBot.add_natCast_cancel] at this
+  let fin := Submodule.FG.finite_generators I.fg_of_isNoetherianRing
+  let _ : Fintype I.generators := fin.fintype
+  let rs := I.generators.toFinset.toList
+  have spaneq : Ideal.ofList rs = I := by
+    simpa [Ideal.ofList, rs] using I.span_generators
+  use rs
+  refine ⟨spaneq.symm, ?_⟩
+  have mem : ∀ r ∈ rs, r ∈ maximalIdeal S := by
+    intro r hr
+    simp only [Finset.mem_toList, Set.mem_toFinset, rs] at hr
+    exact le_maximalIdeal ne (Submodule.FG.generators_mem I hr)
+  apply isRegular_of_ofList_height_eq_length_of_isCohenMacaulayLocalRing rs mem
+  simp only [spaneq, Finset.length_toList, ← Set.ncard_eq_toFinset_card',
+    Submodule.FG.generators_ncard I.fg_of_isNoetherianRing, rs]
+  rw [← WithBot.coe_inj, this]
+  rfl
 
 lemma adicCompletion_isCompleteIntersectionLocalRing_iff :
     IsCompleteIntersectionLocalRing R ↔
