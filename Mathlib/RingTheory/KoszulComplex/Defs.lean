@@ -26,7 +26,7 @@ public import Mathlib.Algebra.Category.ModuleCat.Monoidal.Basic
 
 universe u v w w'
 
-open CategoryTheory Category MonoidalCategory
+open CategoryTheory Category MonoidalCategory Limits
 
 section GradedAlgebra
 
@@ -129,5 +129,36 @@ noncomputable abbrev ofList (l : List R) :=
 
 def topHomologyLinearEquiv (l : List R) :
     (koszulComplex.ofList R l).homology l.length ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
+
+instance free [Module.Free R M] (x : M) (i : ℕ) : Module.Free R ((koszulComplex R x).X i) :=
+  inferInstanceAs <| Module.Free R (⋀[R]^i M)
+
+lemma X_isZero_of_card_generators_le (x : M) {ι : Type*} [Finite ι] (g : ι → M)
+    (hg : Submodule.span R (Set.range g) = ⊤) (i : ℕ) (hi : Nat.card ι < i) :
+    IsZero ((koszulComplex R x).X i) := by
+  classical
+  letI : Fintype ι := Fintype.ofFinite ι
+  letI : LinearOrder ι := LinearOrder.lift' (Fintype.equivFin ι) (Fintype.equivFin ι).injective
+  have hcard : Fintype.card ι < i := by simpa [Nat.card_eq_fintype_card] using hi
+  have hempty : IsEmpty (Fin i ↪o ι) := by
+    refine ⟨fun f ↦ ?_⟩
+    absurd f.injective
+    contrapose hcard
+    simpa using Fintype.card_le_of_injective f ‹_›
+  have hbotTop : (⊥ : Submodule R (⋀[R]^i M)) = ⊤ := by
+    rw [← exteriorPower.span_ιMulti_orderEmbedding_of_span_eq_top (R := R) (M := M) hg i]
+    convert Submodule.span_empty.symm
+    exact Set.range_eq_empty_iff.mpr hempty
+  have hSubsingleton : Subsingleton (⋀[R]^i M) :=
+    (Submodule.subsingleton_iff R).mp <| (subsingleton_iff_bot_eq_top).mp hbotTop
+  have hIsZero : IsZero (ModuleCat.of R (⋀[R]^i M)) :=
+    ModuleCat.isZero_of_iff_subsingleton.mpr hSubsingleton
+  simpa [koszulComplex, ModuleCat.exteriorPower] using hIsZero
+
+lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
+    IsZero ((koszulComplex.ofList R l).X i) :=
+  X_isZero_of_card_generators_le R l.get
+  (Pi.basisFun R (Fin l.length)) (Pi.basisFun R (Fin l.length)).span_eq i
+  (by simpa [Nat.card_eq_fintype_card] using hi)
 
 end koszulComplex

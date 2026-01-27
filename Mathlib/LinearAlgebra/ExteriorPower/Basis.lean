@@ -27,6 +27,10 @@ variable (R : Type u) [CommRing R] (M : Type v) [AddCommGroup M] [Module R M]
 
 namespace exteriorPower
 
+lemma span_ιMulti_orderEmbedding_of_span_eq_top {ι : Type*} [LinearOrder ι] {g : ι → M}
+    (hg : Submodule.span R (Set.range g) = ⊤) (n : ℕ) :
+    Submodule.span R (Set.range (fun (x : Fin n ↪o ι) ↦ ιMulti R _ (g ∘ x))) = ⊤ := sorry
+
 /-- Given a linearly ordered basis `b : Module.Basis ι R M`, the `n`th exterior power `⋀[R]^n M`
 has a basis indexed by order embeddings `Fin n ↪o ι`. -/
 noncomputable def basis {ι : Type*} [LinearOrder ι] (b : Module.Basis ι R M) (n : ℕ) :
