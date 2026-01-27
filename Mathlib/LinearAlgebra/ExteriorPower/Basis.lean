@@ -31,13 +31,9 @@ noncomputable def basis {ι : Type*} [LinearOrder ι] (b : Module.Basis ι R M) 
     Module.Basis (Fin n ↪o ι) R (⋀[R]^n M) := by
   let e : (Fin n ↪o ι) → ⋀[R]^n M := fun a ↦ ιMulti R n (fun i ↦ b (a i))
   refine Module.Basis.mk (v := e) ?_ ?_
-  · have h₁ : ∀ i : ι, b.coord i (b i) = (1 : R) := by
-      intro i
-      simp [Module.Basis.coord]
-    have h₀ : ∀ i j : ι, i ≠ j → b.coord i (b j) = (0 : R) := by
-      intro i j hij
-      simp [Module.Basis.coord, hij]
-    refine (linearIndependent_iff).2 fun l hl ↦ Finsupp.ext fun a0 ↦ ?_
+  · refine (linearIndependent_iff).2 fun l hl ↦ Finsupp.ext fun a0 ↦ ?_
+    have h₁ (i : ι) : b.coord i (b i) = (1 : R) := by simp [Module.Basis.coord]
+    have h₀ (i j : ι) (hij : i ≠ j) : b.coord i (b j) = (0 : R) := by simp [Module.Basis.coord, hij]
     let φ : ⋀[R]^n M →ₗ[R] R := pairingDual R M n (ιMulti R n (fun i ↦ b.coord (a0 i)))
     have hx : φ ((Finsupp.linearCombination R e) l) = 0 := by simpa using congr(φ $hl)
     have hx' : φ ((Finsupp.linearCombination R e) l) = l a0 := by
@@ -51,27 +47,25 @@ noncomputable def basis {ι : Type*} [LinearOrder ι] (b : Module.Basis ι R M) 
     exact hx'.symm.trans hx
   · let S : Submodule R (⋀[R]^n M) := Submodule.span R (Set.range e)
     have mem_S_of_injective (v : Fin n → ι) (hv : Function.Injective v) :
-        ιMulti R n (fun i ↦ b (v i)) ∈ S := by
+        ιMulti R n (b ∘ v) ∈ S := by
       let σ : Equiv.Perm (Fin n) := Tuple.sort v
       have hmono : Monotone (v ∘ σ) := Tuple.monotone_sort v
       have hinj : Function.Injective (v ∘ σ) := hv.comp σ.injective
       let a : Fin n ↪o ι := OrderEmbedding.ofStrictMono (v ∘ σ) (hmono.strictMono_of_injective hinj)
-      have hperm :
-          ιMulti R n (fun i ↦ b (v i)) = Equiv.Perm.sign σ • ιMulti R n (fun i ↦ b (a i)) := by
+      have hperm : ιMulti R n (b ∘ v) = Equiv.Perm.sign σ • ιMulti R n (b ∘ a) := by
         rw [← Equiv.Perm.sign_inv]
-        convert (AlternatingMap.map_perm (g := ιMulti R n) (v := fun i ↦ b (a i))
-              (σ := (σ⁻¹ : Equiv.Perm (Fin n))))
-        simp [a]
+        convert AlternatingMap.map_perm (ιMulti R n) (b ∘ a) σ⁻¹
+        simp [a, Function.comp_assoc]
       rw [hperm]
       exact S.smul_mem _ (Submodule.subset_span ⟨a, rfl⟩)
     let ψ : M [⋀^Fin n]→ₗ[R] (⋀[R]^n M ⧸ S) := S.mkQ.compAlternatingMap (ιMulti R n)
     have hψ : ψ = 0 := by
-      refine (Module.Basis.ext_alternating (ι := Fin n) (e := b) (f := ψ) (g := 0) fun v hv ↦ ?_)
+      refine Module.Basis.ext_alternating b fun v hv ↦ ?_
       simpa [ψ] using (Submodule.Quotient.mk_eq_zero S).2 (mem_S_of_injective v hv)
     have hrange : Set.range (ιMulti R n (M := M)) ⊆ S := by
       rintro _ ⟨m, rfl⟩
       exact (Submodule.Quotient.mk_eq_zero S).1 (show ψ m = 0 from by simp [hψ])
-    simpa [S, ιMulti_span (R := R) (n := n) (M := M)] using Submodule.span_le.mpr hrange
+    simpa [S, ιMulti_span R n M] using Submodule.span_le.mpr hrange
 
 end exteriorPower
 
