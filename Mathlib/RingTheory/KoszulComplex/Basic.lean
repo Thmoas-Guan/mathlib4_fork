@@ -71,8 +71,4 @@ theorem koszulComplex.exactAt_of_ne_length_of_isRegular (rs : List R) (reg : IsR
     (i : ℕ) (lt : i ≠ rs.length) : (koszulComplex.ofList R rs).ExactAt i := by
   sorry
 
-lemma koszulComplex.free_of_free (M : Type u) [AddCommGroup M] [Module R M] [Module.Free R M]
-    (x : M) (i : ℕ) : Module.Free R ((koszulComplex R x).X i) :=
-  inferInstanceAs <| Module.Free R (⋀[R]^i M)
-
 end IsRegular
