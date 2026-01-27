@@ -5,8 +5,7 @@ Authors: Jingting Wang, Nailin Guan
 -/
 module
 
-public import Mathlib.LinearAlgebra.ExteriorPower.Basic
-public import Mathlib.LinearAlgebra.ExteriorPower.Pairing
+public import Mathlib.LinearAlgebra.ExteriorPower.Basis
 public import Mathlib.LinearAlgebra.ExteriorAlgebra.Grading
 public import Mathlib.Algebra.Category.ModuleCat.Abelian
 public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
@@ -18,7 +17,6 @@ public import Mathlib.Algebra.Homology.ShortComplex.HomologicalComplex
 public import Mathlib.Algebra.Module.SpanRank
 public import Mathlib.RingTheory.Regular.RegularSequence
 public import Mathlib.Algebra.Category.ModuleCat.Monoidal.Basic
-public import Mathlib.Data.Fin.Tuple.Sort
 
 /-!
 # Definition of Koszul complex
@@ -56,113 +54,6 @@ end ModuleCat
 section
 
 variable (R : Type u) [CommRing R] (M : Type v) [AddCommGroup M] [Module R M]
-
-abbrev ExteriorAlgebra.ι₁ : M →ₗ[R] ⋀[R]^1 M :=
-  (ExteriorAlgebra.ι R).codRestrict _ (fun c ↦ by
-    rw [exteriorPower, Submodule.pow_one]
-    exact ⟨c, rfl⟩)
-
-namespace exteriorPower
-
-variable {ι : Type*} [LinearOrder ι]
-
--- to be golfed
-/-- Given a linearly ordered basis `b : Module.Basis ι R M`, the `n`th exterior power `⋀[R]^n M`
-has a basis indexed by order embeddings `Fin n ↪o ι`. -/
-noncomputable def basis (b : Module.Basis ι R M) (n : ℕ) :
-    Module.Basis (Fin n ↪o ι) R (⋀[R]^n M) := by
-  let e : (Fin n ↪o ι) → ⋀[R]^n M := fun a ↦ ιMulti R n (fun i ↦ b (a i))
-  let S : Submodule R (⋀[R]^n M) := Submodule.span R (Set.range e)
-  have h₁ : ∀ i : ι, b.coord i (b i) = (1 : R) := by
-    intro i
-    simp [Module.Basis.coord]
-  have h₀ : ∀ ⦃i j : ι⦄, i ≠ j → b.coord i (b j) = (0 : R) := by
-    intro i j hij
-    simp [Module.Basis.coord, hij]
-  have mem_S_of_injective (v : Fin n → ι) (hv : Function.Injective v) :
-      ιMulti R n (fun i ↦ b (v i)) ∈ S := by
-    let σ : Equiv.Perm (Fin n) := Tuple.sort v
-    have hmono : Monotone (v ∘ σ) := Tuple.monotone_sort v
-    have hinj : Function.Injective (v ∘ σ) := hv.comp σ.injective
-    let a : Fin n ↪o ι := OrderEmbedding.ofStrictMono (v ∘ σ) (hmono.strictMono_of_injective hinj)
-    have hperm :
-        ιMulti R n (fun i ↦ b (v i)) = Equiv.Perm.sign σ • ιMulti R n (fun i ↦ b (a i)) := by
-      have hperm' :
-          ιMulti R n (fun i ↦ b (a ((Equiv.symm σ) i))) =
-            Equiv.Perm.sign σ • ιMulti R n (fun i ↦ b (a i)) := by
-        simpa using
-          (AlternatingMap.map_perm (g := ιMulti R n) (v := fun i ↦ b (a i))
-            (σ := (σ⁻¹ : Equiv.Perm (Fin n))))
-      have hcomp : (fun i ↦ b (a ((Equiv.symm σ) i))) = fun i ↦ b (v i) := by
-        ext i
-        simp [a, Function.comp]
-      simpa [hcomp] using hperm'
-    rw [hperm]
-    refine S.smul_mem _ (Submodule.subset_span ?_)
-    exact ⟨a, rfl⟩
-  have hli : LinearIndependent R e := by
-    refine (linearIndependent_iff).2 ?_
-    intro l hl
-    ext a0
-    let φ : ⋀[R]^n M →ₗ[R] R := pairingDual R M n (ιMulti R n (fun i ↦ b.coord (a0 i)))
-    have hx : φ ((Finsupp.linearCombination R e) l) = 0 := by
-      simpa using congrArg (fun x ↦ φ x) hl
-    have hx' : φ ((Finsupp.linearCombination R e) l) = l a0 := by
-      simp only [Finsupp.linearCombination_apply]
-      simp_rw [map_finsuppSum, map_smul]
-      refine (Finsupp.sum_eq_single a0 ?_ ?_).trans ?_
-      · intro a ha hne
-        have : φ (e a) = (0 : R) := by
-          dsimp [φ, e]
-          exact
-            pairingDual_apply_apply_eq_one_zero (R := R) (M := M) (ι := ι) (x := b)
-              (f := fun i ↦ b.coord i) (n := n) (h₀ := by
-                intro i j hij; exact h₀ hij) a0 a hne.symm
-        simp [this]
-      · intro ha0
-        simp
-      · have : φ (e a0) = 1 := by
-          dsimp [φ, e]
-          exact
-            pairingDual_apply_apply_eq_one (R := R) (M := M) (ι := ι) (x := b)
-              (f := fun i ↦ b.coord i) h₁ (by
-                intro i j hij; exact h₀ hij) n a0
-        simp [this, smul_eq_mul]
-    exact by simpa [hx', Finsupp.zero_apply] using hx
-  have hsp : (⊤ : Submodule R (⋀[R]^n M)) ≤ S := by
-    let π : ⋀[R]^n M →ₗ[R] (⋀[R]^n M ⧸ S) := S.mkQ
-    let ψ : M [⋀^Fin n]→ₗ[R] (⋀[R]^n M ⧸ S) := π.compAlternatingMap (ιMulti R n)
-    have hψ : ψ = 0 := by
-      refine (Module.Basis.ext_alternating (ι := Fin n) (e := b) (f := ψ) (g := 0) ?_)
-      intro v hv
-      have hvmem : ιMulti R n (fun i ↦ b (v i)) ∈ S :=
-        mem_S_of_injective v hv
-      have : π (ιMulti R n (fun i ↦ b (v i))) = 0 := by
-        simpa [π, Submodule.mkQ_apply] using (Submodule.Quotient.mk_eq_zero S).2 hvmem
-      simpa [ψ, Function.comp] using this
-    have hrange : Set.range (ιMulti R n (M := M)) ⊆ S := by
-      rintro _ ⟨m, rfl⟩
-      have : ψ m = 0 := by
-        simp [hψ]
-      have : π (ιMulti R n m) = 0 := by
-        simpa [ψ] using this
-      have : Submodule.Quotient.mk (p := S) (ιMulti R n m) = 0 := by
-        simpa [π, Submodule.mkQ_apply] using this
-      exact (Submodule.Quotient.mk_eq_zero S).1 this
-    have hspanle : Submodule.span R (Set.range (ιMulti R n (M := M))) ≤ S :=
-      Submodule.span_le.2 hrange
-    simpa [S, ιMulti_span (R := R) (n := n) (M := M)] using hspanle
-  exact Module.Basis.mk hli (by simpa [S] using hsp)
-
-end exteriorPower
-
-instance Module.Free.exteriorPower (n : ℕ) [Module.Free R M] : Module.Free R (⋀[R]^n M) := by
-  classical
-  let ι := Module.Free.ChooseBasisIndex R M
-  letI : LinearOrder ι := linearOrderOfSTO (WellOrderingRel (α := ι))
-  exact
-    Module.Free.of_basis
-      (exteriorPower.basis (R := R) (M := M) (ι := ι) (Module.Free.chooseBasis R M) n)
 
 variable {M} in
 noncomputable def koszulComplex (x : M) :
