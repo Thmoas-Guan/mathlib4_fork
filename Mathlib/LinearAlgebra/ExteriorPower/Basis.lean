@@ -15,6 +15,8 @@ public import Mathlib.Data.Fin.Tuple.Sort
 
 In this file we construct a basis of the exterior power `⋀[R]^n M` given a linearly ordered
 basis of `M`, and deduce that exterior powers of free modules are free.
+
+Note: Joel Riou is PRing this at #18771
 -/
 
 @[expose] public section
