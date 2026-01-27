@@ -5,7 +5,7 @@ Authors: Nailin Guan
 -/
 module
 
-public import Mathlib.RingTheory.AdicCompletion.LocalRing
+public import Mathlib.RingTheory.AdicCompletion.Noetherian
 public import Mathlib.RingTheory.RegularLocalRing.Basic
 
 /-!
@@ -37,13 +37,11 @@ lemma exist_isRegularLocalRing_surjective_ker_le_of_isAdicComplete
 
 lemma exist_isRegularLocalRing_surjective_adicCompletion :
     ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S)
-    (f : S →+* (AdicCompletion (maximalIdeal R) R)), Function.Surjective f := by
-  -- use `exist_isRegularLocalRing_surjective_of_isAdicComplete`
-  sorry
+    (f : S →+* (AdicCompletion (maximalIdeal R) R)), Function.Surjective f :=
+  exist_isRegularLocalRing_surjective_of_isAdicComplete _
 
 lemma exist_isRegularLocalRing_surjective_adicCompletion_ker_le :
     ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S)
     (f : S →+* (AdicCompletion (maximalIdeal R) R)),
-    Function.Surjective f ∧ RingHom.ker f ≤ (maximalIdeal S) ^ 2 := by
-  -- use `exist_isRegularLocalRing_surjective_ker_le_of_isAdicComplete`
-  sorry
+    Function.Surjective f ∧ RingHom.ker f ≤ (maximalIdeal S) ^ 2 :=
+  exist_isRegularLocalRing_surjective_ker_le_of_isAdicComplete _
