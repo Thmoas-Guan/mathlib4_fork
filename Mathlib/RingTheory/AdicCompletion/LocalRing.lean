@@ -5,8 +5,8 @@ Authors: Nailin Guan
 -/
 module
 
-public import Mathlib.RingTheory.AdicCompletion.Basic
-public import Mathlib.RingTheory.LocalRing.Defs
+public import Mathlib.RingTheory.AdicCompletion.Algebra
+public import Mathlib.RingTheory.LocalRing.MaximalIdeal.Basic
 
 /-!
 # Basic Properties of Complete Local Ring
@@ -82,3 +82,32 @@ theorem isLocalRing_of_isAdicComplete_maximal [IsAdicComplete m R] : IsLocalRing
     by_contra! h
     absurd m.add_mem h.1 h.2
     simpa [hab] using m.ne_top_iff_one.mp (Ideal.IsMaximal.ne_top hmax)
+
+open IsLocalRing
+
+variable (I : Ideal R)
+
+variable (M : Type*) [AddCommGroup M] [Module R M]
+
+lemma AdicCompletion.ker_eval (fg : I.FG) (n : ℕ) :
+    (AdicCompletion.eval I M n).ker = (I ^ n) • (⊤ : Submodule R _) := by
+  sorry
+
+lemma AdicCompletion.isAdicComplete (fg : I.FG) : IsAdicComplete I (AdicCompletion I M) := by
+  sorry
+
+lemma AdicCompletion.isAdicComplete_self (fg : I.FG) :
+    IsAdicComplete (I.map (algebraMap R (AdicCompletion I R))) (AdicCompletion I R) := by
+  sorry
+
+lemma AdicCompletion.isMaximal_map [IsNoetherianRing R] [IsLocalRing R] :
+    ((maximalIdeal R).map (algebraMap R (AdicCompletion I R))).IsMaximal := by
+  sorry
+
+instance [IsNoetherianRing R] [IsLocalRing R] :
+    IsLocalRing (AdicCompletion (maximalIdeal R) R) := by
+  sorry
+
+instance [IsNoetherianRing R] [IsLocalRing R] : IsAdicComplete
+    (maximalIdeal (AdicCompletion (maximalIdeal R) R)) (AdicCompletion (maximalIdeal R) R) := by
+  sorry
