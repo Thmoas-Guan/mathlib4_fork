@@ -5930,6 +5930,7 @@ public import Mathlib.RingTheory.Coalgebra.TensorProduct
 public import Mathlib.RingTheory.CohenMacaulay.Basic
 public import Mathlib.RingTheory.CohenMacaulay.Catenary
 public import Mathlib.RingTheory.CohenMacaulay.Maximal
+public import Mathlib.RingTheory.CohenStructureTheorem
 public import Mathlib.RingTheory.CompleteIntersection.Basic
 public import Mathlib.RingTheory.Complex
 public import Mathlib.RingTheory.Conductor
