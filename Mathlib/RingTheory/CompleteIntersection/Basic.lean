@@ -6,9 +6,12 @@ Authors: Nailin Guan
 module
 
 public import Mathlib.RingTheory.AdicCompletion.Algebra
+public import Mathlib.RingTheory.AdicCompletion.LocalRing
+public import Mathlib.RingTheory.AdicCompletion.Noetherian
 public import Mathlib.RingTheory.Regular.RegularSequence
 public import Mathlib.RingTheory.CohenMacaulay.Catenary
 public import Mathlib.RingTheory.CohenMacaulay.Maximal
+public import Mathlib.RingTheory.CohenStructureTheorem
 public import Mathlib.RingTheory.KoszulComplex.Defs
 
 /-!
@@ -122,12 +125,11 @@ lemma epsilon1_add_ringKrullDim_ge :
   rw [← adicCompletion_epsilon1_eq, ← ringKrullDim_adicCompletion_eq,
     ← spanFinrank_maximalIdeal_adicCompletion_eq, ← epsilon1_eq_of_ringEquiv e,
     ← ringKrullDim_eq_of_ringEquiv e, epsilon1_eq_spanFinrank S (RingHom.ker f) le, ge_iff_le]
-  apply le_trans _ (add_le_add_left (WithBot.coe_le_coe.mpr (Ideal.height_le_spanFinrank _ ne))
-    (ringKrullDim (S ⧸ RingHom.ker f)))
+  apply le_of_eq_of_le _ (add_le_add_left
+    (WithBot.coe_le_coe.mpr (Ideal.height_le_spanFinrank _ ne)) (ringKrullDim (S ⧸ RingHom.ker f)))
   rw [Ideal.height_add_ringKrullDim_quotient_eq_ringKrullDim _ ne]
-  simp only [← (isRegularLocalRing_def S).mp reg, Nat.cast_le]
-  --rw [spanFinrank_eq_of_surjective_of_ker_le f surj le]
-  exact spanFinrank_le_of_surjective f surj
+  simp only [← (isRegularLocalRing_def S).mp reg, Nat.cast_inj]
+  rw [spanFinrank_eq_of_surjective_of_ker_le f surj le]
 
 end epsilon1
 
