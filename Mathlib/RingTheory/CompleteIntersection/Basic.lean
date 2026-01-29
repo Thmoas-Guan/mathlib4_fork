@@ -12,7 +12,7 @@ public import Mathlib.RingTheory.Regular.RegularSequence
 public import Mathlib.RingTheory.CohenMacaulay.Catenary
 public import Mathlib.RingTheory.CohenMacaulay.Maximal
 public import Mathlib.RingTheory.CohenStructureTheorem
-public import Mathlib.RingTheory.KoszulComplex.Defs
+public import Mathlib.RingTheory.KoszulComplex.Basic
 
 /-!
 
@@ -73,7 +73,21 @@ lemma spanFinrank_maximalIdeal_adicCompletion_eq :
 
 end preliminaries
 
-def Epsilon1 [IsNoetherianRing R] [IsLocalRing R] : ℕ := sorry
+noncomputable abbrev koszulAlgebra [IsNoetherianRing R] [IsLocalRing R] :=
+  koszulComplex.ofList R (maximalIdeal R).finite_generators_of_isNoetherian.toFinset.toList
+
+lemma koszulAlgebra.annihilator_homology [IsNoetherianRing R] [IsLocalRing R] (i : ℕ) :
+    maximalIdeal R ≤ Module.annihilator R ((koszulAlgebra R).homology i) := by
+  apply le_of_eq_of_le _ (koszulComplex.mem_annihilator_homology_ofList R _ i)
+  simpa [Ideal.ofList] using (maximalIdeal R).span_generators.symm
+
+noncomputable instance [IsNoetherianRing R] [IsLocalRing R] (i : ℕ) :
+    Module (ResidueField R) ((koszulAlgebra R).homology i) :=
+  Module.IsTorsionBySet.module (fun x a ↦
+    Module.mem_annihilator.mp ((koszulAlgebra.annihilator_homology R i) a.2) x)
+
+noncomputable def Epsilon1 [IsNoetherianRing R] [IsLocalRing R] : ℕ :=
+  Module.finrank (ResidueField R) ((koszulAlgebra R).homology ((maximalIdeal R).spanFinrank - 1))
 
 lemma epsilon1_eq_of_ringEquiv {R : Type*} [CommRing R] [IsNoetherianRing R] [IsLocalRing R]
     {R' : Type*} [CommRing R'] [IsNoetherianRing R'] [IsLocalRing R'] (e : R ≃+* R') :
