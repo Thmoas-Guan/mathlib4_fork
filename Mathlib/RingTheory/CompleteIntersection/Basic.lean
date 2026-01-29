@@ -103,7 +103,6 @@ lemma epsilon1_add_ringKrullDim_ge :
   rcases exist_isRegularLocalRing_surjective_adicCompletion_ker_le R with ⟨S, _, reg, f, surj, le⟩
   let e := RingHom.quotientKerEquivOfSurjective surj
   let _ : Nontrivial (S ⧸ RingHom.ker f) := e.nontrivial
-  have ne : RingHom.ker f ≠ ⊤ := by simpa [← Submodule.Quotient.nontrivial_iff]
   let _ : IsLocalRing (S ⧸ RingHom.ker f) :=
     have : IsLocalHom (Ideal.Quotient.mk (RingHom.ker f)) :=
       IsLocalHom.of_surjective _ Ideal.Quotient.mk_surjective
@@ -111,9 +110,9 @@ lemma epsilon1_add_ringKrullDim_ge :
   rw [← adicCompletion_epsilon1_eq, ← ringKrullDim_adicCompletion_eq,
     ← spanFinrank_maximalIdeal_adicCompletion_eq, ← epsilon1_eq_of_ringEquiv e,
     ← ringKrullDim_eq_of_ringEquiv e, epsilon1_eq_spanFinrank S (RingHom.ker f) le, ge_iff_le]
-  apply le_of_eq_of_le _ (add_le_add_left
-    (WithBot.coe_le_coe.mpr (Ideal.height_le_spanFinrank _ ne)) (ringKrullDim (S ⧸ RingHom.ker f)))
-  rw [Ideal.height_add_ringKrullDim_quotient_eq_ringKrullDim _ ne]
+  apply le_of_eq_of_le _ (add_le_add_left (WithBot.coe_le_coe.mpr
+    (Ideal.height_le_spanFinrank _ (RingHom.ker_ne_top f))) (ringKrullDim (S ⧸ RingHom.ker f)))
+  rw [Ideal.height_add_ringKrullDim_quotient_eq_ringKrullDim _ (RingHom.ker_ne_top f)]
   simp only [← (isRegularLocalRing_def S).mp reg, Nat.cast_inj]
   rw [spanFinrank_eq_of_surjective_of_ker_le f surj le]
 
@@ -181,9 +180,46 @@ lemma adicCompletion_isCompleteIntersectionLocalRing_iff :
   simp [isCompleteIntersectionLocalRing_def, adicCompletion_epsilon1_eq,
     spanFinrank_maximalIdeal_adicCompletion_eq, ringKrullDim_adicCompletion_eq]
 
+attribute [local instance] isCohenMacaulayLocalRing_of_isRegularLocalRing in
 theorem isCompleteIntersectionLocalRing_iff :
     IsCompleteIntersectionLocalRing R ↔
-    ∃ (S : Type u) (_ : CommRing S) (f : S →+* (AdicCompletion (maximalIdeal R) R)) (rs : List S),
-      IsRegularLocalRing S ∧ Function.Surjective f ∧
+    ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S)
+      (f : S →+* (AdicCompletion (maximalIdeal R) R)) (rs : List S), Function.Surjective f ∧
       RingHom.ker f = Ideal.ofList rs ∧ IsRegular S rs := by
-  sorry
+  rw [adicCompletion_isCompleteIntersectionLocalRing_iff]
+  refine ⟨fun h ↦ ?_, fun ⟨S, _, regS, f, rs, surj, hrs, reg⟩ ↦ ?_⟩
+  · rcases exist_isRegularLocalRing_surjective_adicCompletion R with ⟨S, _, regS, f, surj⟩
+    let e := RingHom.quotientKerEquivOfSurjective surj
+    let _ : Nontrivial (S ⧸ RingHom.ker f) := e.nontrivial
+    let _ : IsLocalRing (S ⧸ RingHom.ker f) :=
+      have : IsLocalHom (Ideal.Quotient.mk (RingHom.ker f)) :=
+        IsLocalHom.of_surjective _ Ideal.Quotient.mk_surjective
+      IsLocalRing.of_surjective (Ideal.Quotient.mk (RingHom.ker f)) Ideal.Quotient.mk_surjective
+    let _ := isCompleteIntersectionLocalRing_of_ringEquiv e.symm
+    rcases quotient_isCompleteIntersectionLocalRing S (RingHom.ker f) with ⟨rs, hrs⟩
+    use S, inferInstance, inferInstance, f, rs
+  · let e := RingHom.quotientKerEquivOfSurjective surj
+    let _ : Nontrivial (S ⧸ RingHom.ker f) := e.nontrivial
+    let _ : IsLocalRing (S ⧸ RingHom.ker f) :=
+      have : IsLocalHom (Ideal.Quotient.mk (RingHom.ker f)) :=
+        IsLocalHom.of_surjective _ Ideal.Quotient.mk_surjective
+      IsLocalRing.of_surjective (Ideal.Quotient.mk (RingHom.ker f)) Ideal.Quotient.mk_surjective
+    have eqht : ((RingHom.ker f).spanFinrank : WithBot ℕ∞) = (RingHom.ker f).height := by
+      change (((RingHom.ker f).spanFinrank : ℕ∞) : WithBot ℕ∞) = _
+      simp only [WithBot.coe_inj]
+      classical
+      apply le_antisymm _ (Ideal.height_le_spanFinrank _ (RingHom.ker_ne_top f))
+      have : Ideal.span (rs.toFinset : Set S) = RingHom.ker f := by simp [hrs]
+      nth_rw 2 [hrs]
+      rw [Ideal.ofList_height_eq_length_of_isWeaklyRegular rs reg.1 (by simpa using reg.2.symm),
+        Nat.cast_le, ← this]
+      exact le_trans (Submodule.spanFinrank_span_le_ncard_of_finite rs.toFinset.finite_toSet)
+        (le_of_eq_of_le (Set.ncard_coe_finset rs.toFinset) rs.toFinset_card_le)
+    let _ : IsCompleteIntersectionLocalRing (S ⧸ RingHom.ker f) := by
+      rw [isCompleteIntersectionLocalRing_def,
+        ← WithBot.add_natCast_cancel (c := (maximalIdeal S).spanFinrank),
+        (isRegularLocalRing_def S).mp regS, add_assoc, add_comm _ (ringKrullDim _), ← add_assoc,
+        epsilon1_add_ringKrullDim_eq_spanFinrank_add_spanFinrank _ _ (RingHom.ker_ne_top f),
+        add_assoc, add_comm _ (ringKrullDim (S ⧸ RingHom.ker f)), ← add_assoc, eqht,
+        Ideal.height_add_ringKrullDim_quotient_eq_ringKrullDim _ (RingHom.ker_ne_top f), add_comm]
+    exact isCompleteIntersectionLocalRing_of_ringEquiv e
