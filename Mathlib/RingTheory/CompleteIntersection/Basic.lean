@@ -27,26 +27,6 @@ variable (R : Type u) [CommRing R]
 
 section preliminaries
 
-lemma spanFinrank_le_of_surjective {R : Type*} [CommRing R] [IsNoetherianRing R]
-    [IsLocalRing R] {R' : Type*} [CommRing R'] [IsNoetherianRing R'] [IsLocalRing R']
-    (f : R →+* R') (surj : Function.Surjective f) :
-    (maximalIdeal R').spanFinrank ≤ (maximalIdeal R).spanFinrank := by
-  let fin := Submodule.FG.finite_generators (maximalIdeal R).fg_of_isNoetherianRing
-  have hspan : Ideal.span (maximalIdeal R).generators = _ := (maximalIdeal R).span_generators
-  have hspan_t : Ideal.span (f '' (maximalIdeal R).generators) = maximalIdeal R' := by
-    simpa [← Ideal.map_span, hspan, ((local_hom_TFAE f).out 0 4).mp (surj.isLocalHom f)] using
-      (Ideal.map_comap_of_surjective f surj (maximalIdeal R'))
-  have hle : (maximalIdeal R').spanFinrank ≤ (f '' (maximalIdeal R).generators).ncard := by
-    simpa [← hspan_t] using (Submodule.spanFinrank_span_le_ncard_of_finite (fin.image _))
-  apply le_trans hle (le_of_le_of_eq (Set.ncard_image_le fin)
-    (Submodule.FG.generators_ncard (maximalIdeal R).fg_of_isNoetherianRing))
-
-lemma spanFinrank_eq_of_ringEquiv {R : Type*} [CommRing R] [IsNoetherianRing R]
-    [IsLocalRing R] {R' : Type*} [CommRing R'] [IsNoetherianRing R'] [IsLocalRing R']
-    (e : R ≃+* R') : (maximalIdeal R).spanFinrank = (maximalIdeal R').spanFinrank :=
-  le_antisymm (spanFinrank_le_of_surjective e.symm.toRingHom e.symm.surjective)
-    (spanFinrank_le_of_surjective e.toRingHom e.surjective)
-
 lemma spanFinrank_eq_of_surjective_of_ker_le {R : Type*} [CommRing R] [IsNoetherianRing R]
     [IsLocalRing R] {R' : Type*} [CommRing R'] [IsNoetherianRing R'] [IsLocalRing R']
     (f : R →+* R') (surj : Function.Surjective f) (le : RingHom.ker f ≤ (maximalIdeal R) ^ 2) :
@@ -77,13 +57,6 @@ lemma spanFinrank_eq_of_surjective_of_ker_le {R : Type*} [CommRing R] [IsNoether
 
 variable [IsNoetherianRing R] [IsLocalRing R]
 
-instance : IsNoetherianRing (AdicCompletion (maximalIdeal R) R) := sorry
-
-instance : IsLocalRing (AdicCompletion (maximalIdeal R) R) := sorry
-
-instance : IsAdicComplete (maximalIdeal (AdicCompletion (maximalIdeal R) R))
-    (AdicCompletion (maximalIdeal R) R) := sorry
-
 lemma ringKrullDim_adicCompletion_eq :
     ringKrullDim (AdicCompletion (maximalIdeal R) R) = ringKrullDim R := by
   --!!!
@@ -96,36 +69,6 @@ lemma spanFinrank_maximalIdeal_adicCompletion_eq :
   sorry
 
 end preliminaries
-
-section Cohen
-
-variable [IsNoetherianRing R] [IsLocalRing R]
-
-lemma exist_isRegularLocalRing_surjective_of_isAdicComplete [IsAdicComplete (maximalIdeal R) R] :
-    ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S) (f : S →+* R),
-    Function.Surjective f := by
-  sorry
-
-lemma exist_isRegularLocalRing_surjective_ker_le_of_isAdicComplete
-    [IsAdicComplete (maximalIdeal R) R] : ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S)
-    (f : S →+* R), Function.Surjective f ∧ RingHom.ker f ≤ (maximalIdeal S) ^ 2 := by
-  --quotient by elements outside of `m²`
-  sorry
-
-lemma exist_isRegularLocalRing_surjective_adicCompletion :
-    ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S)
-    (f : S →+* (AdicCompletion (maximalIdeal R) R)), Function.Surjective f := by
-  -- use `exist_isRegularLocalRing_surjective_of_isAdicComplete`
-  sorry
-
-lemma exist_isRegularLocalRing_surjective_adicCompletion_ker_le :
-    ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S)
-    (f : S →+* (AdicCompletion (maximalIdeal R) R)),
-    Function.Surjective f ∧ RingHom.ker f ≤ (maximalIdeal S) ^ 2 := by
-  -- use `exist_isRegularLocalRing_surjective_ker_le_of_isAdicComplete`
-  sorry
-
-end Cohen
 
 def Epsilon1 [IsNoetherianRing R] [IsLocalRing R] : ℕ := sorry
 
