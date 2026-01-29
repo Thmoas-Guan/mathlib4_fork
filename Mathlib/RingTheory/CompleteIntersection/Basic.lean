@@ -30,34 +30,6 @@ variable (R : Type u) [CommRing R]
 
 section preliminaries
 
-lemma spanFinrank_eq_of_surjective_of_ker_le {R : Type*} [CommRing R] [IsNoetherianRing R]
-    [IsLocalRing R] {R' : Type*} [CommRing R'] [IsNoetherianRing R'] [IsLocalRing R']
-    (f : R →+* R') (surj : Function.Surjective f) (le : RingHom.ker f ≤ (maximalIdeal R) ^ 2) :
-    (maximalIdeal R').spanFinrank = (maximalIdeal R).spanFinrank := by
-  classical
-  apply le_antisymm (spanFinrank_le_of_surjective f surj)
-  let fin := Submodule.FG.finite_generators (maximalIdeal R').fg_of_isNoetherianRing
-  let _ := fin.fintype
-  rcases surj.list_map (maximalIdeal R').generators.toFinset.toList with ⟨l, hl⟩
-  apply le_of_le_of_eq _ (Submodule.FG.generators_ncard (maximalIdeal R').fg_of_isNoetherianRing)
-  have leneq : l.length = (maximalIdeal R').generators.ncard := by
-    rw [← List.length_map (as := l) f, hl, Set.ncard_eq_toFinset_card', Finset.length_toList]
-  rw [← leneq]
-  have := ((local_hom_TFAE f).out 0 4).mp (surj.isLocalHom f)
-  have mapeq : (maximalIdeal R).map f = maximalIdeal R' := by
-    simpa [this] using Ideal.map_comap_of_surjective f surj (maximalIdeal R')
-  have hspan : Ideal.span (maximalIdeal R').generators = _ := (maximalIdeal R').span_generators
-  have supeq : Ideal.ofList l ⊔ RingHom.ker f = maximalIdeal R := by
-    simp [← Ideal.comap_map_of_surjective' f surj, Ideal.map_ofList, hl, Ideal.ofList, hspan, this]
-  have : Ideal.ofList l = maximalIdeal R :=
-    le_antisymm (by simp [← supeq]) (Submodule.le_of_le_smul_of_le_jacobson_bot
-      (maximalIdeal R).fg_of_isNoetherianRing (maximalIdeal_le_jacobson ⊥)
-      (le_of_eq_of_le supeq.symm (sup_le_sup_left (by simpa [← pow_two]) _)))
-  have spaneq : Submodule.span R (l.toFinset : Set R) = maximalIdeal R := by simp [← this]
-  rw [← spaneq]
-  apply le_trans (Submodule.spanFinrank_span_le_ncard_of_finite (Finset.finite_toSet _))
-  exact le_of_eq_of_le (Set.ncard_coe_finset _) (List.toFinset_card_le l)
-
 variable [IsNoetherianRing R] [IsLocalRing R]
 
 lemma ringKrullDim_adicCompletion_eq :
