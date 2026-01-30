@@ -101,6 +101,53 @@ lemma spanFinrank_eq_finrank_quotient [IsLocalRing R] {M : Type*} [AddCommGroup 
     exact (Submodule.spanFinrank_span_le_ncard_of_finite (hGfinite.image _)).trans
       (le_of_le_of_eq (Set.ncard_image_le hGfinite) hG_ncard)
 
+lemma spanFinrank_comap [IsNoetherianRing R] [IsLocalRing R] (x : R)
+    (I : Ideal (R ⧸ Ideal.span {x})) (ne : I ≠ ⊤)
+    (J : Ideal R) (eq : J = I.comap (Ideal.Quotient.mk (Ideal.span {x})))
+    (mem : x ∈ maximalIdeal R) (nmem : x ∉ maximalIdeal R * J) :
+    J.spanFinrank = I.spanFinrank + 1 := by
+  have le := (Ideal.span_singleton_le_iff_mem (maximalIdeal R)).mpr mem
+  let _ := Submodule.Quotient.nontrivial_iff.mpr (Ideal.span_singleton_ne_top mem)
+  let _ : IsLocalHom (Ideal.Quotient.mk (Ideal.span {x})) :=
+    IsLocalHom.of_surjective _ Ideal.Quotient.mk_surjective
+  let _ : IsLocalRing (R ⧸ Ideal.span {x}) :=
+    IsLocalRing.of_surjective (Ideal.Quotient.mk (Ideal.span {x})) Ideal.Quotient.mk_surjective
+  let m : Ideal R := maximalIdeal R
+  let S := R ⧸ Ideal.span {x}
+  have memJ : x ∈ J := by simp [eq]
+  let QJ := J ⧸ (maximalIdeal R • (⊤ : Submodule R J))
+  let QI := I ⧸ (maximalIdeal S • (⊤ : Submodule S I))
+  let q : R →ₗ[R] S := Submodule.mkQ (Ideal.span {x})
+  let qr : J →ₗ[R] I := q.restrict (q := I.restrictScalars R) (le_of_eq eq)
+  have le' : (maximalIdeal R • (⊤ : Submodule R I)) ≤
+    (maximalIdeal S • (⊤ : Submodule S I)).restrictScalars R := by
+    refine Submodule.smul_le.mpr (fun r hr z hz ↦ ?_)
+    simpa only [Submodule.restrictScalars_mem] using Submodule.smul_mem_smul
+      (map_nonunit (Ideal.Quotient.mk (Ideal.span {x})) r hr) Submodule.mem_top
+  let f : QJ →ₗ[R] QI := Submodule.mapQ (p := (maximalIdeal R • (⊤ : Submodule R J)))
+      (q := (maximalIdeal S • (⊤ : Submodule S I)).restrictScalars R) qr
+      ((Submodule.smul_top_le_comap_smul_top (maximalIdeal R) qr).trans (Submodule.comap_mono le'))
+  let QJx := Submodule.span (R ⧸ maximalIdeal R)
+    {Submodule.mkQ (maximalIdeal R • (⊤ : Submodule R J)) ⟨x, memJ⟩}
+  have mkeq1 (z : I) : (Submodule.Quotient.mk z : QI) = 0 ↔ z.1 ∈ maximalIdeal S * I := by
+
+    sorry
+  have mkeq2 (w  : J) : (Submodule.Quotient.mk w : QJ) = 0 ↔ w.1 ∈ maximalIdeal R * J := by
+
+    sorry
+  have kereq : (LinearMap.ker f : Set QJ) = QJx := by
+    simp only [QJx, Submodule.coe_span_eq_span_of_surjective R (R ⧸ maximalIdeal R)
+      Ideal.Quotient.mk_surjective, SetLike.coe_set_eq]
+    ext y
+    induction y using Submodule.Quotient.induction_on
+    rename_i y
+    simp only [LinearMap.mem_ker, Submodule.mkQ_apply, f]
+    apply (Submodule.mapQ_apply _ _ qr y).congr_left.trans
+
+    sorry
+
+  sorry
+
 end preliminaries
 
 noncomputable abbrev koszulAlgebra [IsNoetherianRing R] [IsLocalRing R] :=
@@ -188,8 +235,11 @@ lemma epsilon1_add_ringKrullDim_eq_spanFinrank_add_spanFinrank_of_surjective (S 
     have ih' := ih (S ⧸ Ideal.span {x}) _ surj' (by omega)
     rw [← dim, ← add_assoc, ih', add_assoc, add_comm _ 1, ← add_assoc, ← Nat.cast_one,
       ← Nat.cast_add, ← Nat.cast_add, ← Nat.cast_add, Nat.cast_inj, Nat.add_right_cancel_iff]
-
-    sorry
+    apply (spanFinrank_comap S x _ (RingHom.ker_ne_top _) (RingHom.ker f) _ (le hx) _).symm
+    · ext y
+      simp
+    · simp only [pow_two] at nmem
+      exact Not.intro fun a ↦ nmem (Ideal.mul_mono_right le a)
 
 lemma epsilon1_add_ringKrullDim_eq_spanFinrank_add_spanFinrank (S : Type u) [CommRing S]
     [IsRegularLocalRing S] (I : Ideal S) (ne : I ≠ ⊤) :
