@@ -117,6 +117,10 @@ lemma spanFinrank_comap [IsNoetherianRing R] [IsLocalRing R] (x : R)
   have memJ : x ∈ J := by simp [eq]
   let QJ := J ⧸ (maximalIdeal R • (⊤ : Submodule R J))
   let QI := I ⧸ (maximalIdeal S • (⊤ : Submodule S I))
+  have hJ : J.spanFinrank = Module.finrank (R ⧸ maximalIdeal R) QJ :=
+    spanFinrank_eq_finrank_quotient R  J J.fg_of_isNoetherianRing
+  have hI : I.spanFinrank = Module.finrank (S ⧸ maximalIdeal S) QI :=
+    spanFinrank_eq_finrank_quotient S I I.fg_of_isNoetherianRing
   let q : R →ₗ[R] S := Submodule.mkQ (Ideal.span {x})
   let qr : J →ₗ[R] I := q.restrict (q := I.restrictScalars R) (le_of_eq eq)
   have le' : (maximalIdeal R • (⊤ : Submodule R I)) ≤
@@ -127,7 +131,11 @@ lemma spanFinrank_comap [IsNoetherianRing R] [IsLocalRing R] (x : R)
   let f : QJ →ₗ[R] QI := Submodule.mapQ (p := (maximalIdeal R • (⊤ : Submodule R J)))
       (q := (maximalIdeal S • (⊤ : Submodule S I)).restrictScalars R) qr
       ((Submodule.smul_top_le_comap_smul_top (maximalIdeal R) qr).trans (Submodule.comap_mono le'))
-  let QJx := Submodule.span (R ⧸ maximalIdeal R)
+  have surjr : Function.Surjective qr := by
+    sorry
+  have surjf : Function.Surjective f := by
+    sorry
+  let K := Submodule.span (R ⧸ maximalIdeal R)
     {Submodule.mkQ (maximalIdeal R • (⊤ : Submodule R J)) ⟨x, memJ⟩}
   have mkeq1 (z : I) : (Submodule.Quotient.mk z : QI) = 0 ↔ z.1 ∈ maximalIdeal S * I := by
 
@@ -135,18 +143,42 @@ lemma spanFinrank_comap [IsNoetherianRing R] [IsLocalRing R] (x : R)
   have mkeq2 (w  : J) : (Submodule.Quotient.mk w : QJ) = 0 ↔ w.1 ∈ maximalIdeal R * J := by
 
     sorry
-  have kereq : (LinearMap.ker f : Set QJ) = QJx := by
-    simp only [QJx, Submodule.coe_span_eq_span_of_surjective R (R ⧸ maximalIdeal R)
-      Ideal.Quotient.mk_surjective, SetLike.coe_set_eq]
-    ext y
-    induction y using Submodule.Quotient.induction_on
-    rename_i y
-    simp only [LinearMap.mem_ker, Submodule.mkQ_apply, f]
-    apply (Submodule.mapQ_apply _ _ qr y).congr_left.trans
+  have hcomap : (maximalIdeal S * I).comap (Ideal.Quotient.mk (Ideal.span {x})) =
+        (maximalIdeal R * J) ⊔ Ideal.span {x} := by
+    have mapm : (maximalIdeal R).map (Ideal.Quotient.mk (Ideal.span {x})) = maximalIdeal S := by
+      sorry
+    have mapJ : J.map (Ideal.Quotient.mk (Ideal.span {x})) = I := by
+      simpa [eq] using  (Ideal.map_comap_of_surjective _ Ideal.Quotient.mk_surjective I)
+    simp [← mapm, ← mapJ, ← Ideal.map_mul,
+      Ideal.comap_map_of_surjective' _ Ideal.Quotient.mk_surjective]
+  have kereq : (LinearMap.ker f).toAddSubgroup = K.toAddSubgroup := by
 
     sorry
+  have : K.toAddSubgroup = f.toAddMonoidHom.ker := by rw [← kereq, LinearMap.ker_toAddSubgroup f]
+  let e : QJ ⧸ K ≃+ QI :=
+    (QuotientAddGroup.quotientAddEquivOfEq this).trans
+    (QuotientAddGroup.quotientKerEquivOfSurjective f.toAddMonoidHom surjf)
+  let qres : R ⧸ maximalIdeal R →+* S ⧸ maximalIdeal S :=
+    ResidueField.map (Ideal.Quotient.mk (Ideal.span {x}))
+  have qresbij : Function.Bijective qres :=
+    ResidueField.map_bijective_of_surjective _ Ideal.Quotient.mk_surjective
+  have rk := rank_eq_of_equiv_equiv qres e qresbij (fun r m => by
+    induction m using Submodule.Quotient.induction_on
+    induction r using Submodule.Quotient.induction_on
+    rw [← Submodule.Quotient.mk_smul]
+    rename_i j r
 
-  sorry
+    sorry)
+  have frk : Module.finrank (R ⧸ maximalIdeal R) (QJ ⧸ K) = Module.finrank
+    (S ⧸ maximalIdeal S) QI := by
+    simp only [Module.finrank, rk]
+  have frk1 : Module.finrank (R ⧸ maximalIdeal R) K = 1 := by
+    sorry
+  rw [hI, ← frk, Submodule.finrank_quotient, frk1, ← hJ]
+  have : Submodule.spanFinrank J ≠ 0 := by
+    --by `J ≠ ⊥`
+    sorry
+  exact (Nat.succ_pred_eq_of_ne_zero this).symm
 
 end preliminaries
 
