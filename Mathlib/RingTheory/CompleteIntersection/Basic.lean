@@ -41,23 +41,27 @@ lemma spanFinrank_maximalIdeal_adicCompletion_eq [IsNoetherianRing R] [IsLocalRi
   --!!!
   sorry
 
+instance (M : Type*) [AddCommGroup M] [Module R M] [Module.Finite R M] (I : Ideal R) :
+    Module.Finite (R ⧸ I) (M ⧸ I • (⊤ : Submodule R M)) :=
+  let f : M →ₛₗ[Ideal.Quotient.mk I] (M ⧸ I • (⊤ : Submodule R M)) := {
+    __ := Submodule.mkQ (I • (⊤ : Submodule R M))
+    map_smul' r x := by simp }
+  Module.Finite.of_surjective f (Submodule.mkQ_surjective _)
+
+lemma Module.finrank_eq_spanFinrank_of_free [Nontrivial R] [IsNoetherianRing R]
+    (M : Type*) [AddCommGroup M] [Module R M] [fin : Module.Finite R M] [Module.Free R M] :
+    Module.finrank R M = (⊤ : Submodule R M).spanFinrank := by
+  have : Submodule.spanFinrank (⊤ : Submodule R M) = Module.rank R M := by
+    rw [← Submodule.fg_iff_spanRank_eq_spanFinrank.mpr fin.1,
+      Submodule.rank_eq_spanRank_of_free]
+  simpa only [← Module.finrank_eq_rank, Nat.cast_inj] using this.symm
+
 lemma spanFinrank_eq_finrank_quotient [IsLocalRing R] {M : Type*} [AddCommGroup M] [Module R M]
     (N : Submodule R M) (fg : N.FG) : N.spanFinrank =
     Module.finrank (R ⧸ maximalIdeal R) (N ⧸ (maximalIdeal R) • (⊤ : Submodule R N)) := by
   let _ : Field (R ⧸ maximalIdeal R) := Ideal.Quotient.field (maximalIdeal R)
-  let N' := (N ⧸ (maximalIdeal R) • (⊤ : Submodule R N))
-  let f : N →ₛₗ[Ideal.Quotient.mk (maximalIdeal R)] N' := {
-    __ := Submodule.mkQ ((maximalIdeal R) • (⊤ : Submodule R N))
-    map_smul' r x := by simp }
-  have surjf : Function.Surjective f := Submodule.mkQ_surjective _
   let fin' : Module.Finite R N := Module.Finite.iff_fg.mpr fg
-  let fin := Module.Finite.of_surjective _ surjf
-  have : Submodule.spanFinrank (⊤ : Submodule (R ⧸ maximalIdeal R) N') =
-    Module.rank (R ⧸ maximalIdeal R) N' := by
-    rw [← Submodule.fg_iff_spanRank_eq_spanFinrank.mpr fin.1,
-      Submodule.rank_eq_spanRank_of_free]
-  simp only [← Module.finrank_eq_rank, Nat.cast_inj] at this
-  rw [← this]
+  rw [Module.finrank_eq_spanFinrank_of_free]
   apply le_antisymm
   · sorry
   · sorry
@@ -138,11 +142,18 @@ lemma epsilon1_add_ringKrullDim_eq_spanFinrank_add_spanFinrank_of_surjective (S 
       simp [spanFinrank_eq_of_surjective_of_ker_le f surj mem] at hn
     have le : RingHom.ker f ≤ maximalIdeal S := IsLocalRing.le_maximalIdeal (RingHom.ker_ne_top f)
     obtain ⟨reg, dim⟩ := quotient_span_singleton S (le hx) nmem
-    have : ∀ y ∈ Ideal.span {x}, f y = 0 := by
+    have eq0 : ∀ y ∈ Ideal.span {x}, f y = 0 := by
       intro y hy
       rcases Ideal.mem_span_singleton.mp hy with ⟨z, hz⟩
       simp [hz, RingHom.mem_ker.mp hx]
-    have surj' := Ideal.Quotient.lift_surjective_of_surjective _ this surj
+    have surj' := Ideal.Quotient.lift_surjective_of_surjective _ eq0 surj
+    have dim' := dim
+    rw [← (isRegularLocalRing_def _).mp reg, ← (isRegularLocalRing_def _).mp ‹_›,
+      ← Nat.cast_one, ← Nat.cast_add, Nat.cast_inj] at dim'
+    have ih' := ih (S ⧸ Ideal.span {x}) _ surj' (by omega)
+    rw [← dim, ← add_assoc, ih', add_assoc, add_comm _ 1, ← add_assoc, ← Nat.cast_one,
+      ← Nat.cast_add, ← Nat.cast_add, ← Nat.cast_add, Nat.cast_inj, Nat.add_right_cancel_iff]
+
     sorry
 
 lemma epsilon1_add_ringKrullDim_eq_spanFinrank_add_spanFinrank (S : Type u) [CommRing S]
