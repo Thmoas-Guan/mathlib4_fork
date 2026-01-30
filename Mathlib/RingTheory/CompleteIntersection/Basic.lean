@@ -60,11 +60,46 @@ lemma spanFinrank_eq_finrank_quotient [IsLocalRing R] {M : Type*} [AddCommGroup 
     (N : Submodule R M) (fg : N.FG) : N.spanFinrank =
     Module.finrank (R ⧸ maximalIdeal R) (N ⧸ (maximalIdeal R) • (⊤ : Submodule R N)) := by
   let _ : Field (R ⧸ maximalIdeal R) := Ideal.Quotient.field (maximalIdeal R)
-  let fin' : Module.Finite R N := Module.Finite.iff_fg.mpr fg
+  let _ : Module.Finite R N := Module.Finite.iff_fg.mpr fg
   rw [Module.finrank_eq_spanFinrank_of_free]
+  let k := R ⧸ maximalIdeal R
+  let Q := N ⧸ (maximalIdeal R) • (⊤ : Submodule R N)
   apply le_antisymm
-  · sorry
-  · sorry
+  · let s : Set Q := (⊤ : Submodule k Q).generators
+    have hfgQ : (⊤ : Submodule k Q).FG := Module.Finite.fg_top
+    have hs_span_R : Submodule.span R s = (⊤ : Submodule R Q) := by
+      rw [← Submodule.coe_eq_univ, ← Submodule.coe_span_eq_span_of_surjective R k
+        Ideal.Quotient.mk_surjective, Submodule.coe_eq_univ, Submodule.span_generators _]
+    have hNfg : (⊤ : Submodule R N).FG := (Submodule.fg_top _).mpr fg
+    obtain ⟨t, ht_inj, ht_image, ht_span⟩ :=
+      Submodule.exists_injOn_mkQ_image_span_eq_of_span_eq_map_mkQ_of_le_jacobson_bot
+        s hNfg (IsLocalRing.maximalIdeal_le_jacobson _) (by simpa using hs_span_R)
+    have htfinite : t.Finite := by
+      simpa only [← Set.finite_image_iff ht_inj, ht_image] using hfgQ.finite_generators
+    have hle : N.spanFinrank ≤ (Subtype.val '' t).ncard := by
+      simpa [(Submodule.span_val_image_eq_iff N t).mpr ht_span] using
+        (Submodule.spanFinrank_span_le_ncard_of_finite (R := R) (htfinite.image Subtype.val))
+    have hcard : t.ncard = s.ncard := by
+      simpa only [← ht_image] using (Set.ncard_image_of_injOn ht_inj).symm
+    exact le_of_le_of_eq hle ((Set.ncard_image_of_injective _ (Subtype.val_injective)).trans
+      (hcard.trans hfgQ.generators_ncard))
+  · let G : Set N := {x | (x : M) ∈ N.generators}
+    have hGval : (Subtype.val '' G) = (N.generators : Set M) := by
+      simpa [G, Set.image] using Submodule.FG.generators_mem (p := N)
+    have hspanG : Submodule.span R G = (⊤ : Submodule R N) := by
+      simp [← Submodule.span_val_image_eq_iff, hGval, Submodule.span_generators ]
+    have hspanK : Submodule.span k (((maximalIdeal R) • (⊤ : Submodule R N)).mkQ '' G) = ⊤ := by
+      rw [← Submodule.coe_eq_univ, Submodule.coe_span_eq_span_of_surjective R k
+        Ideal.Quotient.mk_surjective, Submodule.coe_eq_univ]
+      simp only [← Submodule.map_span, hspanG, Submodule.map_top, Submodule.range_mkQ]
+    have hGfinite : G.Finite := by
+      simpa [hGval] using fg.finite_generators.preimage (Subtype.val_injective.injOn)
+    have hG_ncard : G.ncard = N.spanFinrank := by
+      rw [← fg.generators_ncard, ← hGval]
+      simpa using (Set.ncard_image_of_injective G Subtype.val_injective).symm
+    rw [← hspanK]
+    exact (Submodule.spanFinrank_span_le_ncard_of_finite (hGfinite.image _)).trans
+      (le_of_le_of_eq (Set.ncard_image_le hGfinite) hG_ncard)
 
 end preliminaries
 
