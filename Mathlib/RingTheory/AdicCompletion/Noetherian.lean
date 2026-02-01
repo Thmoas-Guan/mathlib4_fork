@@ -50,7 +50,7 @@ lemma AdicCompletion.isNoetherianRing_of_fg [IsNoetherianRing (R ⧸ I)] (fg : I
 instance [IsNoetherianRing R] : IsNoetherianRing (AdicCompletion I R) :=
   AdicCompletion.isNoetherianRing_of_fg I I.fg_of_isNoetherianRing
 
-lemma ringKrullDim_adicCompletion_eq [IsNoetherianRing R] [IsLocalRing R] :
+lemma AdicCompletion.ringKrullDim_eq [IsNoetherianRing R] [IsLocalRing R] :
     ringKrullDim (AdicCompletion (maximalIdeal R) R) = ringKrullDim R := by
   --!!!
   sorry
