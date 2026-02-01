@@ -8,6 +8,7 @@ module
 public import Mathlib.RingTheory.AdicCompletion.LocalRing
 public import Mathlib.RingTheory.Filtration
 public import Mathlib.RingTheory.Ideal.Quotient.Noetherian
+public import Mathlib.RingTheory.KrullDimension.Basic
 
 /-!
 # Hausdorff-ness for Noetherian rings
@@ -48,3 +49,8 @@ lemma AdicCompletion.isNoetherianRing_of_fg [IsNoetherianRing (R ⧸ I)] (fg : I
 
 instance [IsNoetherianRing R] : IsNoetherianRing (AdicCompletion I R) :=
   AdicCompletion.isNoetherianRing_of_fg I I.fg_of_isNoetherianRing
+
+lemma ringKrullDim_adicCompletion_eq [IsNoetherianRing R] [IsLocalRing R] :
+    ringKrullDim (AdicCompletion (maximalIdeal R) R) = ringKrullDim R := by
+  --!!!
+  sorry
