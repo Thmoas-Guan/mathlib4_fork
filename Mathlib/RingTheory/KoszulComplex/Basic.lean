@@ -43,7 +43,14 @@ end change_generators
 
 section basechange
 
-variable (S : Type u) [CommRing S] (f : R →+* S)
+variable (S : Type (max u v)) [CommRing S] (f : R →+* S)
+
+instance (T : Type v) [CommRing T] (g : R →+* T) :
+    (ModuleCat.extendScalars.{u, v, u} g).Additive where
+  map_add {X Y a b} := by
+    simp only [ModuleCat.extendScalars, ModuleCat.ExtendScalars.map', Algebra.algebraMap_self,
+      ModuleCat.hom_add, LinearMap.baseChange_add]
+    rfl
 
 open TensorProduct in
 def koszulComplex.baseChange_iso (l : List R) (l' : List S) (eqmap : l.map f = l') :
