@@ -118,7 +118,7 @@ instance [IsNoetherianRing R] [IsLocalRing R] : IsAdicComplete
     (maximalIdeal (AdicCompletion (maximalIdeal R) R)) (AdicCompletion (maximalIdeal R) R) := by
   sorry
 
-lemma spanFinrank_maximalIdeal_adicCompletion_eq [IsNoetherianRing R] [IsLocalRing R] :
+lemma AdicCompletion.spanFinrank_maximalIdeal_eq [IsNoetherianRing R] [IsLocalRing R] :
     (maximalIdeal (AdicCompletion (maximalIdeal R) R)).spanFinrank =
     (maximalIdeal R).spanFinrank := by
   -- use cotangent space iso
