@@ -29,7 +29,7 @@ theorem koszulComplex.nonempty_iso_of_minimal_generators {I : Ideal R} {l l' : L
   · sorry
   · sorry
 
-theorem koszulComplex.noncmpty_iso_of_minimal_generators' {I : Ideal R} {l : List R}
+theorem koszulComplex.nonempty_iso_of_minimal_generators' {I : Ideal R} {l : List R}
     (eq : Ideal.ofList l = I) (min : l.length = I.spanFinrank) :
     Nonempty <| ofList R I.finite_generators_of_isNoetherian.toFinset.toList ≅ ofList R l := by
   refine nonempty_iso_of_minimal_generators R ?_ eq ?_ min
