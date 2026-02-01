@@ -8,7 +8,7 @@ module
 public import Mathlib.RingTheory.KoszulComplex.Defs
 
 /-!
-# Definition of Koszul complex
+# Basic Properties of Koszul complex
 -/
 
 @[expose] public section
@@ -16,24 +16,6 @@ public import Mathlib.RingTheory.KoszulComplex.Defs
 universe u v
 
 variable (R : Type u) [CommRing R] (M : Type v) [AddCommGroup M] [Module R M]
-
-section homology_annihilator
-
-lemma koszulComplex.mem_annihilator_homology (M : Type u) [AddCommGroup M] [Module R M] (x : M)
-    (φ : M →ₗ[R] R) (i : ℕ) : φ x ∈ Module.annihilator R ((koszulComplex R x).homology i) := by
-  sorry
-
-lemma koszulComplex.mem_annihilator_homology_ofList (l : List R) (i : ℕ) :
-    Ideal.ofList l ≤ Module.annihilator R ((koszulComplex.ofList R l).homology i) := by
-  intro r hr
-  have hr' : r ∈ Ideal.span (Set.range l.get) := by simpa only [Set.range_list_get l]
-  rcases (Ideal.mem_span_range_iff_exists_fun (R := R) (x := r) (v := l.get)).1 hr' with ⟨c, hc⟩
-  let φ : (Fin l.length → R) →ₗ[R] R := Fintype.linearCombination R c
-  have hφ : φ l.get = r := by
-    simp only [φ, ← hc, Fintype.linearCombination_apply, mul_comm (c _), smul_eq_mul]
-  exact hφ ▸ mem_annihilator_homology (R := R) (M := Fin l.length → R) (x := l.get) φ i
-
-end homology_annihilator
 
 section change_generators
 
@@ -61,12 +43,23 @@ end change_generators
 
 section basechange
 
-variable (S : Type u) [CommRing S] (f : R →+* S)
+variable (S : Type (max u v)) [CommRing S] (f : R →+* S)
 
+instance (T : Type v) [CommRing T] (g : R →+* T) :
+    (ModuleCat.extendScalars.{u, v, u} g).Additive where
+  map_add {X Y a b} := by
+    simp only [ModuleCat.extendScalars, ModuleCat.ExtendScalars.map', Algebra.algebraMap_self,
+      ModuleCat.hom_add, LinearMap.baseChange_add]
+    rfl
+
+open TensorProduct in
 def koszulComplex.baseChange_iso (l : List R) (l' : List S) (eqmap : l.map f = l') :
     koszulComplex.ofList S l' ≅ ((ModuleCat.extendScalars f).mapHomologicalComplex
-      (ComplexShape.up ℕ)).obj (koszulComplex.ofList R l) :=
-  sorry
+      (ComplexShape.up ℕ)).obj (koszulComplex.ofList R l) := by
+  refine HomologicalComplex.Hom.isoOfComponents
+    (fun i ↦ LinearEquiv.toModuleIso ?_) (fun i j ↦ ?_)
+  · sorry
+  · sorry
 
 end basechange
 

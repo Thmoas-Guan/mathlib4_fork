@@ -26,7 +26,7 @@ public import Mathlib.Algebra.Category.ModuleCat.Monoidal.Basic
 
 universe u v w w'
 
-open CategoryTheory Category MonoidalCategory Limits
+open CategoryTheory Category MonoidalCategory Limits Module
 
 section GradedAlgebra
 
@@ -35,6 +35,10 @@ variable {ι R A : Type*} [DecidableEq ι] [AddMonoid ι]
     {i j k : ι}
 
 def GradedAlgebra.linearGMul (h : k = i + j) : 𝒜 i →ₗ[R] (𝒜 j →ₗ[R] 𝒜 k) := sorry
+
+#check GradedMonoid.GMul
+
+#check GradedRing
 
 @[simp]
 lemma GradedAlgebra.linearGMul_eq_mul (h : k = i + j) (x : 𝒜 i) (y : 𝒜 j) :
@@ -123,6 +127,9 @@ noncomputable def isoOfEquiv (f : M ≃ₗ[R] N) {x : M} {y : N} (h : f x = y) :
     simp only [map_comp, LinearEquiv.comp_coe, LinearEquiv.symm_trans_self,
       LinearEquiv.refl_toLinearMap]
     exact map_id_refl R y
+
+noncomputable def topXLinearEquivOfBasis {ι : Type*} [Finite ι] [LinearOrder ι] (x : M)
+    (b : Basis ι R M) : (koszulComplex R x).X (Nat.card ι) ≃ₗ[R] R := by sorry
 
 noncomputable abbrev ofList (l : List R) :=
   koszulComplex R l.get
