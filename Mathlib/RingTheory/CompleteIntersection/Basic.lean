@@ -6,6 +6,7 @@ Authors: Nailin Guan
 module
 
 public import Mathlib.RingTheory.AdicCompletion.Algebra
+public import Mathlib.RingTheory.AdicCompletion.AsTensorProduct
 public import Mathlib.RingTheory.AdicCompletion.LocalRing
 public import Mathlib.RingTheory.AdicCompletion.Noetherian
 public import Mathlib.RingTheory.Regular.RegularSequence
@@ -225,6 +226,7 @@ noncomputable def Epsilon1 [IsNoetherianRing R] [IsLocalRing R] : ℕ :=
 lemma epsilon1_eq_of_ringEquiv {R : Type*} [CommRing R] [IsNoetherianRing R] [IsLocalRing R]
     {R' : Type*} [CommRing R'] [IsNoetherianRing R'] [IsLocalRing R'] (e : R ≃+* R') :
     Epsilon1 R = Epsilon1 R' := by
+  --#check koszulComplex.baseChange_iso R R'
   sorry
 
 section epsilon1
@@ -316,6 +318,22 @@ lemma epsilon1_add_ringKrullDim_eq_spanFinrank_add_spanFinrank (S : Type u) [Com
   exact Ideal.mk_ker.symm
 
 lemma adicCompletion_epsilon1_eq : Epsilon1 (AdicCompletion (maximalIdeal R) R) = Epsilon1 R := by
+  let R' := (AdicCompletion (maximalIdeal R) R)
+  let _ : Module.Flat R R' := AdicCompletion.flat_of_isNoetherian (maximalIdeal R)
+  let l := (maximalIdeal R).finite_generators_of_isNoetherian.toFinset.toList
+  let l' := l.map (algebraMap R R')
+  let e1 := koszulComplex.baseChange_iso _ _ (algebraMap R R') l l' rfl
+  have eq1 : Ideal.ofList l = maximalIdeal R := by
+    simpa [l, Ideal.ofList] using (maximalIdeal R).span_generators
+  have eq2 : Ideal.ofList l' = maximalIdeal R' := by
+    simp only [← Ideal.map_ofList, eq1, l']
+    sorry
+  have len1 : l.length = (maximalIdeal R).spanFinrank := by
+    sorry
+  have len2 : l'.length = (maximalIdeal R').spanFinrank := by
+    sorry
+  obtain ⟨e2⟩ := koszulComplex.noncmpty_iso_of_minimal_generators' R' eq2 len2
+
   sorry
 
 attribute [local instance] isCohenMacaulayLocalRing_of_isRegularLocalRing in
