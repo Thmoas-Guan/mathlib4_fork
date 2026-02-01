@@ -5,6 +5,7 @@ Authors: Nailin Guan
 -/
 module
 
+public import Mathlib.Algebra.Module.SpanRank
 public import Mathlib.RingTheory.AdicCompletion.Algebra
 public import Mathlib.RingTheory.LocalRing.MaximalIdeal.Basic
 
@@ -100,7 +101,7 @@ lemma AdicCompletion.isAdicComplete_self (fg : I.FG) :
     IsAdicComplete (I.map (algebraMap R (AdicCompletion I R))) (AdicCompletion I R) := by
   sorry
 
-lemma AdicCompletion.isMaximal_map [IsNoetherianRing R] [IsLocalRing R] :
+lemma AdicCompletion.isMaximal_map [IsNoetherianRing R] [IsLocalRing R] (ne : I ≠ ⊤) :
     ((maximalIdeal R).map (algebraMap R (AdicCompletion I R))).IsMaximal := by
   sorry
 
@@ -108,6 +109,17 @@ instance [IsNoetherianRing R] [IsLocalRing R] :
     IsLocalRing (AdicCompletion (maximalIdeal R) R) := by
   sorry
 
+lemma AdicCompletion.maximalIdeal_eq_map [IsNoetherianRing R] [IsLocalRing R] :
+    (maximalIdeal (AdicCompletion (maximalIdeal R) R)) =
+    (maximalIdeal R).map (algebraMap R (AdicCompletion (maximalIdeal R) R)) := by
+  sorry
+
 instance [IsNoetherianRing R] [IsLocalRing R] : IsAdicComplete
     (maximalIdeal (AdicCompletion (maximalIdeal R) R)) (AdicCompletion (maximalIdeal R) R) := by
+  sorry
+
+lemma spanFinrank_maximalIdeal_adicCompletion_eq [IsNoetherianRing R] [IsLocalRing R] :
+    (maximalIdeal (AdicCompletion (maximalIdeal R) R)).spanFinrank =
+    (maximalIdeal R).spanFinrank := by
+  -- use cotangent space iso
   sorry
