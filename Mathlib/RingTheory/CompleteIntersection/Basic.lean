@@ -376,8 +376,7 @@ lemma AdicCompletion.epsilon1_eq : Epsilon1 (AdicCompletion (maximalIdeal R) R) 
   have eq1 : Ideal.ofList l = maximalIdeal R := by
     simpa [l, Ideal.ofList] using (maximalIdeal R).span_generators
   have eq2 : Ideal.ofList l' = maximalIdeal R' := by
-    simp only [← Ideal.map_ofList, eq1, l']
-    sorry
+    simp only [← Ideal.map_ofList, eq1, l', R', AdicCompletion.maximalIdeal_eq_map]
   have len1 : l.length = (maximalIdeal R).spanFinrank := by
     simp only [Finset.length_toList, l, ← Set.ncard_eq_toFinset_card,
       Submodule.FG.generators_ncard (maximalIdeal R).fg_of_isNoetherianRing]
