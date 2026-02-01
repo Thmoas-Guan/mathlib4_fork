@@ -31,17 +31,6 @@ variable (R : Type u) [CommRing R]
 
 section preliminaries
 
-lemma ringKrullDim_adicCompletion_eq [IsNoetherianRing R] [IsLocalRing R] :
-    ringKrullDim (AdicCompletion (maximalIdeal R) R) = ringKrullDim R := by
-  --!!!
-  sorry
-
-lemma spanFinrank_maximalIdeal_adicCompletion_eq [IsNoetherianRing R] [IsLocalRing R] :
-    (maximalIdeal (AdicCompletion (maximalIdeal R) R)).spanFinrank =
-    (maximalIdeal R).spanFinrank := by
-  --!!!
-  sorry
-
 instance (M : Type*) [AddCommGroup M] [Module R M] [Module.Finite R M] (I : Ideal R) :
     Module.Finite (R ⧸ I) (M ⧸ I • (⊤ : Submodule R M)) :=
   let f : M →ₛₗ[Ideal.Quotient.mk I] (M ⧸ I • (⊤ : Submodule R M)) := {
@@ -379,7 +368,7 @@ lemma epsilon1_add_ringKrullDim_eq_spanFinrank_add_spanFinrank (S : Type u) [Com
     (Ideal.Quotient.mk I) Ideal.Quotient.mk_surjective
   exact Ideal.mk_ker.symm
 
-lemma adicCompletion_epsilon1_eq : Epsilon1 (AdicCompletion (maximalIdeal R) R) = Epsilon1 R := by
+lemma AdicCompletion.epsilon1_eq : Epsilon1 (AdicCompletion (maximalIdeal R) R) = Epsilon1 R := by
   let R' := (AdicCompletion (maximalIdeal R) R)
   let _ : Module.Flat R R' := AdicCompletion.flat_of_isNoetherian (maximalIdeal R)
   let l := (maximalIdeal R).finite_generators_of_isNoetherian.toFinset.toList
@@ -393,7 +382,7 @@ lemma adicCompletion_epsilon1_eq : Epsilon1 (AdicCompletion (maximalIdeal R) R) 
     simp only [Finset.length_toList, l, ← Set.ncard_eq_toFinset_card,
       Submodule.FG.generators_ncard (maximalIdeal R).fg_of_isNoetherianRing]
   have len2 : l'.length = (maximalIdeal R').spanFinrank := by
-    simp [R', l', spanFinrank_maximalIdeal_adicCompletion_eq, len1]
+    simp [R', l', AdicCompletion.spanFinrank_maximalIdeal_eq, len1]
   let e1 := koszulComplex.baseChange_iso _ _ (algebraMap R R') l l' rfl
   obtain ⟨e2⟩ := koszulComplex.nonempty_iso_of_minimal_generators' R' eq2 len2
   let e : koszulAlgebra R' ≅ ((ModuleCat.extendScalars (algebraMap R R')).mapHomologicalComplex
@@ -411,8 +400,8 @@ lemma epsilon1_add_ringKrullDim_ge :
     have : IsLocalHom (Ideal.Quotient.mk (RingHom.ker f)) :=
       IsLocalHom.of_surjective _ Ideal.Quotient.mk_surjective
     IsLocalRing.of_surjective (Ideal.Quotient.mk (RingHom.ker f)) Ideal.Quotient.mk_surjective
-  rw [← adicCompletion_epsilon1_eq, ← ringKrullDim_adicCompletion_eq,
-    ← spanFinrank_maximalIdeal_adicCompletion_eq, ← epsilon1_eq_of_ringEquiv e,
+  rw [← AdicCompletion.epsilon1_eq, ← AdicCompletion.ringKrullDim_eq,
+    ← AdicCompletion.spanFinrank_maximalIdeal_eq, ← epsilon1_eq_of_ringEquiv e,
     ← ringKrullDim_eq_of_ringEquiv e, epsilon1_eq_spanFinrank S (RingHom.ker f) le, ge_iff_le]
   apply le_of_eq_of_le _ (add_le_add_left (WithBot.coe_le_coe.mpr
     (Ideal.height_le_spanFinrank _ (RingHom.ker_ne_top f))) (ringKrullDim (S ⧸ RingHom.ker f)))
@@ -508,8 +497,8 @@ lemma quotient_isCompleteIntersectionLocalRing_iff (S : Type u) [CommRing S] [Is
 lemma adicCompletion_isCompleteIntersectionLocalRing_iff :
     IsCompleteIntersectionLocalRing R ↔
     IsCompleteIntersectionLocalRing (AdicCompletion (maximalIdeal R) R) := by
-  simp [isCompleteIntersectionLocalRing_def, adicCompletion_epsilon1_eq,
-    spanFinrank_maximalIdeal_adicCompletion_eq, ringKrullDim_adicCompletion_eq]
+  simp [isCompleteIntersectionLocalRing_def, AdicCompletion.epsilon1_eq,
+    AdicCompletion.spanFinrank_maximalIdeal_eq, AdicCompletion.ringKrullDim_eq]
 
 attribute [local instance] isCohenMacaulayLocalRing_of_isRegularLocalRing in
 theorem isCompleteIntersectionLocalRing_iff :
