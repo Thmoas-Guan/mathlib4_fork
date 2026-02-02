@@ -10,6 +10,7 @@ public import Mathlib.RingTheory.AdicCompletion.AsTensorProduct
 public import Mathlib.RingTheory.AdicCompletion.LocalRing
 public import Mathlib.RingTheory.AdicCompletion.Noetherian
 public import Mathlib.RingTheory.Regular.RegularSequence
+public import Mathlib.RingTheory.RingHom.Flat
 public import Mathlib.RingTheory.CohenMacaulay.Catenary
 public import Mathlib.RingTheory.CohenMacaulay.Maximal
 public import Mathlib.RingTheory.CohenStructureTheorem
@@ -194,6 +195,23 @@ lemma spanFinrank_comap [IsNoetherianRing R] [IsLocalRing R] (x : R)
     simpa [mkeq2] using nmem
   rw [hI, hJ, ← frk, ← frk1, K.finrank_quotient_add_finrank]
 
+lemma preservesHomology_of_flat (S : Type*) [CommRing S] (f : R →+* S) (flat : f.Flat) :
+    (ModuleCat.extendScalars f).PreservesHomology := by
+  apply ((CategoryTheory.Functor.exact_tfae _).out 1 2).mp (fun T hT ↦ ?_)
+  let _ : Module R S := Module.compHom S f
+  let _ : Module.Flat R S := flat
+  have : Function.Exact (ModuleCat.ExtendScalars.map' f T.f) (ModuleCat.ExtendScalars.map' f T.g) :=
+    Module.Flat.lTensor_exact S
+      ((CategoryTheory.ShortComplex.ShortExact.moduleCat_exact_iff_function_exact T).mp hT)
+  exact (CategoryTheory.ShortComplex.ShortExact.moduleCat_exact_iff_function_exact _).mpr this
+
+open CategoryTheory
+
+lemma CategoryTheory.Functor.mapHomologicalComplex_sc {C D : Type*} [Category* C] [Category* D]
+    [Abelian C] [Abelian D] (F : C ⥤ D) [F.Additive] {ι : Type*} {c : ComplexShape ι}
+    (K : HomologicalComplex C c) (i : ι) :
+    ((F.mapHomologicalComplex c).obj K).sc i = (K.sc i).map F := rfl
+
 end preliminaries
 
 noncomputable abbrev koszulAlgebra [IsNoetherianRing R] [IsLocalRing R] :=
@@ -209,6 +227,21 @@ noncomputable instance [IsNoetherianRing R] [IsLocalRing R] (i : ℕ) :
   Module.IsTorsionBySet.module (fun x a ↦
     Module.mem_annihilator.mp ((koszulAlgebra.annihilator_homology R i) a.2) x)
 
+noncomputable instance [IsNoetherianRing R] [IsLocalRing R] (i : ℕ) :
+    IsScalarTower R (ResidueField R) ((koszulAlgebra R).homology i) :=
+  IsScalarTower.of_compHom R (ResidueField R) ((koszulAlgebra R).homology i)
+
+noncomputable instance [IsNoetherianRing R] [IsLocalRing R] (i : ℕ) :
+    Module.Finite R ((koszulAlgebra R).X i) := by
+  simp only [koszulComplex, CochainComplex.of_x]
+
+  sorry
+
+noncomputable instance [IsNoetherianRing R] [IsLocalRing R] (i : ℕ) :
+    Module.Finite (ResidueField R) ((koszulAlgebra R).homology i) := by
+
+  sorry
+
 noncomputable def Epsilon1 [IsNoetherianRing R] [IsLocalRing R] : ℕ :=
   Module.finrank (ResidueField R) ((koszulAlgebra R).homology ((maximalIdeal R).spanFinrank - 1))
 
@@ -223,12 +256,13 @@ lemma epsilon1_eq_of_ringEquiv_aux {R : Type u} [CommRing R] [IsNoetherianRing R
   let l' := l.map (RingHomClass.toRingHom e)
   have eq1 : Ideal.ofList l = maximalIdeal R := by
     simpa [l, Ideal.ofList] using (maximalIdeal R).span_generators
-  have eq2 : Ideal.ofList l' = maximalIdeal R' := by
-    simp only [l', ← Ideal.map_ofList, eq1]
+  have eqmap : Ideal.map (RingHomClass.toRingHom e) (maximalIdeal R) = maximalIdeal R' := by
     have : (maximalIdeal R').comap e = maximalIdeal R := by
       ext
       simp
     simpa [← this] using Ideal.map_comap_eq_self_of_equiv e (maximalIdeal R')
+  have eq2 : Ideal.ofList l' = maximalIdeal R' := by
+    simp only [l', ← Ideal.map_ofList, eq1, eqmap]
   have len1 : l.length = (maximalIdeal R).spanFinrank := by
     simp only [Finset.length_toList, l, ← Set.ncard_eq_toFinset_card,
       Submodule.FG.generators_ncard (maximalIdeal R).fg_of_isNoetherianRing]
@@ -236,9 +270,33 @@ lemma epsilon1_eq_of_ringEquiv_aux {R : Type u} [CommRing R] [IsNoetherianRing R
     simp [← spanFinrank_eq_of_ringEquiv e, l', len1]
   let e1 := koszulComplex.baseChange_iso R R' e l l' rfl
   obtain ⟨e2⟩ := koszulComplex.nonempty_iso_of_minimal_generators' R' eq2 len2
-  let e' : koszulAlgebra R' ≅ ((ModuleCat.extendScalars e).mapHomologicalComplex
-    (ComplexShape.up ℕ)).obj (koszulAlgebra R) := e2.trans e1
-  sorry
+  let F := ModuleCat.extendScalars (RingHomClass.toRingHom e)
+  let e' : koszulAlgebra R' ≅
+    (F.mapHomologicalComplex (ComplexShape.up ℕ)).obj (koszulAlgebra R) := e2.trans e1
+  let h1R := (koszulAlgebra R).homology (Submodule.spanFinrank (maximalIdeal R) - 1)
+  let h1R' := (koszulAlgebra R').homology ((maximalIdeal R').spanFinrank - 1)
+  let _ : F.PreservesHomology := preservesHomology_of_flat R R' (RingHomClass.toRingHom e)
+    (RingHom.Flat.of_bijective e.bijective)
+  let eh : h1R' ≅ F.obj h1R := by
+    simp only [← spanFinrank_eq_of_ringEquiv e, h1R']
+    apply (HomologicalComplex.homologyMapIso e' (Submodule.spanFinrank (maximalIdeal R) - 1)).trans
+    simp only [HomologicalComplex.homology, F.mapHomologicalComplex_sc, h1R]
+    exact ((koszulAlgebra R).sc (Submodule.spanFinrank (maximalIdeal R) - 1)).mapHomologyIso F
+  let _ := (RingHomClass.toRingHom e).toAlgebra
+  let eh' : ↑h1R' ≃ₗ[R'] TensorProduct R R' ↑h1R := eh.toLinearEquiv
+  simp only [Epsilon1]
+  let I := Module.Free.ChooseBasisIndex (ResidueField R) h1R
+  let _ : Fintype I := Module.Free.ChooseBasisIndex.fintype _ _
+  let B : h1R ≃ₗ[ResidueField R] I →₀ ResidueField R :=
+    (Module.Free.chooseBasis (ResidueField R) h1R).repr
+  rw [B.finrank_eq, Module.finrank_finsupp_self]
+  let eres : ResidueField R' ≃ₗ[R'] TensorProduct R R' (ResidueField R) :=
+    (Submodule.quotEquivOfEq _ _ eqmap.symm).trans (Ideal.qoutMapEquivTensorQout R')
+  let eh'' : h1R' ≃ₗ[ResidueField R'] I →₀ ResidueField R' :=
+    (eh'.trans ((((B.restrictScalars R).baseChange R R').trans
+    (TensorProduct.finsuppRight R R' R' (ResidueField R) I)).trans
+    (Finsupp.mapRange.linearEquiv eres.symm))).extendScalarsOfSurjective residue_surjective
+  rw [eh''.finrank_eq, Module.finrank_finsupp_self]
 
 lemma epsilon1_eq_of_ringEquiv {R : Type u} [CommRing R] [IsNoetherianRing R] [IsLocalRing R]
     {R' : Type v} [CommRing R'] [IsNoetherianRing R'] [IsLocalRing R'] (e : R ≃+* R') :
@@ -370,24 +428,49 @@ lemma epsilon1_add_ringKrullDim_eq_spanFinrank_add_spanFinrank (S : Type u) [Com
 
 lemma AdicCompletion.epsilon1_eq : Epsilon1 (AdicCompletion (maximalIdeal R) R) = Epsilon1 R := by
   let R' := (AdicCompletion (maximalIdeal R) R)
-  let _ : Module.Flat R R' := AdicCompletion.flat_of_isNoetherian (maximalIdeal R)
+  let flat : Module.Flat R R' := AdicCompletion.flat_of_isNoetherian (maximalIdeal R)
   let l := (maximalIdeal R).finite_generators_of_isNoetherian.toFinset.toList
   let l' := l.map (algebraMap R R')
   have eq1 : Ideal.ofList l = maximalIdeal R := by
     simpa [l, Ideal.ofList] using (maximalIdeal R).span_generators
+  have eqmap : maximalIdeal R' = (maximalIdeal R).map (algebraMap R R') :=
+    AdicCompletion.maximalIdeal_eq_map
   have eq2 : Ideal.ofList l' = maximalIdeal R' := by
-    simp only [← Ideal.map_ofList, eq1, l', R', AdicCompletion.maximalIdeal_eq_map]
+    simp only [← Ideal.map_ofList, eq1, l', R', eqmap]
   have len1 : l.length = (maximalIdeal R).spanFinrank := by
     simp only [Finset.length_toList, l, ← Set.ncard_eq_toFinset_card,
       Submodule.FG.generators_ncard (maximalIdeal R).fg_of_isNoetherianRing]
+  have rkeq : (maximalIdeal R').spanFinrank = (maximalIdeal R).spanFinrank :=
+    AdicCompletion.spanFinrank_maximalIdeal_eq
   have len2 : l'.length = (maximalIdeal R').spanFinrank := by
-    simp [R', l', AdicCompletion.spanFinrank_maximalIdeal_eq, len1]
+    simp [R', l', rkeq, len1]
   let e1 := koszulComplex.baseChange_iso _ _ (algebraMap R R') l l' rfl
   obtain ⟨e2⟩ := koszulComplex.nonempty_iso_of_minimal_generators' R' eq2 len2
-  let e : koszulAlgebra R' ≅ ((ModuleCat.extendScalars (algebraMap R R')).mapHomologicalComplex
-    (ComplexShape.up ℕ)).obj (koszulAlgebra R) := e2.trans e1
-
-  sorry
+  let F := (ModuleCat.extendScalars (algebraMap R R'))
+  let e : koszulAlgebra R' ≅ (F.mapHomologicalComplex (ComplexShape.up ℕ)).obj (koszulAlgebra R) :=
+    e2.trans e1
+  let h1R := (koszulAlgebra R).homology (Submodule.spanFinrank (maximalIdeal R) - 1)
+  let h1R' := (koszulAlgebra R').homology ((maximalIdeal R').spanFinrank - 1)
+  let _ : F.PreservesHomology := preservesHomology_of_flat R R' (algebraMap R R') flat
+  let eh : h1R' ≅ F.obj h1R := by
+    simp only [rkeq, h1R']
+    apply (HomologicalComplex.homologyMapIso e (Submodule.spanFinrank (maximalIdeal R) - 1)).trans
+    simp only [HomologicalComplex.homology, F.mapHomologicalComplex_sc, h1R]
+    exact ((koszulAlgebra R).sc (Submodule.spanFinrank (maximalIdeal R) - 1)).mapHomologyIso F
+  let eh' : ↑h1R' ≃ₗ[R'] TensorProduct R R' ↑h1R := eh.toLinearEquiv
+  simp only [Epsilon1]
+  let I := Module.Free.ChooseBasisIndex (ResidueField R) h1R
+  let _ : Fintype I := Module.Free.ChooseBasisIndex.fintype _ _
+  let B : h1R ≃ₗ[ResidueField R] I →₀ ResidueField R :=
+    (Module.Free.chooseBasis (ResidueField R) h1R).repr
+  rw [B.finrank_eq, Module.finrank_finsupp_self]
+  let eres : ResidueField R' ≃ₗ[R'] TensorProduct R R' (ResidueField R) :=
+    (Submodule.quotEquivOfEq _ _ eqmap).trans (Ideal.qoutMapEquivTensorQout R')
+  let eh'' : h1R' ≃ₗ[ResidueField R'] I →₀ ResidueField R' :=
+    (eh'.trans ((((B.restrictScalars R).baseChange R R').trans
+    (TensorProduct.finsuppRight R R' R' (ResidueField R) I)).trans
+    (Finsupp.mapRange.linearEquiv eres.symm))).extendScalarsOfSurjective residue_surjective
+  rw [eh''.finrank_eq, Module.finrank_finsupp_self]
 
 attribute [local instance] isCohenMacaulayLocalRing_of_isRegularLocalRing in
 lemma epsilon1_add_ringKrullDim_ge :
