@@ -137,6 +137,9 @@ noncomputable abbrev ofList (l : List R) :=
 def topHomologyLinearEquiv (l : List R) :
     (koszulComplex.ofList R l).homology l.length ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
 
+noncomputable def topXLinearEquivOfBasisOfList (l : List R) :
+    (koszulComplex.ofList R l).X l.length ≃ₗ[R] R := sorry
+
 instance free [Module.Free R M] (x : M) (i : ℕ) : Module.Free R ((koszulComplex R x).X i) :=
   inferInstanceAs <| Module.Free R (⋀[R]^i M)
 
