@@ -411,6 +411,8 @@ lemma epsilon1_eq_spanFinrank (S : Type u) [CommRing S] [IsRegularLocalRing S] (
     rcases le_of_eq rangeg'.symm x.2 with ⟨y, hy⟩
     use y
     exact SetCoe.ext hy
+  have surj'' : Function.Surjective (g'r.baseChange (S ⧸ I)) :=
+    g'r.lTensor_surjective (S ⧸ I) surj'
   have req : Function.Exact (f.baseChange (S ⧸ I)) (g'r.baseChange (S ⧸ I)) :=
     lTensor_exact (S ⧸ I) exac' surj'
   rw [LinearMap.exact_iff] at req
@@ -420,17 +422,34 @@ lemma epsilon1_eq_spanFinrank (S : Type u) [CommRing S] [IsRegularLocalRing S] (
   let K := ((maximalIdeal S).subtype.baseChange (S ⧸ I)).ker
   let eK : K ≃ₗ[S] (I ⧸ (maximalIdeal S) • (⊤ : Submodule S I)) :=
     sorry
-  have : (T.map F).g.hom = g.baseChange (S ⧸ I) := rfl
+  --have : (T.map F).g.hom = g.baseChange (S ⧸ I) := rfl
   let eh'' : h1 ≃ₗ[S ⧸ I] (g.baseChange (S ⧸ I)).ker ⧸ (T.map F).moduleCatToCycles.range :=
     eh'.trans (T.map F).moduleCatHomologyIso.toLinearEquiv
-  let h : (g.baseChange (S ⧸ I)).ker →ₗ[S ⧸ I] K := sorry
+  let h : (g.baseChange (S ⧸ I)).ker →ₗ[S ⧸ I] K :=
+    (g'r.baseChange (S ⧸ I)).restrict (by simp [keq, K])
   have surjh : Function.Surjective h := by
-    sorry
+    intro x
+    rcases surj'' x.1 with ⟨y, hy⟩
+    exact ⟨⟨y, by simp [keq, Submodule.mem_comap, hy]⟩, SetCoe.ext hy⟩
   have kerh : h.ker = (T.map F).moduleCatToCycles.range := by
+
     sorry
-  let eK' : h1 ≃ₗ[S ⧸ I] K := sorry
-  --use `rank_eq_of_equiv_equiv`, similar to cotangent
-  sorry
+  let eK' : h1 ≃ₗ[S ⧸ I] K :=
+    eh''.trans ((Submodule.quotEquivOfEq _ _ kerh.symm).trans (h.quotKerEquivOfSurjective surjh))
+  let _ : Module (ResidueField S) (I ⧸ maximalIdeal S • (⊤ : Submodule S I)) :=
+    inferInstanceAs (Module (S ⧸ maximalIdeal S) _)
+  have rk := rank_eq_of_equiv_equiv (ResidueField.map (Ideal.Quotient.mk I))
+    (eK'.toAddEquiv.trans eK.toAddEquiv).symm
+    (ResidueField.map_bijective_of_surjective _ Ideal.Quotient.mk_surjective) (fun r m ↦ by
+    rcases IsLocalRing.residue_surjective r with ⟨s, hs⟩
+    simp only [← hs, AddEquiv.symm_trans_apply]
+    change eK'.symm (eK.symm (s • m)) = (Ideal.Quotient.mk I s) • eK'.symm (eK.symm m)
+    rw [map_smul eK.symm, ← map_smul eK'.symm]
+    rfl)
+  have frk : Module.finrank (ResidueField S) (I ⧸ maximalIdeal S • (⊤ : Submodule S I)) =
+    Module.finrank (ResidueField (S ⧸ I)) h1 := by
+    simp [Module.finrank, rk]
+  exact ((spanFinrank_eq_finrank_quotient S I I.fg_of_isNoetherianRing).trans frk).symm
 
 lemma epsilon1_add_ringKrullDim_eq_spanFinrank_add_spanFinrank_of_surjective (S : Type u)
     [CommRing S] [IsRegularLocalRing S] (R : Type*) [CommRing R] [IsNoetherianRing R]
