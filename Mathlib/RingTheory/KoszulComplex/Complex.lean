@@ -21,7 +21,7 @@ public import Mathlib.LinearAlgebra.Alternating.Uncurry.Fin
 
 universe u v
 
-open ExteriorAlgebra
+open CategoryTheory Category MonoidalCategory Limits Module ExteriorAlgebra
 
 variable {R : Type u} [CommRing R] {M : Type v} [AddCommGroup M] [Module R M] (φ : M →ₗ[R] R)
 
@@ -291,6 +291,22 @@ noncomputable def map (f : M →ₗ[R] N) (φ' : N →ₗ[R] R) (h : φ' ∘ₗ 
 end functoriality
 
 section specialX
+
+noncomputable def XZeroLinearEquivRing : (koszulComplex φ).X 0 ≃ₗ[R] R :=
+  exteriorPower.zeroEquiv R M
+
+lemma X_isZero_of_card_generators_le {ι : Type*} [Finite ι] (g : ι → M)
+    (hg : Submodule.span R (Set.range g) = ⊤) (i : ℕ) (hi : Nat.card ι < i) :
+    IsZero ((koszulComplex φ).X i) := by
+  have hIsZero : IsZero (ModuleCat.of R (⋀[R]^i M)) := by
+    apply ModuleCat.isZero_of_iff_subsingleton.mpr
+    exact subsingleton_of_card_generators_le R M g hg i hi
+  simpa [koszulComplex, ModuleCat.exteriorPower] using hIsZero
+
+lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
+    IsZero ((ofList l).X i) := X_isZero_of_card_generators_le _
+  (Pi.basisFun R (Fin l.length)) (Pi.basisFun R (Fin l.length)).span_eq i
+  (by simpa [Nat.card_eq_fintype_card] using hi)
 
 end specialX
 

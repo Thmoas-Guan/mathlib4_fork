@@ -22,8 +22,6 @@ open ExteriorAlgebra
 variable {R : Type u} [CommRing R] {M : Type v} [AddCommGroup M] [Module R M]
   (φ : M →ₗ[R] R) (x : M)
 
-#check Homotopy
-
 section homology_annihilator
 
 lemma koszulComplex.mem_annihilator_homology (i : ℕ) :
