@@ -58,7 +58,15 @@ noncomputable def koszulCocomplex (x : M) : CochainComplex (ModuleCat.{max u v} 
 
 namespace koszulCocomplex
 
+noncomputable abbrev ofList (l : List R) :=
+  koszulCocomplex R l.get
+
+instance free [Module.Free R M] (x : M) (i : ℕ) : Module.Free R ((koszulCocomplex R x).X i) :=
+  inferInstanceAs <| Module.Free R (⋀[R]^i M)
+
 variable {M} {N : Type v} [AddCommGroup N] [Module R N]
+
+section functoriality
 
 noncomputable def map (f : M →ₗ[R] N) {x : M} {y : N} (h : f x = y) :
     koszulCocomplex R x ⟶ koszulCocomplex R y :=
@@ -109,20 +117,15 @@ noncomputable def isoOfEquiv (f : M ≃ₗ[R] N) {x : M} {y : N} (h : f x = y) :
       LinearEquiv.refl_toLinearMap]
     exact map_id_refl R y
 
+end functoriality
+
+section specialX
+
 noncomputable def topXLinearEquivOfBasis {ι : Type*} [Finite ι] [LinearOrder ι] (x : M)
     (b : Basis ι R M) : (koszulCocomplex R x).X (Nat.card ι) ≃ₗ[R] R := by sorry
 
-noncomputable abbrev ofList (l : List R) :=
-  koszulCocomplex R l.get
-
-def topHomologyLinearEquiv (l : List R) :
-    (koszulCocomplex.ofList R l).homology l.length ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
-
 noncomputable def topXLinearEquivOfBasisOfList (l : List R) :
-    (koszulCocomplex.ofList R l).X l.length ≃ₗ[R] R := sorry
-
-instance free [Module.Free R M] (x : M) (i : ℕ) : Module.Free R ((koszulCocomplex R x).X i) :=
-  inferInstanceAs <| Module.Free R (⋀[R]^i M)
+    (ofList R l).X l.length ≃ₗ[R] R := sorry
 
 lemma X_isZero_of_card_generators_le (x : M) {ι : Type*} [Finite ι] (g : ι → M)
     (hg : Submodule.span R (Set.range g) = ⊤) (i : ℕ) (hi : Nat.card ι < i) :
@@ -151,5 +154,12 @@ lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
   X_isZero_of_card_generators_le R l.get
   (Pi.basisFun R (Fin l.length)) (Pi.basisFun R (Fin l.length)).span_eq i
   (by simpa [Nat.card_eq_fintype_card] using hi)
+
+end specialX
+
+-- def topHomologyLinearEquiv (l : List R) :
+--     (koszulCocomplex.ofList R l).homology l.length ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
+
+
 
 end koszulCocomplex

@@ -276,3 +276,12 @@ noncomputable def koszulComplex : ChainComplex (ModuleCat R) ℕ :=
     (ModuleCat.of R M).exteriorPower
     (fun n ↦ ModuleCat.ofHom (koszulComplex_aux φ n))
     (fun n ↦ by simp [← ModuleCat.ofHom_comp, koszulComplex_aux_comp_eq_zero]; rfl)
+
+namespace koszulComplex
+
+variable {N : Type v} [AddCommGroup N] [Module R N]
+
+noncomputable def map (f : M →ₗ[R] N) (φ' : N →ₗ[R] R) (h : φ' ∘ₗ f = φ) :
+    koszulComplex φ ⟶ koszulComplex φ' := sorry
+
+end koszulComplex

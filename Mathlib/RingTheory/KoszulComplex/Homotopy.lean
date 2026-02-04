@@ -19,15 +19,32 @@ universe u v
 
 open ExteriorAlgebra
 
-variable {R : Type u} [CommRing R] {M : Type v} [AddCommGroup M] [Module R M] (φ : M →ₗ[R] R)
+variable {R : Type u} [CommRing R] {M : Type v} [AddCommGroup M] [Module R M]
+  (φ : M →ₗ[R] R) (x : M)
+
+#check Homotopy
 
 section homology_annihilator
 
-lemma koszulComplex.mem_annihilator_homology (M : Type u) [AddCommGroup M] [Module R M] (x : M)
-    (φ : M →ₗ[R] R) (i : ℕ) : φ x ∈ Module.annihilator R ((koszulCocomplex R x).homology i) := by
+lemma koszulComplex.mem_annihilator_homology (i : ℕ) :
+    φ x ∈ Module.annihilator R ((koszulComplex φ).homology i) := by
   sorry
 
-lemma koszulComplex.mem_annihilator_homology_ofList (l : List R) (i : ℕ) :
+lemma koszulComplex.range_le_annihilator_homology (i : ℕ) :
+    φ.range ≤ Module.annihilator R ((koszulComplex φ).homology i) := by
+  rintro _ ⟨x, rfl⟩
+  exact mem_annihilator_homology φ x i
+
+lemma koszulComplex.ofList_ideal_annihilator_homology (l : List R) (i : ℕ) :
+    Ideal.ofList l ≤ Module.annihilator R ((koszulComplex.ofList l).homology i) := by
+  convert range_le_annihilator_homology _ i
+  simp
+
+lemma koszulCocomplex.mem_annihilator_homology (i : ℕ) :
+    φ x ∈ Module.annihilator R ((koszulCocomplex R x).homology i) := by
+  sorry
+
+lemma koszulCocomplex.ofList_ideal_le_mem_annihilator_homology (l : List R) (i : ℕ) :
     Ideal.ofList l ≤ Module.annihilator R ((koszulCocomplex.ofList R l).homology i) := by
   intro r hr
   have hr' : r ∈ Ideal.span (Set.range l.get) := by simpa only [Set.range_list_get l]
@@ -35,6 +52,6 @@ lemma koszulComplex.mem_annihilator_homology_ofList (l : List R) (i : ℕ) :
   let φ : (Fin l.length → R) →ₗ[R] R := Fintype.linearCombination R c
   have hφ : φ l.get = r := by
     simp only [φ, ← hc, Fintype.linearCombination_apply, mul_comm (c _), smul_eq_mul]
-  exact hφ ▸ mem_annihilator_homology (R := R) (M := Fin l.length → R) (x := l.get) φ i
+  exact hφ ▸ mem_annihilator_homology φ l.get i
 
 end homology_annihilator
