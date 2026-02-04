@@ -5,7 +5,10 @@ Authors: Jingting Wang, Nailin Guan
 -/
 module
 
-public import Mathlib.RingTheory.KoszulComplex.Defs
+public import Mathlib.RingTheory.KoszulComplex.Complex
+public import Mathlib.RingTheory.KoszulComplex.Cocomplex
+public import Mathlib.Algebra.Module.SpanRank
+public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
 
 /-!
 # Basic Properties of Koszul complex

@@ -5,18 +5,12 @@ Authors: Jingting Wang, Nailin Guan
 -/
 module
 
-public import Mathlib.LinearAlgebra.ExteriorPower.Basis
-public import Mathlib.LinearAlgebra.ExteriorAlgebra.Grading
 public import Mathlib.Algebra.Category.ModuleCat.Abelian
-public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
 public import Mathlib.Algebra.Category.ModuleCat.ExteriorPower
-public import Mathlib.Algebra.Homology.HomologicalComplex
-public import Mathlib.Algebra.Homology.Monoidal
-public import Mathlib.Algebra.Homology.ShortComplex.Abelian
 public import Mathlib.Algebra.Homology.ShortComplex.HomologicalComplex
-public import Mathlib.Algebra.Module.SpanRank
+public import Mathlib.LinearAlgebra.ExteriorAlgebra.Grading
+public import Mathlib.LinearAlgebra.ExteriorPower.Basis
 public import Mathlib.RingTheory.Regular.RegularSequence
-public import Mathlib.Algebra.Category.ModuleCat.Monoidal.Basic
 
 /-!
 # Definition of Koszul complex
