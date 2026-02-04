@@ -21,7 +21,7 @@ section change_generators
 
 variable [IsNoetherianRing R] [IsLocalRing R]
 
-theorem koszulComplex.nonempty_iso_of_minimal_generators {I : Ideal R} {l l' : List R}
+theorem koszulCocomplex.nonempty_iso_of_minimal_generators {I : Ideal R} {l l' : List R}
     (hl : Ideal.ofList l = I) (hl' : Ideal.ofList l' = I)
     (hl_min : l.length = I.spanFinrank) (hl'_min : l'.length = I.spanFinrank) :
     Nonempty <| ofList R l ≅ ofList R l' := by
@@ -29,7 +29,7 @@ theorem koszulComplex.nonempty_iso_of_minimal_generators {I : Ideal R} {l l' : L
   · sorry
   · sorry
 
-theorem koszulComplex.nonempty_iso_of_minimal_generators' {I : Ideal R} {l : List R}
+theorem koszulCocomplex.nonempty_iso_of_minimal_generators' {I : Ideal R} {l : List R}
     (eq : Ideal.ofList l = I) (min : l.length = I.spanFinrank) :
     Nonempty <| ofList R I.finite_generators_of_isNoetherian.toFinset.toList ≅ ofList R l := by
   refine nonempty_iso_of_minimal_generators R ?_ eq ?_ min
@@ -37,7 +37,6 @@ theorem koszulComplex.nonempty_iso_of_minimal_generators' {I : Ideal R} {l : Lis
     exact I.span_generators
   · simp only [Finset.length_toList, ← Set.ncard_eq_toFinset_card _ _]
     exact Submodule.FG.generators_ncard Submodule.FG.of_finite
-
 
 end change_generators
 
@@ -53,9 +52,9 @@ instance (T : Type v) [CommRing T] (g : R →+* T) :
     rfl
 
 open TensorProduct in
-def koszulComplex.baseChange_iso (l : List R) (l' : List S) (eqmap : l.map f = l') :
-    koszulComplex.ofList S l' ≅ ((ModuleCat.extendScalars f).mapHomologicalComplex
-      (ComplexShape.up ℕ)).obj (koszulComplex.ofList R l) := by
+def koszulCocomplex.baseChange_iso (l : List R) (l' : List S) (eqmap : l.map f = l') :
+    koszulCocomplex.ofList S l' ≅ ((ModuleCat.extendScalars f).mapHomologicalComplex
+      (ComplexShape.up ℕ)).obj (koszulCocomplex.ofList R l) := by
   refine HomologicalComplex.Hom.isoOfComponents
     (fun i ↦ LinearEquiv.toModuleIso ?_) (fun i j ↦ ?_)
   · sorry
@@ -67,12 +66,12 @@ section IsRegular
 
 open RingTheory.Sequence
 
-lemma koszulComplex.exactAt_of_lt_length_of_isRegular (rs : List R) (reg : IsRegular R rs)
-    (i : ℕ) (lt : i < rs.length) : (koszulComplex.ofList R rs).ExactAt i := by
+lemma koszulCocomplex.exactAt_of_lt_length_of_isRegular (rs : List R) (reg : IsRegular R rs)
+    (i : ℕ) (lt : i < rs.length) : (koszulCocomplex.ofList R rs).ExactAt i := by
   sorry
 
-theorem koszulComplex.exactAt_of_ne_length_of_isRegular (rs : List R) (reg : IsRegular R rs)
-    (i : ℕ) (lt : i ≠ rs.length) : (koszulComplex.ofList R rs).ExactAt i := by
+theorem koszulCocomplex.exactAt_of_ne_length_of_isRegular (rs : List R) (reg : IsRegular R rs)
+    (i : ℕ) (lt : i ≠ rs.length) : (koszulCocomplex.ofList R rs).ExactAt i := by
   sorry
 
 end IsRegular

@@ -36,32 +36,18 @@ variable {ι R A : Type*} [DecidableEq ι] [AddMonoid ι]
 
 def GradedAlgebra.linearGMul (h : k = i + j) : 𝒜 i →ₗ[R] (𝒜 j →ₗ[R] 𝒜 k) := sorry
 
-#check GradedMonoid.GMul
-
-#check GradedRing
-
 @[simp]
 lemma GradedAlgebra.linearGMul_eq_mul (h : k = i + j) (x : 𝒜 i) (y : 𝒜 j) :
     (GradedAlgebra.linearGMul 𝒜 h) x y = x.1 * y.1 := sorry
 
 end GradedAlgebra
 
-section ModuleCat
-
-variable {R : Type u} [CommRing R]
-
-def ModuleCat.tensorFunctor (M : ModuleCat.{v} R) [Small.{w'} M] [UnivLE.{w, w'}] :
-    ModuleCat.{w} R ⥤ ModuleCat.{w'} R := sorry
-
-end ModuleCat
-
 section
 
 variable (R : Type u) [CommRing R] (M : Type v) [AddCommGroup M] [Module R M]
 
 variable {M} in
-noncomputable def koszulComplex (x : M) :
-    HomologicalComplex (ModuleCat.{max u v} R) (ComplexShape.up ℕ) :=
+noncomputable def koszulCocomplex (x : M) : CochainComplex (ModuleCat.{max u v} R) ℕ :=
   CochainComplex.of
     (ModuleCat.of R M).exteriorPower
     (fun n ↦ ModuleCat.ofHom (GradedAlgebra.linearGMul (fun i : ℕ ↦ ⋀[R]^i M) (add_comm n 1)
@@ -76,12 +62,12 @@ noncomputable def koszulComplex (x : M) :
         CliffordAlgebra.ι_sq_scalar, QuadraticMap.zero_apply, map_zero, zero_mul]
       rfl)
 
-namespace koszulComplex
+namespace koszulCocomplex
 
 variable {M} {N : Type v} [AddCommGroup N] [Module R N]
 
 noncomputable def map (f : M →ₗ[R] N) {x : M} {y : N} (h : f x = y) :
-    koszulComplex R x ⟶ koszulComplex R y :=
+    koszulCocomplex R x ⟶ koszulCocomplex R y :=
   CochainComplex.ofHom _ _ _ _ _ _
     (fun i ↦ (ModuleCat.exteriorPower.functor R i).map (ModuleCat.ofHom f))
     (fun i ↦ by
@@ -97,28 +83,29 @@ noncomputable def map (f : M →ₗ[R] N) {x : M} {y : N} (h : f x = y) :
 lemma map_hom (f : M →ₗ[R] N) (x : M) (y : N) (h : f x = y) (i : ℕ) :
     (map R f h).f i = (ModuleCat.exteriorPower.functor R i).map (ModuleCat.ofHom f) := rfl
 
-lemma map_id_refl (x : M) : koszulComplex.map R (M := M) .id (Eq.refl x) = 𝟙 _ := by
+lemma map_id_refl (x : M) : koszulCocomplex.map R (M := M) .id (Eq.refl x) = 𝟙 _ := by
   ext i x
   simp only [map_hom, ModuleCat.ofHom_id, ModuleCat.exteriorPower.functor_map,
     ModuleCat.exteriorPower.map, ModuleCat.hom_id, exteriorPower.map_id, HomologicalComplex.id_f,
     LinearMap.id_coe, id_eq]
   rfl
 
-lemma map_id (x y : M) (h : x = y) : koszulComplex.map R (M := M) .id h = eqToHom (by rw [h]) := by
+lemma map_id (x y : M) (h : x = y) :
+    koszulCocomplex.map R (M := M) .id h = eqToHom (by rw [h]) := by
   subst h
   exact map_id_refl R x
 
 lemma map_comp {P : Type v} [AddCommGroup P] [Module R P]
     (f : M →ₗ[R] N) (g : N →ₗ[R] P) {x : M} {y : N} {z : P} (hxy : f x = y) (hyz : g y = z) :
-    koszulComplex.map R f hxy ≫ koszulComplex.map R g hyz =
-    koszulComplex.map R (g ∘ₗ f) (hxy ▸ hyz : g (f x) = z) := by
+    koszulCocomplex.map R f hxy ≫ koszulCocomplex.map R g hyz =
+    koszulCocomplex.map R (g ∘ₗ f) (hxy ▸ hyz : g (f x) = z) := by
   refine HomologicalComplex.hom_ext _ _ fun i ↦ ?_
   simp only [HomologicalComplex.comp_f, map_hom, ModuleCat.ofHom_comp, Functor.map_comp]
 
 noncomputable def isoOfEquiv (f : M ≃ₗ[R] N) {x : M} {y : N} (h : f x = y) :
-    koszulComplex R x ≅ koszulComplex R y where
-  hom := koszulComplex.map R f h
-  inv := koszulComplex.map R f.symm (f.injective (by simpa using h.symm))
+    koszulCocomplex R x ≅ koszulCocomplex R y where
+  hom := koszulCocomplex.map R f h
+  inv := koszulCocomplex.map R f.symm (f.injective (by simpa using h.symm))
   hom_inv_id := by
     simp only [map_comp, LinearEquiv.comp_coe, LinearEquiv.self_trans_symm,
       LinearEquiv.refl_toLinearMap]
@@ -129,20 +116,20 @@ noncomputable def isoOfEquiv (f : M ≃ₗ[R] N) {x : M} {y : N} (h : f x = y) :
     exact map_id_refl R y
 
 noncomputable def topXLinearEquivOfBasis {ι : Type*} [Finite ι] [LinearOrder ι] (x : M)
-    (b : Basis ι R M) : (koszulComplex R x).X (Nat.card ι) ≃ₗ[R] R := by sorry
+    (b : Basis ι R M) : (koszulCocomplex R x).X (Nat.card ι) ≃ₗ[R] R := by sorry
 
 noncomputable abbrev ofList (l : List R) :=
-  koszulComplex R l.get
+  koszulCocomplex R l.get
 
 def topHomologyLinearEquiv (l : List R) :
-    (koszulComplex.ofList R l).homology l.length ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
+    (koszulCocomplex.ofList R l).homology l.length ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
 
-instance free [Module.Free R M] (x : M) (i : ℕ) : Module.Free R ((koszulComplex R x).X i) :=
+instance free [Module.Free R M] (x : M) (i : ℕ) : Module.Free R ((koszulCocomplex R x).X i) :=
   inferInstanceAs <| Module.Free R (⋀[R]^i M)
 
 lemma X_isZero_of_card_generators_le (x : M) {ι : Type*} [Finite ι] (g : ι → M)
     (hg : Submodule.span R (Set.range g) = ⊤) (i : ℕ) (hi : Nat.card ι < i) :
-    IsZero ((koszulComplex R x).X i) := by
+    IsZero ((koszulCocomplex R x).X i) := by
   classical
   letI : Fintype ι := Fintype.ofFinite ι
   letI : LinearOrder ι := LinearOrder.lift' (Fintype.equivFin ι) (Fintype.equivFin ι).injective
@@ -160,12 +147,12 @@ lemma X_isZero_of_card_generators_le (x : M) {ι : Type*} [Finite ι] (g : ι �
     (Submodule.subsingleton_iff R).mp <| (subsingleton_iff_bot_eq_top).mp hbotTop
   have hIsZero : IsZero (ModuleCat.of R (⋀[R]^i M)) :=
     ModuleCat.isZero_of_iff_subsingleton.mpr hSubsingleton
-  simpa [koszulComplex, ModuleCat.exteriorPower] using hIsZero
+  simpa [koszulCocomplex, ModuleCat.exteriorPower] using hIsZero
 
 lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
-    IsZero ((koszulComplex.ofList R l).X i) :=
+    IsZero ((koszulCocomplex.ofList R l).X i) :=
   X_isZero_of_card_generators_le R l.get
   (Pi.basisFun R (Fin l.length)) (Pi.basisFun R (Fin l.length)).span_eq i
   (by simpa [Nat.card_eq_fintype_card] using hi)
 
-end koszulComplex
+end koszulCocomplex
