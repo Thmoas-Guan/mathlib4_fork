@@ -14,7 +14,7 @@ public import Mathlib.RingTheory.Regular.RegularSequence
 public import Mathlib.LinearAlgebra.Alternating.Uncurry.Fin
 
 /-!
-# The dual of Koszul complex
+# Definition of Koszul complex
 -/
 
 @[expose] public section
@@ -276,6 +276,10 @@ noncomputable def koszulComplex : ChainComplex (ModuleCat R) ℕ :=
     (ModuleCat.of R M).exteriorPower
     (fun n ↦ ModuleCat.ofHom (koszulComplex_aux φ n))
     (fun n ↦ by simp [← ModuleCat.ofHom_comp, koszulComplex_aux_comp_eq_zero]; rfl)
+
+section DifferentialGradedAlgebra
+
+end DifferentialGradedAlgebra
 
 namespace koszulComplex
 

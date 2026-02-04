@@ -13,7 +13,7 @@ public import Mathlib.LinearAlgebra.ExteriorPower.Basis
 public import Mathlib.RingTheory.Regular.RegularSequence
 
 /-!
-# Definition of Koszul complex
+# Definition of Koszul cocomplex
 -/
 
 @[expose] public section

@@ -24,13 +24,17 @@ section change_generators
 
 variable [IsNoetherianRing R] [IsLocalRing R]
 
+lemma nonempty_linearEquiv_of_minimal_generators (I : Ideal R) (l l' : List R)
+    (hl : Ideal.ofList l = I) (hl' : Ideal.ofList l' = I)
+    (hl_min : l.length = I.spanFinrank) (hl'_min : l'.length = I.spanFinrank) :
+  ∃ e : (Fin l.length → R) ≃ₗ[R] (Fin l'.length → R), e l.get = l'.get := sorry
+
 theorem koszulCocomplex.nonempty_iso_of_minimal_generators {I : Ideal R} {l l' : List R}
     (hl : Ideal.ofList l = I) (hl' : Ideal.ofList l' = I)
     (hl_min : l.length = I.spanFinrank) (hl'_min : l'.length = I.spanFinrank) :
     Nonempty <| ofList R l ≅ ofList R l' := by
-  refine ⟨isoOfEquiv R ?_ ?_⟩
-  · sorry
-  · sorry
+  obtain ⟨e, h⟩ := nonempty_linearEquiv_of_minimal_generators R I l l' hl hl' hl_min hl'_min
+  exact ⟨isoOfEquiv R e h⟩
 
 theorem koszulCocomplex.nonempty_iso_of_minimal_generators' {I : Ideal R} {l : List R}
     (eq : Ideal.ofList l = I) (min : l.length = I.spanFinrank) :
