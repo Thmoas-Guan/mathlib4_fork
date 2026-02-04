@@ -8,6 +8,8 @@ module
 public import Mathlib.Algebra.Category.ModuleCat.Abelian
 public import Mathlib.Algebra.Category.ModuleCat.ExteriorPower
 public import Mathlib.Algebra.Homology.ShortComplex.HomologicalComplex
+public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
+public import Mathlib.Algebra.Module.SpanRank
 public import Mathlib.LinearAlgebra.ExteriorAlgebra.Grading
 public import Mathlib.LinearAlgebra.ExteriorPower.Basis
 public import Mathlib.RingTheory.Regular.RegularSequence
@@ -292,6 +294,9 @@ section functoriality
 noncomputable def map (f : M →ₗ[R] N) (φ' : N →ₗ[R] R) (h : φ' ∘ₗ f = φ) :
     koszulComplex φ ⟶ koszulComplex φ' := sorry
 
+noncomputable def isoOfEquiv (f : M ≃ₗ[R] N) (φ' : N →ₗ[R] R) (h : φ' ∘ₗ f = φ) :
+    koszulComplex φ ≅ koszulComplex φ' := sorry
+
 end functoriality
 
 section specialX
@@ -313,5 +318,73 @@ lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
   (by simpa [Nat.card_eq_fintype_card] using hi)
 
 end specialX
+
+section H0
+
+noncomputable def zeroHomologyLinearEquiv (l : List R) :
+    (ofList l).homology l.length ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
+
+end H0
+
+section regular
+
+open RingTheory.Sequence
+
+lemma exactAt_of_isRegular (rs : List R) (reg : IsRegular R rs)
+    (i : ℕ) (lt : i ≠ 0) : (ofList rs).ExactAt i := by
+  sorry
+
+end regular
+
+section change_generators
+
+lemma nonempty_linearEquiv_of_minimal_generators' (I : Ideal R) (hI : I ≤ Ring.jacobson R)
+    (l l' : List R) (hl : Ideal.ofList l = I) (hl' : Ideal.ofList l' = I)
+    (hl_min : l.length = I.spanFinrank) (hl'_min : l'.length = I.spanFinrank) :
+  ∃ e : (Fin l.length → R) ≃ₗ[R] (Fin l'.length → R), e l.get = l'.get := sorry
+
+theorem nonempty_iso_of_minimal_generators [IsLocalRing R]
+    {I : Ideal R} {l l' : List R}
+    (hl : Ideal.ofList l = I) (hl' : Ideal.ofList l' = I)
+    (hl_min : l.length = I.spanFinrank) (hl'_min : l'.length = I.spanFinrank) :
+    Nonempty <| ofList l ≅ ofList l' := by
+  have hI : I ≤ Ring.jacobson R := sorry
+  obtain ⟨e, h⟩ := nonempty_linearEquiv_of_minimal_generators' I hI l l' hl hl' hl_min hl'_min
+  have h' : Fintype.linearCombination R l'.get ∘ₗ e = Fintype.linearCombination R l.get := by
+    sorry
+  exact ⟨isoOfEquiv _ e _ h'⟩
+
+theorem nonempty_iso_of_minimal_generators'
+    [IsNoetherianRing R] [IsLocalRing R] {I : Ideal R} {l : List R}
+    (eq : Ideal.ofList l = I) (min : l.length = I.spanFinrank) :
+    Nonempty <| ofList I.finite_generators_of_isNoetherian.toFinset.toList ≅ ofList l := by
+  refine nonempty_iso_of_minimal_generators ?_ eq ?_ min
+  · simp only [Ideal.ofList, Finset.mem_toList, Set.Finite.mem_toFinset, Set.setOf_mem_eq]
+    exact I.span_generators
+  · simp only [Finset.length_toList, ← Set.ncard_eq_toFinset_card _ _]
+    exact Submodule.FG.generators_ncard Submodule.FG.of_finite
+
+end change_generators
+
+section basechange
+
+variable (S : Type (max u v)) [CommRing S] (f : R →+* S)
+
+instance (T : Type v) [CommRing T] (g : R →+* T) :
+    (ModuleCat.extendScalars.{u, v, u} g).Additive where
+  map_add {X Y a b} := by
+    simp only [ModuleCat.extendScalars, ModuleCat.ExtendScalars.map', Algebra.algebraMap_self,
+      ModuleCat.hom_add, LinearMap.baseChange_add]
+    rfl
+
+open TensorProduct in
+def baseChange_iso (l : List R) (l' : List S) (eqmap : l.map f = l') :
+    ofList l' ≅ ((ModuleCat.extendScalars f).mapHomologicalComplex _).obj (ofList l) := by
+  refine HomologicalComplex.Hom.isoOfComponents
+    (fun i ↦ LinearEquiv.toModuleIso ?_) (fun i j ↦ ?_)
+  · sorry
+  · sorry
+
+end basechange
 
 end koszulComplex
