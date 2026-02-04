@@ -6134,8 +6134,9 @@ public import Mathlib.RingTheory.Kaehler.JacobiZariski
 public import Mathlib.RingTheory.Kaehler.Polynomial
 public import Mathlib.RingTheory.Kaehler.TensorProduct
 public import Mathlib.RingTheory.KoszulComplex.Basic
-public import Mathlib.RingTheory.KoszulComplex.Defs
-public import Mathlib.RingTheory.KoszulComplex.Dual
+public import Mathlib.RingTheory.KoszulComplex.Cocomplex
+public import Mathlib.RingTheory.KoszulComplex.Complex
+public import Mathlib.RingTheory.KoszulComplex.Homotopy
 public import Mathlib.RingTheory.KrullDimension.Basic
 public import Mathlib.RingTheory.KrullDimension.Field
 public import Mathlib.RingTheory.KrullDimension.LocalRing
