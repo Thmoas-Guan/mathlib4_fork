@@ -125,28 +125,17 @@ noncomputable def topXLinearEquivOfBasis {ι : Type*} [Finite ι] [LinearOrder �
     (b : Basis ι R M) : (koszulCocomplex R x).X (Nat.card ι) ≃ₗ[R] R := by sorry
 
 noncomputable def topXLinearEquivOfBasisOfList (l : List R) :
-    (ofList R l).X l.length ≃ₗ[R] R := sorry
+    (ofList R l).X l.length ≃ₗ[R] R := by
+  have : l.length = Nat.card (Fin l.length) := by simp
+  rw [this]
+  exact topXLinearEquivOfBasis R l.get (Pi.basisFun R (Fin l.length))
 
 lemma X_isZero_of_card_generators_le (x : M) {ι : Type*} [Finite ι] (g : ι → M)
     (hg : Submodule.span R (Set.range g) = ⊤) (i : ℕ) (hi : Nat.card ι < i) :
     IsZero ((koszulCocomplex R x).X i) := by
-  classical
-  letI : Fintype ι := Fintype.ofFinite ι
-  letI : LinearOrder ι := LinearOrder.lift' (Fintype.equivFin ι) (Fintype.equivFin ι).injective
-  have hcard : Fintype.card ι < i := by simpa [Nat.card_eq_fintype_card] using hi
-  have hempty : IsEmpty (Fin i ↪o ι) := by
-    refine ⟨fun f ↦ ?_⟩
-    absurd f.injective
-    contrapose hcard
-    simpa using Fintype.card_le_of_injective f ‹_›
-  have hbotTop : (⊥ : Submodule R (⋀[R]^i M)) = ⊤ := by
-    rw [← exteriorPower.span_ιMulti_orderEmbedding_of_span_eq_top (R := R) (M := M) hg i]
-    convert Submodule.span_empty.symm
-    exact Set.range_eq_empty_iff.mpr hempty
-  have hSubsingleton : Subsingleton (⋀[R]^i M) :=
-    (Submodule.subsingleton_iff R).mp <| (subsingleton_iff_bot_eq_top).mp hbotTop
-  have hIsZero : IsZero (ModuleCat.of R (⋀[R]^i M)) :=
-    ModuleCat.isZero_of_iff_subsingleton.mpr hSubsingleton
+  have hIsZero : IsZero (ModuleCat.of R (⋀[R]^i M)) := by
+    apply ModuleCat.isZero_of_iff_subsingleton.mpr
+    exact subsingleton_of_card_generators_le R M g hg i hi
   simpa [koszulCocomplex, ModuleCat.exteriorPower] using hIsZero
 
 lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
@@ -156,10 +145,5 @@ lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
   (by simpa [Nat.card_eq_fintype_card] using hi)
 
 end specialX
-
--- def topHomologyLinearEquiv (l : List R) :
---     (koszulCocomplex.ofList R l).homology l.length ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
-
-
 
 end koszulCocomplex

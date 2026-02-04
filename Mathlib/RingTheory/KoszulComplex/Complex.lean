@@ -281,7 +281,17 @@ namespace koszulComplex
 
 variable {N : Type v} [AddCommGroup N] [Module R N]
 
+noncomputable def ofList (l : List R) := koszulComplex (Fintype.linearCombination R l.get)
+
+section functoriality
+
 noncomputable def map (f : M →ₗ[R] N) (φ' : N →ₗ[R] R) (h : φ' ∘ₗ f = φ) :
     koszulComplex φ ⟶ koszulComplex φ' := sorry
+
+end functoriality
+
+section specialX
+
+end specialX
 
 end koszulComplex

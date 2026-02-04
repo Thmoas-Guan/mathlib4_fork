@@ -81,3 +81,20 @@ instance Module.Free.exteriorPower (n : ℕ) [Module.Free R M] : Module.Free R (
   letI : LinearOrder ι := linearOrderOfSTO (WellOrderingRel (α := ι))
   exact Module.Free.of_basis
     (exteriorPower.basis (R := R) (M := M) (ι := ι) (Module.Free.chooseBasis R M) n)
+
+lemma subsingleton_of_card_generators_le {ι : Type*} [Finite ι] (g : ι → M)
+    (hg : Submodule.span R (Set.range g) = ⊤) (i : ℕ) (hi : Nat.card ι < i) :
+    Subsingleton (⋀[R]^i M) := by
+  letI : Fintype ι := Fintype.ofFinite ι
+  letI : LinearOrder ι := LinearOrder.lift' (Fintype.equivFin ι) (Fintype.equivFin ι).injective
+  have hcard : Fintype.card ι < i := by simpa [Nat.card_eq_fintype_card] using hi
+  have hempty : IsEmpty (Fin i ↪o ι) := by
+    refine ⟨fun f ↦ ?_⟩
+    absurd f.injective
+    contrapose hcard
+    simpa using Fintype.card_le_of_injective f ‹_›
+  have hbotTop : (⊥ : Submodule R (⋀[R]^i M)) = ⊤ := by
+    rw [← exteriorPower.span_ιMulti_orderEmbedding_of_span_eq_top (R := R) (M := M) hg i]
+    convert Submodule.span_empty.symm
+    exact Set.range_eq_empty_iff.mpr hempty
+  exact (Submodule.subsingleton_iff R).mp <| (subsingleton_iff_bot_eq_top).mp hbotTop

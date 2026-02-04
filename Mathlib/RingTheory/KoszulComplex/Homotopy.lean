@@ -36,9 +36,8 @@ lemma koszulComplex.range_le_annihilator_homology (i : ℕ) :
   exact mem_annihilator_homology φ x i
 
 lemma koszulComplex.ofList_ideal_annihilator_homology (l : List R) (i : ℕ) :
-    Ideal.ofList l ≤ Module.annihilator R ((koszulComplex.ofList l).homology i) := by
-  convert range_le_annihilator_homology _ i
-  simp
+    Ideal.ofList l ≤ Module.annihilator R ((ofList l).homology i) :=
+  le_of_eq_of_le (by simp) (range_le_annihilator_homology (Fintype.linearCombination R l.get) i)
 
 lemma koszulCocomplex.mem_annihilator_homology (i : ℕ) :
     φ x ∈ Module.annihilator R ((koszulCocomplex R x).homology i) := by
