@@ -322,7 +322,7 @@ end specialX
 section H0
 
 noncomputable def zeroHomologyLinearEquiv (l : List R) :
-    (ofList l).homology l.length ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
+    (ofList l).homology 0 ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
 
 end H0
 
