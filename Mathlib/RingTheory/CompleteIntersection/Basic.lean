@@ -309,21 +309,6 @@ section epsilon1
 
 variable [IsNoetherianRing R] [IsLocalRing R]
 
-noncomputable def ChainComplex.zeroHomologyEquiv {S : Type u} [CommRing S]
-    (X : ChainComplex (ModuleCat S) ℕ) :
-    ((X.sc 1).X₃ ⧸ (X.sc 1).g.hom.range) ≃ₗ[S] X.homology 0 :=
-  have eqtop : (X.sc 0).g.hom.ker = ⊤ := by simp
-  have eqX : (X.sc 1).X₃ = (X.sc 0).X₂ := by simp
-  let e' : (X.sc 0).g.hom.ker ≃ₗ[S] (X.sc 1).X₃ := by
-    rw [eqX]
-    exact (LinearEquiv.ofEq _ _ eqtop).trans Submodule.topEquiv
-  let e : ((X.sc 0).g.hom.ker ⧸ (X.sc 0).moduleCatToCycles.range) ≃ₗ[S]
-    ((X.sc 1).X₃ ⧸ (X.sc 1).g.hom.range) :=
-    Submodule.Quotient.equiv _ _ e' (by
-      --simp [this LinearMap.range_comp]
-      sorry)
-  e.symm.trans (X.sc 0).moduleCatHomologyIso.toLinearEquiv.symm
-
 def LinearMap.kerBaseChangeEquiv {S : Type u} [CommRing S] [IsLocalRing S] (I : Ideal S)
     (ne : I ≠ ⊤) : ((maximalIdeal S).subtype.baseChange (S ⧸ I)).ker ≃ₗ[S]
       (I ⧸ (maximalIdeal S) • (⊤ : Submodule S I)) :=
@@ -372,36 +357,40 @@ lemma epsilon1_eq_spanFinrank (S : Type u) [CommRing S] [IsRegularLocalRing S] (
     ((ModuleCat.extendScalars (Ideal.Quotient.mk I)).mapHomologicalComplex
     _).obj (koszulAlgebra S) := e2.trans e1
   let F := (ModuleCat.extendScalars.{u, u, u} (Ideal.Quotient.mk I))
+  have preveq : (ComplexShape.down ℕ).prev 1 = 2 := by simp
+  have nexteq : (ComplexShape.down ℕ).next 1 = 0 := by simp
+  have preveq' : (ComplexShape.down ℕ).prev 0 = 1 := by simp
+  have nexteq' : (ComplexShape.down ℕ).next 0 = 0 := by simp
   let h1 := (koszulAlgebra (S ⧸ I)).homology 1
   change Module.finrank (ResidueField (S ⧸ I)) h1 = _
   let eh := HomologicalComplex.homologyMapIso e 1
-  have scexac : ((koszulAlgebra S).sc 1).Exact := by
+  let T := (koszulAlgebra S).sc' 2 1 0
+  have T_exact : T.Exact := by
+    rw [← (koszulAlgebra S).exactAt_iff' 2 1 0 preveq nexteq]
     apply koszulComplex.exactAt_of_isRegular _ _ 1 Nat.one_ne_zero
     apply isRegular_of_span_eq_maximalIdeal
     · simpa [Ideal.ofList] using (maximalIdeal S).span_generators
     · simp [l, len, IsRegularLocalRing.spanFinrank_maximalIdeal]
-  let T := (koszulAlgebra S).sc 1
-  let eh' : h1 ≃ₗ[S⧸ I] (T.map F).homology := eh.toLinearEquiv
-  have eq3 : T.X₃ = (koszulAlgebra S).X 0 := by simp [T]
-  let e3 : T.X₃ ≃ₗ[S] S := by
-    rw [eq3]
-    exact koszulComplex.XZeroLinearEquivRing _
+  let eh' : h1 ≃ₗ[S⧸ I] (T.map F).homology :=
+    (eh.trans (HomologicalComplex.homologyIsoSc' _ 2 1 0 preveq nexteq)).toLinearEquiv
+  let e3 : T.X₃ ≃ₗ[S] S := koszulComplex.XZeroLinearEquivRing (Fintype.linearCombination S
+    (maximalIdeal S).finite_generators_of_isNoetherian.toFinset.toList.get)
   let f : T.X₁ →ₗ[S] T.X₂ := T.f.hom
   let g : T.X₂ →ₗ[S] T.X₃ := T.g.hom
   let g' : T.X₂ →ₗ[S] S := e3.comp g
   have exac : Function.Exact f g' := by
     simp only [LinearMap.exact_iff, LinearEquiv.ker_comp, f, g']
     exact LinearMap.exact_iff.mp
-      ((CategoryTheory.ShortComplex.ShortExact.moduleCat_exact_iff_function_exact
-        ((koszulAlgebra S).sc 1)).mp scexac)
+      ((CategoryTheory.ShortComplex.ShortExact.moduleCat_exact_iff_function_exact _).mp T_exact)
   have rangeg' : g'.range = maximalIdeal S := by
-    let er1 : (T.X₃ ⧸ g.range) ≃ₗ[S] (koszulAlgebra S).homology 0 :=
-      ChainComplex.zeroHomologyEquiv (koszulAlgebra S)
-    let er2 : (T.X₃ ⧸ g.range) ≃ₗ[S] S ⧸ g'.range :=
+    let eh0 : (koszulAlgebra S).homology 0 ≃ₗ[S] T.X₃ ⧸ g.range :=
+      (((koszulAlgebra S).isoHomologyι₀.trans
+      ((koszulAlgebra S).opcyclesIsoSc' 1 0 0 preveq' nexteq')).trans
+      ((koszulAlgebra S).sc' 1 0 0).moduleCatOpcyclesIso).toLinearEquiv
+    let eqr : (T.X₃ ⧸ g.range) ≃ₗ[S] S ⧸ g'.range :=
       Submodule.Quotient.equiv _ _ e3 (g.range_comp _).symm
-    let er := er2.symm.trans (er1.trans (koszulComplex.zeroHomologyLinearEquiv l))
-    rw [eq1] at er
-    simpa [Ideal.annihilator_quotient] using er.annihilator_eq
+    let E := (koszulComplex.zeroHomologyLinearEquiv l).symm.trans (eh0.trans eqr)
+    simpa [Ideal.annihilator_quotient, eq1] using E.annihilator_eq.symm
   let g'r := g'.codRestrict (maximalIdeal S) (by simp [← rangeg'])
   have compeq : (maximalIdeal S).subtype.comp g'r = g' :=
     g'.subtype_comp_codRestrict (maximalIdeal S) (by simp [← rangeg'])
@@ -411,8 +400,7 @@ lemma epsilon1_eq_spanFinrank (S : Type u) [CommRing S] [IsRegularLocalRing S] (
   have surj' : Function.Surjective g'r := by
     intro x
     rcases le_of_eq rangeg'.symm x.2 with ⟨y, hy⟩
-    use y
-    exact SetCoe.ext hy
+    exact ⟨y, SetCoe.ext hy⟩
   have surj'' : Function.Surjective (g'r.baseChange (S ⧸ I)) :=
     g'r.lTensor_surjective (S ⧸ I) surj'
   have req : Function.Exact (f.baseChange (S ⧸ I)) (g'r.baseChange (S ⧸ I)) :=
@@ -593,7 +581,7 @@ lemma epsilon1_add_ringKrullDim_ge :
   rw [spanFinrank_eq_of_surjective_of_ker_le f surj le]
 
 end epsilon1
-
+/-
 variable [IsNoetherianRing R] [IsLocalRing R]
 
 class IsCompleteIntersectionLocalRing extends IsLocalRing R, IsNoetherianRing R where
@@ -705,3 +693,4 @@ theorem isCompleteIntersectionLocalRing_iff :
     let _ : IsCompleteIntersectionLocalRing (S ⧸ RingHom.ker f) :=
       (quotient_isCompleteIntersectionLocalRing_iff S _ (RingHom.ker_ne_top f)).mpr ⟨rs, hrs, reg⟩
     exact isCompleteIntersectionLocalRing_of_ringEquiv e
+-/
