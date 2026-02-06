@@ -633,7 +633,7 @@ lemma epsilon1_add_ringKrullDim_ge :
   rw [spanFinrank_eq_of_surjective_of_ker_le f surj le]
 
 end epsilon1
-/-
+
 variable [IsNoetherianRing R] [IsLocalRing R]
 
 class IsCompleteIntersectionLocalRing extends IsLocalRing R, IsNoetherianRing R where
@@ -745,4 +745,3 @@ theorem isCompleteIntersectionLocalRing_iff :
     let _ : IsCompleteIntersectionLocalRing (S ⧸ RingHom.ker f) :=
       (quotient_isCompleteIntersectionLocalRing_iff S _ (RingHom.ker_ne_top f)).mpr ⟨rs, hrs, reg⟩
     exact isCompleteIntersectionLocalRing_of_ringEquiv e
--/
