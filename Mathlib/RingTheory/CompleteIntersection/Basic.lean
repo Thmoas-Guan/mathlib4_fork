@@ -309,10 +309,62 @@ section epsilon1
 
 variable [IsNoetherianRing R] [IsLocalRing R]
 
-def LinearMap.kerBaseChangeEquiv {S : Type u} [CommRing S] [IsLocalRing S] (I : Ideal S)
-    (ne : I ≠ ⊤) : ((maximalIdeal S).subtype.baseChange (S ⧸ I)).ker ≃ₗ[S]
-      (I ⧸ (maximalIdeal S) • (⊤ : Submodule S I)) :=
-  sorry
+lemma LinearEquiv.comap_smul_top {S : Type u} [CommRing S] {M N : Type*} [AddCommGroup M]
+    [Module S M] [AddCommGroup N] [Module S N] (I : Ideal S) (e : M ≃ₗ[S] N) :
+    (I • (⊤ : Submodule S N)).comap e.toLinearMap = I • (⊤ : Submodule S M) := by
+  apply le_antisymm _ (Submodule.smul_top_le_comap_smul_top I _)
+  rw [Submodule.comap_equiv_eq_map_symm, Submodule.map_le_iff_le_comap]
+  exact Submodule.smul_top_le_comap_smul_top I _
+
+lemma Ideal.rTensor_mkQ_ker {S : Type u} [CommRing S] {M : Type*} [AddCommGroup M] [Module S M]
+    (I : Ideal S) : ((Submodule.mkQ I).rTensor M).ker =
+    I • (⊤ : Submodule S (TensorProduct S S M)) := by
+  have : I.mkQ.rTensor M = (TensorProduct.quotTensorEquivQuotSMul M I).symm.comp
+    ((I • ⊤ : Submodule S M).mkQ.comp (TensorProduct.lid S M).toLinearMap) := by
+    rw [eq_comm, LinearEquiv.toLinearMap_symm_comp_eq,
+      TensorProduct.quotTensorEquivQuotSMul_comp_mkQ_rTensor]
+  simp [this, LinearMap.ker_comp, LinearEquiv.comap_smul_top]
+
+noncomputable def LinearMap.kerBaseChangeEquiv {S : Type u} [CommRing S] [IsLocalRing S]
+    (I : Ideal S) (ne : I ≠ ⊤) : ((maximalIdeal S).subtype.baseChange (S ⧸ I)).ker ≃ₗ[S]
+      (I ⧸ (maximalIdeal S) • (⊤ : Submodule S I)) := by
+  let p1 : maximalIdeal S →ₗ[S] (TensorProduct S (S ⧸ I) (maximalIdeal S)) :=
+    ((Submodule.mkQ I).rTensor (maximalIdeal S)).comp
+    (TensorProduct.lid S (maximalIdeal S)).symm.toLinearMap
+  let p2 : S →ₗ[S] (TensorProduct S (S ⧸ I) S) :=
+    ((Submodule.mkQ I).rTensor S).comp (TensorProduct.lid S S).symm.toLinearMap
+  have comm : (((maximalIdeal S).subtype.baseChange (S ⧸ I)).restrictScalars S).comp p1 =
+    p2.comp (maximalIdeal S).subtype := by
+    ext
+    simp [p1, p2]
+  have ker1 : (p2.comp (maximalIdeal S).subtype).ker =
+    Submodule.comap (maximalIdeal S).subtype I := by
+    simp only [ker_comp, p2, Ideal.rTensor_mkQ_ker, LinearEquiv.comap_smul_top, smul_eq_mul,
+      Ideal.mul_top]
+  let eI : Submodule.comap (maximalIdeal S).subtype I ≃ₗ[S] I :=
+    Submodule.comapSubtypeEquivOfLe (le_maximalIdeal ne)
+  have comm2 : (TensorProduct.quotTensorEquivQuotSMul (maximalIdeal S) I).comp p1 =
+    (I • (⊤ : Submodule S (maximalIdeal S))).mkQ := by
+    ext
+    simpa [p1] using TensorProduct.quotTensorEquivQuotSMul_mk_tmul I 1 _
+  have kerp1 : p1.ker = I • (⊤ : Submodule S (maximalIdeal S)) := by
+    rw [← (I • (⊤ : Submodule S (maximalIdeal S))).ker_mkQ, ← comm2, LinearEquiv.ker_comp]
+  let p1r : Submodule.comap (maximalIdeal S).subtype I →ₗ[S]
+    ((maximalIdeal S).subtype.baseChange (S ⧸ I)).ker.restrictScalars S :=
+    p1.restrict (fun x ↦ by simp [← ker1, ← comm])
+  have surjp1 : Function.Surjective p1 := by
+    simpa [p1] using LinearMap.rTensor_surjective _ (Submodule.mkQ_surjective _)
+  have surjr : Function.Surjective p1r := by
+    intro y
+    rcases surjp1 y.1 with ⟨z, hz⟩
+    refine ⟨⟨z, ?_⟩, SetCoe.ext hz⟩
+    simp [← ker1, ← comm, LinearMap.ker_comp, Submodule.mem_comap, hz]
+  let eker : _ ≃ₗ[S] ((maximalIdeal S).subtype.baseChange (S ⧸ I)).ker :=
+    p1r.quotKerEquivOfSurjective surjr
+  exact eker.symm.trans (Submodule.Quotient.equiv _ _ eI (by
+    simp only [ker_restrict, kerp1, Submodule.map_equiv_eq_comap_symm, p1r]
+    ext y
+    simp [eI, Submodule.mem_smul_top_iff, mul_comm]))
 
 lemma epsilon1_eq_spanFinrank (S : Type u) [CommRing S] [IsRegularLocalRing S] (I : Ideal S)
     (le : I ≤ (maximalIdeal S) ^ 2) :
