@@ -5,8 +5,12 @@ Authors: Nailin Guan
 -/
 module
 
+public import Mathlib.Algebra.CharP.Algebra
 public import Mathlib.RingTheory.AdicCompletion.Noetherian
+public import Mathlib.RingTheory.DiscreteValuationRing.Basic
+public import Mathlib.RingTheory.MvPowerSeries.Basic
 public import Mathlib.RingTheory.RegularLocalRing.Basic
+public import Mathlib.RingTheory.RingHom.Smooth
 
 /-!
 
@@ -20,9 +24,80 @@ open IsLocalRing
 
 universe u
 
-variable (R : Type u) [CommRing R]
+section IsCohenRing
 
-variable [IsNoetherianRing R] [IsLocalRing R]
+variable (R : Type*) [CommRing R]
+
+class IsCohenRing [IsDomain R] extends IsDiscreteValuationRing R where
+  span : maximalIdeal R = Ideal.span {(ringChar (ResidueField R) : R)}
+
+lemma exists_isCohenRing_of_not_charZero (k : Type u) [Field k] (charpos : ¬ CharZero k) :
+    ∃ (R : Type u) (_ : CommRing R) (_ : IsDomain R) (_ : IsCohenRing R),
+      Nonempty (ResidueField R ≃+* k) := by
+  sorry
+
+def RingHom.mapQuotientNat {R S : Type*} [CommRing R] [CommRing S] (f : R →+* S) (n : ℕ) :
+    R ⧸ Ideal.span {(n : R)} →+* S ⧸ Ideal.span {(n : S)} :=
+  Ideal.Quotient.lift (Ideal.span {(n : R)})
+    ((Ideal.Quotient.mk (Ideal.span {(n : S)})).comp f) (fun x mem ↦ by
+      rcases  Ideal.mem_span_singleton.mp mem with ⟨y, hy⟩
+      simpa [Ideal.Quotient.eq_zero_iff_dvd] using ⟨f y, by simp [hy]⟩)
+
+lemma quotient_power_char_formallySmooth [IsDomain R] [IsCohenRing R] (p : ℕ) (prime : Nat.Prime p)
+    (char : CharP (ResidueField R) p) (n : ℕ) (ne0 : n ≠ 0) :
+    (RingHom.mapQuotientNat (Int.castRingHom R) (p ^ n)).FormallySmooth := by
+
+  sorry
+
+end IsCohenRing
+
+section
+
+variable {R : Type u} [CommRing R] [IsLocalRing R]
+
+class IsCoefficientRing {S : Type*} [CommRing S] (f : S →+* R) extends
+    IsLocalRing S, IsLocalHom f where
+  inj : Function.Injective f
+  complete : IsAdicComplete (maximalIdeal S) S
+  residue_iso : Function.Bijective (IsLocalRing.ResidueField.map f)
+  span : maximalIdeal S = Ideal.span {(ringChar (ResidueField S) : S)}
+
+lemma exists_section_of_charZero [IsAdicComplete (maximalIdeal R) R]
+    (char : CharZero (ResidueField R)) :
+    ∃ (f : ResidueField R →+* R), (IsLocalRing.residue R).comp f = RingHom.id _ := by
+  sorry
+
+lemma isCoefficientRing_of_residueField (char : CharZero (ResidueField R))
+    (f : ResidueField R →+* R) (h : (IsLocalRing.residue R).comp f = RingHom.id _) :
+    IsCoefficientRing f where
+  inj := f.injective
+  complete := by
+    rw [maximalIdeal_eq_bot]
+    exact IsAdicComplete.bot (ResidueField R)
+  residue_iso := ⟨RingHom.injective _, fun x ↦ ⟨IsLocalRing.residue _ x, by
+    simpa [IsLocalRing.ResidueField.map_residue] using RingHom.congr_fun h x⟩⟩
+  span := by
+    have : ringChar (ResidueField (ResidueField R)) = 0 := by
+      rw [← Algebra.ringChar_eq (ResidueField R)]
+      exact (CharP.ringChar_zero_iff_CharZero (ResidueField R)).mpr char
+    simpa [this] using maximalIdeal_eq_bot
+
+lemma exists_isCoeffientRing_isCohenRing [IsAdicComplete (maximalIdeal R) R] :
+    ∃ (S : Type u) (_ : CommRing S) (_ : IsDomain S) (_ : IsCohenRing S) (f : S →+* R),
+    IsCoefficientRing f := by
+  sorry
+
+lemma exists_mvPowerSeries_surjective_of_isCoeffientRing [IsAdicComplete (maximalIdeal R) R]
+    (fg : (maximalIdeal R).FG) (S : Type u) [CommRing S] (f : S →+* R) [IsCoefficientRing f] :
+    ∃ (n : ℕ) (g : MvPowerSeries (Fin n) S →+* R),
+    Function.Surjective g ∧ g.comp MvPowerSeries.C = f := by
+  sorry
+
+end
+
+section corollary
+
+variable (R : Type u) [CommRing R] [IsLocalRing R] [IsNoetherianRing R]
 
 lemma exist_isRegularLocalRing_surjective_of_isAdicComplete [IsAdicComplete (maximalIdeal R) R] :
     ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S) (f : S →+* R),
@@ -105,3 +180,5 @@ lemma exist_isRegularLocalRing_surjective_adicCompletion_ker_le :
     (f : S →+* (AdicCompletion (maximalIdeal R) R)),
     Function.Surjective f ∧ RingHom.ker f ≤ (maximalIdeal S) ^ 2 :=
   exist_isRegularLocalRing_surjective_ker_le_of_isAdicComplete _
+
+end corollary
