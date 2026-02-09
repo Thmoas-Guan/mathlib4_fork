@@ -5,11 +5,14 @@ Authors: Nailin Guan
 -/
 module
 
+public import Mathlib.Algebra.Algebra.ZMod
 public import Mathlib.Algebra.CharP.Algebra
+public import Mathlib.NumberTheory.Padics.PadicIntegers
 public import Mathlib.RingTheory.AdicCompletion.Noetherian
 public import Mathlib.RingTheory.DiscreteValuationRing.Basic
 public import Mathlib.RingTheory.MvPowerSeries.Basic
 public import Mathlib.RingTheory.RegularLocalRing.Basic
+public import Mathlib.RingTheory.RingHom.Flat
 public import Mathlib.RingTheory.RingHom.Smooth
 
 /-!
@@ -22,18 +25,34 @@ public import Mathlib.RingTheory.RingHom.Smooth
 
 open IsLocalRing
 
-universe u
+universe u v
 
 section IsCohenRing
 
-variable (R : Type*) [CommRing R]
+variable (R : Type u) [CommRing R]
 
 class IsCohenRing [IsDomain R] extends IsDiscreteValuationRing R where
+  complete : IsAdicComplete (maximalIdeal R) R
   span : maximalIdeal R = Ideal.span {(ringChar (ResidueField R) : R)}
+
+lemma exists_isLocalHom_flat [IsLocalRing R] (K : Type v) [Field K] [Algebra (ResidueField R) K] :
+    ∃ (R' : Type (max u v)) (_ : CommRing R') (_ : IsLocalRing R') (_ : Algebra R R')
+    (_ : IsLocalHom (algebraMap R R')), Module.Flat R R' ∧
+    maximalIdeal R' = (maximalIdeal R).map (algebraMap R R') ∧
+    Nonempty (K ≃ₐ[ResidueField R] (ResidueField R')) := by
+  sorry
 
 lemma exists_isCohenRing_of_not_charZero (k : Type u) [Field k] (charpos : ¬ CharZero k) :
     ∃ (R : Type u) (_ : CommRing R) (_ : IsDomain R) (_ : IsCohenRing R),
       Nonempty (ResidueField R ≃+* k) := by
+  have char := CharP.exists' k
+  simp only [charpos, false_or] at char
+  rcases char with ⟨p, _, char⟩
+  let _ := ZMod.algebra k p
+  let _ : Algebra (ResidueField (PadicInt p)) k := sorry
+  rcases exists_isLocalHom_flat (PadicInt p) k with ⟨R, _, _, _, _, flat, maxeq, ⟨iso⟩⟩
+  use AdicCompletion (maximalIdeal R) R, inferInstance
+
   sorry
 
 def RingHom.mapQuotientNat {R S : Type*} [CommRing R] [CommRing S] (f : R →+* S) (n : ℕ) :
@@ -46,8 +65,15 @@ def RingHom.mapQuotientNat {R S : Type*} [CommRing R] [CommRing S] (f : R →+* 
 lemma quotient_power_char_formallySmooth [IsDomain R] [IsCohenRing R] (p : ℕ) (prime : Nat.Prime p)
     (char : CharP (ResidueField R) p) (n : ℕ) (ne0 : n ≠ 0) :
     (RingHom.mapQuotientNat (Int.castRingHom R) (p ^ n)).FormallySmooth := by
+  induction n with
+  | zero => simp at ne0
+  | succ n ih =>
+    by_cases eq0 : n = 0
+    · rw [eq0, zero_add, pow_one]
+      sorry
+    · have ih' := ih eq0
 
-  sorry
+      sorry
 
 end IsCohenRing
 
