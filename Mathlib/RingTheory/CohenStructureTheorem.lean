@@ -27,13 +27,9 @@ open IsLocalRing
 
 universe u v
 
-section IsCohenRing
-
 variable (R : Type u) [CommRing R]
 
-class IsCohenRing [IsDomain R] extends IsDiscreteValuationRing R where
-  complete : IsAdicComplete (maximalIdeal R) R
-  span : maximalIdeal R = Ideal.span {(ringChar (ResidueField R) : R)}
+section
 
 lemma exists_isLocalHom_flat [IsLocalRing R] (K : Type v) [Field K] [Algebra (ResidueField R) K] :
     ∃ (R' : Type (max u v)) (_ : CommRing R') (_ : IsLocalRing R') (_ : Algebra R R')
@@ -41,6 +37,14 @@ lemma exists_isLocalHom_flat [IsLocalRing R] (K : Type v) [Field K] [Algebra (Re
     maximalIdeal R' = (maximalIdeal R).map (algebraMap R R') ∧
     Nonempty (K ≃ₐ[ResidueField R] (ResidueField R')) := by
   sorry
+
+end
+
+section IsCohenRing
+
+class IsCohenRing [IsDomain R] extends IsDiscreteValuationRing R where
+  complete : IsAdicComplete (maximalIdeal R) R
+  span : maximalIdeal R = Ideal.span {(ringChar (ResidueField R) : R)}
 
 lemma exists_isCohenRing_of_not_charZero (k : Type u) [Field k] (charpos : ¬ CharZero k) :
     ∃ (R : Type u) (_ : CommRing R) (_ : IsDomain R) (_ : IsCohenRing R),
@@ -79,7 +83,7 @@ end IsCohenRing
 
 section
 
-variable {R : Type u} [CommRing R] [IsLocalRing R]
+variable {R} [IsLocalRing R]
 
 class IsCoefficientRing {S : Type*} [CommRing S] (f : S →+* R) extends
     IsLocalRing S, IsLocalHom f where
@@ -91,7 +95,51 @@ class IsCoefficientRing {S : Type*} [CommRing S] (f : S →+* R) extends
 lemma exists_section_of_charZero [IsAdicComplete (maximalIdeal R) R]
     (char : CharZero (ResidueField R)) :
     ∃ (f : ResidueField R →+* R), (IsLocalRing.residue R).comp f = RingHom.id _ := by
-  sorry
+  let _ : Algebra ℚ (ResidueField R) := DivisionRing.toRatAlgebra
+  let _ : Algebra.FormallySmooth ℚ (ResidueField R) := sorry
+  have exists_lift (n : ℕ) (f : ResidueField R →+* (R ⧸ (maximalIdeal R) ^ n)) :
+    ∃ g : ResidueField R →+* (R ⧸ (maximalIdeal R) ^ (n + 1)),
+      (Ideal.Quotient.factorPowSucc _ n).comp g = f := by
+    sorry
+  let f_series (n : ℕ) : (ResidueField R →+* (R ⧸ (maximalIdeal R) ^ n)) := by
+    induction n with
+    | zero =>
+      exact Ideal.Quotient.factor (by simp)
+    | succ n ih =>
+      induction n with
+      | zero =>
+        exact Ideal.Quotient.factor (by simp)
+      | succ n ih =>
+        exact Classical.choose (exists_lift (n + 1) ih)
+  have f_series1 : f_series 1 = Ideal.Quotient.factor (le_of_eq (pow_one _).symm) := rfl
+  have f_series_spec {n m : ℕ} (h : m = n + 1) : (Ideal.Quotient.factorPow _
+    (Nat.le.intro h.symm)).comp (f_series m) = f_series n := by
+    subst h
+    match n with
+    | 0 => exact Ideal.Quotient.factor_comp _ _
+    | n + 1 => exact Classical.choose_spec (exists_lift (n + 1) _)
+  have f_series_spec'' {m n : ℕ} (hle : m ≤ n) :
+    (Ideal.Quotient.factorPow (maximalIdeal R) hle).comp (f_series n) = f_series m := by
+    obtain ⟨l, hl⟩ := Nat.le.dest hle
+    subst hl
+    induction l with
+    | zero => simp
+    | succ l ih =>
+      have : m + (l + 1) = (m + l) + 1 := add_assoc m l 1
+      rw [← ih (Nat.le_add_right m l), ← f_series_spec this, ← RingHom.comp_assoc,
+        Ideal.Quotient.factor_comp]
+  let f' := AdicCompletion.liftRingHom (maximalIdeal R) f_series f_series_spec''
+  use (AdicCompletion.ofAlgEquiv (maximalIdeal R)).symm.toRingHom.comp f'
+  have (x : R) : (residue R) x = (Ideal.Quotient.factor (by simp))
+    ((Ideal.Quotient.mk ((maximalIdeal R) ^ 1)) x) := rfl
+  ext x
+  rw [RingHom.comp_apply, this, RingHom.comp_apply]
+  change (Ideal.Quotient.factor (le_of_eq (pow_one _))) ((Ideal.Quotient.mk (maximalIdeal R ^ 1))
+    ((AdicCompletion.ofAlgEquiv (maximalIdeal R)).symm (f' x))) = _
+  --wierd coercion problem
+  rw [AdicCompletion.mk_ofAlgEquiv_symm, AdicCompletion.evalₐ_liftRingHom, f_series1,
+    ← RingHom.comp_apply, Ideal.Quotient.factor_comp, Ideal.Quotient.factor_eq]
+  rfl
 
 lemma isCoefficientRing_of_residueField (char : CharZero (ResidueField R))
     (f : ResidueField R →+* R) (h : (IsLocalRing.residue R).comp f = RingHom.id _) :
@@ -123,7 +171,7 @@ end
 
 section corollary
 
-variable (R : Type u) [CommRing R] [IsLocalRing R] [IsNoetherianRing R]
+variable [IsLocalRing R] [IsNoetherianRing R]
 
 lemma exist_isRegularLocalRing_surjective_of_isAdicComplete [IsAdicComplete (maximalIdeal R) R] :
     ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S) (f : S →+* R),
