@@ -7,12 +7,14 @@ module
 
 public import Mathlib.Algebra.Algebra.ZMod
 public import Mathlib.Algebra.CharP.Algebra
+public import Mathlib.Algebra.CharP.MixedCharZero
 public import Mathlib.NumberTheory.Padics.PadicIntegers
 public import Mathlib.RingTheory.AdicCompletion.Noetherian
 public import Mathlib.RingTheory.DiscreteValuationRing.Basic
 public import Mathlib.RingTheory.MvPowerSeries.Basic
 public import Mathlib.RingTheory.RegularLocalRing.Basic
 public import Mathlib.RingTheory.RingHom.Flat
+public import Mathlib.Algebra.Algebra.Hom.Rat
 public import Mathlib.RingTheory.RingHom.Smooth
 
 /-!
@@ -74,6 +76,7 @@ lemma quotient_power_char_formallySmooth [IsDomain R] [IsCohenRing R] (p : ℕ) 
   | succ n ih =>
     by_cases eq0 : n = 0
     · rw [eq0, zero_add, pow_one]
+      --should be able to obtain by extension is separable
       sorry
     · have ih' := ih eq0
 
@@ -96,11 +99,36 @@ lemma exists_section_of_charZero [IsAdicComplete (maximalIdeal R) R]
     (char : CharZero (ResidueField R)) :
     ∃ (f : ResidueField R →+* R), (IsLocalRing.residue R).comp f = RingHom.id _ := by
   let _ : Algebra ℚ (ResidueField R) := DivisionRing.toRatAlgebra
-  let _ : Algebra.FormallySmooth ℚ (ResidueField R) := sorry
-  have exists_lift (n : ℕ) (f : ResidueField R →+* (R ⧸ (maximalIdeal R) ^ n)) :
-    ∃ g : ResidueField R →+* (R ⧸ (maximalIdeal R) ^ (n + 1)),
-      (Ideal.Quotient.factorPowSucc _ n).comp g = f := by
+  let _ : Algebra.FormallySmooth ℚ (ResidueField R) :=
+    --should be able to obtain by extension is separable
     sorry
+  let _ : Algebra ℚ R := EqualCharZero.algebraRat (fun I ne ↦
+    let tores : (R ⧸ I) →+* (ResidueField R) := Ideal.Quotient.factor (le_maximalIdeal ne)
+    tores.charZero)
+  have exists_lift (n : ℕ) (f : ResidueField R →+* (R ⧸ (maximalIdeal R) ^ (n + 1))) :
+    ∃ g : ResidueField R →+* (R ⧸ (maximalIdeal R) ^ (n + 1 + 1)),
+      (Ideal.Quotient.factorPowSucc _ (n + 1)).comp g = f := by
+    let h := Ideal.Quotient.factorPowSucc (maximalIdeal R) (n + 1)
+    have le := (maximalIdeal R).pow_le_pow_right (Nat.le_succ (n + 1))
+    have nil : IsNilpotent (RingHom.ker h) := by
+      have : RingHom.ker h = ((maximalIdeal R) ^ (n + 1)).map
+        (Ideal.Quotient.mk ((maximalIdeal R) ^ (n + 1 + 1))) := by
+        apply Ideal.comap_injective_of_surjective (Ideal.Quotient.mk
+          ((maximalIdeal R) ^ (n + 1 + 1))) Ideal.Quotient.mk_surjective
+        rw [Ideal.comap_map_of_surjective' _ Ideal.Quotient.mk_surjective]
+        ext
+        simp [h, Ideal.Quotient.eq_zero_iff_mem, le]
+      use 2
+      simp only [this, ← Ideal.map_pow, Submodule.zero_eq_bot, ← pow_mul]
+      exact Ideal.map_mk_eq_bot_of_le (Ideal.pow_le_pow_right (by omega))
+    let g := (Algebra.FormallySmooth.liftOfSurjective f.toRatAlgHom
+      h.toRatAlgHom (Ideal.Quotient.factor_surjective le) nil)
+    use g.toRingHom
+    have : h.toRatAlgHom.comp g = f.toRatAlgHom := Algebra.FormallySmooth.comp_liftOfSurjective
+      f.toRatAlgHom h.toRatAlgHom (Ideal.Quotient.factor_surjective le) nil
+    ext x
+    change (h.toRatAlgHom.comp g) x = _
+    simp [this]
   let f_series (n : ℕ) : (ResidueField R →+* (R ⧸ (maximalIdeal R) ^ n)) := by
     induction n with
     | zero =>
@@ -110,14 +138,14 @@ lemma exists_section_of_charZero [IsAdicComplete (maximalIdeal R) R]
       | zero =>
         exact Ideal.Quotient.factor (by simp)
       | succ n ih =>
-        exact Classical.choose (exists_lift (n + 1) ih)
+        exact Classical.choose (exists_lift n ih)
   have f_series1 : f_series 1 = Ideal.Quotient.factor (le_of_eq (pow_one _).symm) := rfl
   have f_series_spec {n m : ℕ} (h : m = n + 1) : (Ideal.Quotient.factorPow _
     (Nat.le.intro h.symm)).comp (f_series m) = f_series n := by
     subst h
     match n with
     | 0 => exact Ideal.Quotient.factor_comp _ _
-    | n + 1 => exact Classical.choose_spec (exists_lift (n + 1) _)
+    | n + 1 => exact Classical.choose_spec (exists_lift n _)
   have f_series_spec'' {m n : ℕ} (hle : m ≤ n) :
     (Ideal.Quotient.factorPow (maximalIdeal R) hle).comp (f_series n) = f_series m := by
     obtain ⟨l, hl⟩ := Nat.le.dest hle
