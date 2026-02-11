@@ -146,7 +146,7 @@ lemma exists_section_of_charZero [IsAdicComplete (maximalIdeal R) R]
     match n with
     | 0 => exact Ideal.Quotient.factor_comp _ _
     | n + 1 => exact Classical.choose_spec (exists_lift n _)
-  have f_series_spec'' {m n : ℕ} (hle : m ≤ n) :
+  have f_series_spec' {m n : ℕ} (hle : m ≤ n) :
     (Ideal.Quotient.factorPow (maximalIdeal R) hle).comp (f_series n) = f_series m := by
     obtain ⟨l, hl⟩ := Nat.le.dest hle
     subst hl
@@ -156,7 +156,7 @@ lemma exists_section_of_charZero [IsAdicComplete (maximalIdeal R) R]
       have : m + (l + 1) = (m + l) + 1 := add_assoc m l 1
       rw [← ih (Nat.le_add_right m l), ← f_series_spec this, ← RingHom.comp_assoc,
         Ideal.Quotient.factor_comp]
-  let f' := AdicCompletion.liftRingHom (maximalIdeal R) f_series f_series_spec''
+  let f' := AdicCompletion.liftRingHom (maximalIdeal R) f_series f_series_spec'
   use (AdicCompletion.ofAlgEquiv (maximalIdeal R)).symm.toRingHom.comp f'
   have (x : R) : (residue R) x = (Ideal.Quotient.factor (by simp))
     ((Ideal.Quotient.mk ((maximalIdeal R) ^ 1)) x) := rfl
@@ -184,9 +184,66 @@ lemma isCoefficientRing_of_residueField (char : CharZero (ResidueField R))
       exact (CharP.ringChar_zero_iff_CharZero (ResidueField R)).mpr char
     simpa [this] using maximalIdeal_eq_bot
 
-lemma exists_isCoeffientRing_isCohenRing [IsAdicComplete (maximalIdeal R) R] :
+lemma exists_isCoeffientRing_isCohenRing [IsAdicComplete (maximalIdeal R) R]
+    (charpos : ¬ CharZero (ResidueField R)) :
     ∃ (S : Type u) (_ : CommRing S) (_ : IsDomain S) (_ : IsCohenRing S) (f : S →+* R),
-    IsCoefficientRing f := by
+    IsCoefficientRing (Ideal.Quotient.lift (RingHom.ker f) f (by simp)) := by
+  rcases exists_isCohenRing_of_not_charZero (ResidueField R) charpos with ⟨S, _, _, _, ⟨e⟩⟩
+  use S, inferInstance, inferInstance, inferInstance
+  have char := CharP.exists' (ResidueField R)
+  simp only [charpos, false_or] at char
+  rcases char with ⟨p, _, char⟩
+  have char' : CharP (ResidueField S) p := CharP.of_ringHom_of_ne_zero
+    e.symm.toRingHom p (NeZero.ne' p).symm
+  have eqspan : maximalIdeal S = Ideal.span {(p : S)} := by
+    rw [IsCohenRing.span, ringChar.eq (ResidueField S) p]
+  have exists_lift (n : ℕ)
+    (f : (S ⧸ (maximalIdeal S) ^ (n + 1)) →+* (R ⧸ (maximalIdeal R) ^ (n + 1))) :
+    ∃ g : (S ⧸ (maximalIdeal S) ^ (n + 1 + 1)) →+* (R ⧸ (maximalIdeal R) ^ (n + 1 + 1)),
+      (Ideal.Quotient.factorPowSucc (maximalIdeal R) (n + 1)).comp g =
+      f.comp (Ideal.Quotient.factorPowSucc (maximalIdeal S) (n + 1)) := by
+
+    sorry
+  let f0 : S ⧸ maximalIdeal S ^ 0 →+* R ⧸ maximalIdeal R ^ 0 := by
+    --both ring trivial
+    sorry
+  let f1 : S ⧸ maximalIdeal S ^ 1 →+* R ⧸ maximalIdeal R ^ 1 := by
+    --use `e`
+    sorry
+  let f_series (n : ℕ) : (S ⧸ (maximalIdeal S) ^ n →+* (R ⧸ (maximalIdeal R) ^ n)) := by
+    induction n with
+    | zero => exact f0
+    | succ n ih =>
+      induction n with
+      | zero => exact f1
+      | succ n ih => exact Classical.choose (exists_lift n ih)
+  have f_series_spec {n m : ℕ} (h : m = n + 1) :
+    (Ideal.Quotient.factorPow (maximalIdeal R) (Nat.le.intro h.symm)).comp (f_series m) =
+    (f_series n).comp (Ideal.Quotient.factorPow (maximalIdeal S) (Nat.le.intro h.symm)) := by
+    subst h
+    match n with
+    | 0 =>
+      change (Ideal.Quotient.factorPow (maximalIdeal R) (Nat.zero_le 1)).comp f1 =
+        f0.comp (Ideal.Quotient.factorPow (maximalIdeal S) (Nat.zero_le 1))
+      sorry
+    | n + 1 => exact Classical.choose_spec (exists_lift n _)
+  have f_series_spec' {m n : ℕ} (hle : m ≤ n) :
+    (Ideal.Quotient.factorPow (maximalIdeal R) hle).comp (f_series n) =
+    (f_series m).comp (Ideal.Quotient.factorPow (maximalIdeal S) hle) := by
+    obtain ⟨l, hl⟩ := Nat.le.dest hle
+    subst hl
+    induction l with
+    | zero => simp
+    | succ l ih =>
+      have : m + (l + 1) = (m + l) + 1 := add_assoc m l 1
+      have eq : Ideal.Quotient.factorPow (maximalIdeal R) hle =
+        (Ideal.Quotient.factorPow (maximalIdeal R) (Nat.le_add_right m l)).comp
+        (Ideal.Quotient.factorPow (maximalIdeal R) (Nat.le.intro this.symm)) := by simp
+      rw [eq, RingHom.comp_assoc, f_series_spec this, ← RingHom.comp_assoc,
+        ih (Nat.le_add_right m l), RingHom.comp_assoc, Ideal.Quotient.factor_comp]
+  --use `evalₐ` comp `f_series` to obtain `AdicCompletion mₛ S →+* R ⧸ mᵣ ^ n`
+  --then ``AdicCompletion mₛ S →+* AdicCompletion mᵣ R`
+  --modulo iso, this is the desired map `f`
   sorry
 
 lemma exists_mvPowerSeries_surjective_of_isCoeffientRing [IsAdicComplete (maximalIdeal R) R]
