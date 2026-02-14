@@ -145,7 +145,22 @@ lemma LinearMap.lsum_smul_id_range {ι : Type*} [Fintype ι] [DecidableEq ι] (f
     (eq : Ideal.span (Set.range f) = I) :
     ((LinearMap.lsum R _ R) (fun (i : ι) ↦ (f i) • LinearMap.id)).range =
     I • (⊤ : Submodule R M) := by
-  sorry
+  refine le_antisymm (fun x hx ↦ ?_) (fun x hx ↦ ?_)
+  · rcases hx with ⟨y, hy⟩
+    simp only [← hy, lsum_apply, coe_sum, coe_comp, coe_proj, Finset.sum_apply, Function.comp_apply,
+      Function.eval, smul_apply, id_coe, id_eq]
+    apply Submodule.sum_mem
+    intro i hi
+    apply Submodule.smul_mem_smul _ Submodule.mem_top
+    simpa [← eq] using mem_span_range_self
+  · refine Submodule.smul_induction_on hx (fun r memr m _ ↦ ?_) (fun x y hx hy ↦ add_mem hx hy)
+    rw [← eq] at memr
+    refine Submodule.span_induction (fun r hr ↦ ?_) (by simp)
+      (fun x y memx memy hx hy ↦ by simpa [add_smul] using add_mem hx hy)
+      (fun r s mems mem ↦ by simpa [← smul_smul] using Submodule.smul_mem _ r mem) memr
+    rcases hr with ⟨i, hi⟩
+    use Pi.single i m
+    simp [Pi.single_apply, hi]
 
 lemma AdicCompletion.le_ker_eval (n : ℕ) :
     (I ^ n) • (⊤ : Submodule R _) ≤ (AdicCompletion.eval I M n).ker := by
@@ -173,11 +188,15 @@ lemma AdicCompletion.ker_eval (fg : I.FG) (n : ℕ) :
     have : ((I ^ n) • (⊤ : Submodule R M)).subtype.comp gr = g := g.subtype_comp_codRestrict _ _
     rw [LinearEquiv.range_comp, ← this, ← map_comp, LinearMap.range_comp, LinearMap.range_eq_map,
       LinearMap.range_eq_top_of_surjective _ (AdicCompletion.map_surjective I surjgr)]
-  rw [AdicCompletion.ker_eval_eq_range, req]
-  --pick generators then consruct surjection `Mʳ → IⁿM`
-  --then map between completion is surjective
-  --the range is exactly `IⁿM^`
-  sorry
+  have compeq : ((AdicCompletion.map I g).comp
+    (piEquivOfFintype I _).symm.toLinearMap).restrictScalars R =
+    (LinearMap.lsum R _ R) (fun (r : (I ^ n).generators) ↦ r.1 • LinearMap.id) := by
+    ext r x n
+    have : (r.1 • (mk I M) x).1 n = r.1 • ((mk I M) x).1 n:= rfl
+    simp [piEquivOfFintype, Pi.single_apply, g, this]
+  rw [AdicCompletion.ker_eval_eq_range, req, ← LinearMap.range_restrictScalars, compeq]
+  apply LinearMap.lsum_smul_id_range
+  simpa using (I ^ n).span_generators
 
 lemma AdicCompletion.isAdicComplete (fg : I.FG) : IsAdicComplete I (AdicCompletion I M) where
   haus' x hx := by
