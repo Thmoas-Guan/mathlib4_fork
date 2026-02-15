@@ -5,11 +5,19 @@ Authors: Nailin Guan
 -/
 module
 
+public import Mathlib.Algebra.Algebra.ZMod
 public import Mathlib.Algebra.CharP.Algebra
+public import Mathlib.Algebra.CharP.MixedCharZero
+public import Mathlib.Data.ZMod.QuotientRing
+public import Mathlib.NumberTheory.Padics.RingHoms
 public import Mathlib.RingTheory.AdicCompletion.Noetherian
+public import Mathlib.RingTheory.AdicCompletion.RingHom
 public import Mathlib.RingTheory.DiscreteValuationRing.Basic
+public import Mathlib.RingTheory.Flat.TorsionFree
 public import Mathlib.RingTheory.MvPowerSeries.Basic
 public import Mathlib.RingTheory.RegularLocalRing.Basic
+public import Mathlib.RingTheory.RingHom.Flat
+public import Mathlib.Algebra.Algebra.Hom.Rat
 public import Mathlib.RingTheory.RingHom.Smooth
 
 /-!
@@ -22,20 +30,145 @@ public import Mathlib.RingTheory.RingHom.Smooth
 
 open IsLocalRing
 
-universe u
+universe u v
+
+variable (R : Type u) [CommRing R]
+
+section
+
+lemma exists_isLocalHom_flat [IsLocalRing R] (K : Type v) [Field K] [Algebra (ResidueField R) K] :
+    ∃ (R' : Type (max u v)) (_ : CommRing R') (_ : IsLocalRing R') (_ : Algebra R R')
+    (_ : IsLocalHom (algebraMap R R')), Module.Flat R R' ∧
+    maximalIdeal R' = (maximalIdeal R).map (algebraMap R R') ∧
+    Nonempty (K ≃ₐ[ResidueField R] (ResidueField R')) := by
+  sorry
+
+end
+
+section FormallySmooth
+
+universe w
+
+variable {S : Type v} [CommRing S]
+
+--can move to "Mathlib.RingTheory.RingHom.Smooth"
+lemma RingHom.FormallySmooth.of_comp_ringEquiv {T : Type w} [CommRing T] (e : T ≃+* R)
+    (f : R →+* S) (smooth : f.FormallySmooth) : (f.comp e.toRingHom).FormallySmooth := by
+  let _ := e.toRingHom.toAlgebra
+  let _ := f.toAlgebra
+  let _ := (f.comp e.toRingHom).toAlgebra
+  let _ : IsScalarTower T R S := IsScalarTower.of_algebraMap_eq (fun x ↦ rfl)
+  let _ : Algebra.FormallySmooth R S := smooth.toAlgebra
+  change Algebra.FormallySmooth T S
+  have smooth' : Algebra.FormallySmooth R (ULift.{max u w} S) :=
+    Algebra.FormallySmooth.of_equiv ULift.algEquiv.symm
+  rw [← Algebra.FormallySmooth.iff_of_equiv ULift.algEquiv.{w, v, max u w}]
+  rw [Algebra.FormallySmooth.iff_comp_surjective] at smooth' ⊢
+  intro B _ _ I sq g
+  let _ : Algebra R B := ((algebraMap T B).comp e.symm.toRingHom).toAlgebra
+  let _ : IsScalarTower T R B := IsScalarTower.of_algebraMap_eq (by
+    simp [RingHom.algebraMap_toAlgebra])
+  let g' : ULift.{max u w, v} S →ₐ[R] B ⧸ I := g.extendScalarsOfSurjective e.surjective
+  rcases smooth' I sq g' with ⟨a, ha⟩
+  use a.restrictScalars T
+  ext x
+  change _ = g' x
+  simp [← ha]
+
+--can move to "Mathlib.RingTheory.RingHom.Smooth"
+lemma RingHom.FormallySmooth.of_ringEquiv_comp {T : Type w} [CommRing T] (e : S ≃+* T)
+    (f : R →+* S) (smooth : f.FormallySmooth) : (e.toRingHom.comp f).FormallySmooth := by
+  let _ := e.toRingHom.toAlgebra
+  let _ := f.toAlgebra
+  let _ := (e.toRingHom.comp f).toAlgebra
+  let _ : IsScalarTower R S T := IsScalarTower.of_algebraMap_eq (fun x ↦ rfl)
+  let _ : Algebra.FormallySmooth R S := smooth.toAlgebra
+  let e' : S ≃ₐ[R] T := AlgEquiv.ofRingEquiv (f := e) (by simp [RingHom.algebraMap_toAlgebra])
+  exact Algebra.FormallySmooth.of_equiv e'
+
+variable {R} in
+lemma RingHom.FormallySmooth.of_quotient_of_flat {S : Type v} [CommRing S] (f : R →+* S)
+    {I : Ideal R} (sq0 : I ^ 2 = ⊥) (flat : f.Flat)
+    (smoothq : (Ideal.quotientMap (I.map f) f Ideal.le_comap_map).FormallySmooth) :
+    f.FormallySmooth := by
+  sorry
+
+end FormallySmooth
 
 section IsCohenRing
 
-variable (R : Type*) [CommRing R]
-
-class IsCohenRing [IsDomain R] extends IsDiscreteValuationRing R where
+/-- A Cohen ring is a complete DVR with characteristic of residue field being an uniformizer. -/
+class IsCohenRing [IsDomain R] extends IsDiscreteValuationRing R, IsAdicComplete (maximalIdeal R) R
+    where
   span : maximalIdeal R = Ideal.span {(ringChar (ResidueField R) : R)}
 
 lemma exists_isCohenRing_of_not_charZero (k : Type u) [Field k] (charpos : ¬ CharZero k) :
     ∃ (R : Type u) (_ : CommRing R) (_ : IsDomain R) (_ : IsCohenRing R),
       Nonempty (ResidueField R ≃+* k) := by
+  have char := CharP.exists' k
+  simp only [charpos, false_or] at char
+  rcases char with ⟨p, _, char⟩
+  let _ := ZMod.algebra k p
+  let _ : Algebra (ResidueField (PadicInt p)) k := sorry
+  rcases exists_isLocalHom_flat (PadicInt p) k with ⟨R, _, _, _, _, flat, maxeq, ⟨iso⟩⟩
+  use AdicCompletion (maximalIdeal R) R, inferInstance
+  --prove `p` is not zero divisor using `R⧸m^n` is flat (free) over `ℤ⧸{p^n}`
+  --torsion free => mul `p` equal zero implies every eval is `0`
   sorry
 
+/-- A variant of `PadicInt.toZModPow`. -/
+noncomputable def padicIntToIntQuotient (p : ℕ) [Fact (Nat.Prime p)] (n : ℕ) :
+    PadicInt p →+* ℤ ⧸ (Ideal.span {(p ^ n : ℤ)}) :=
+  (Int.quotientSpanNatEquivZMod (p ^ n)).symm.toRingHom.comp (PadicInt.toZModPow n)
+
+lemma padicInt_to_int_quotient_comm (p : ℕ) [Fact (Nat.Prime p)] {m n : ℕ} (hle : m ≤ n) :
+    padicIntToIntQuotient p m = (Ideal.Quotient.factor
+      (Ideal.span_singleton_le_span_singleton.mpr (pow_dvd_pow (p : ℤ) hle))).comp
+    (padicIntToIntQuotient p n) := by
+  simp only [padicIntToIntQuotient, RingEquiv.toRingHom_eq_coe]
+  ext x
+  simp only [RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply,
+    ← PadicInt.cast_toZModPow m n hle]
+  rcases ZMod.natCast_zmod_surjective ((PadicInt.toZModPow n) x) with ⟨y, hy⟩
+  simp [← hy, ZMod.cast_natCast (Nat.pow_dvd_pow p hle) y]
+
+/-- For complete local ring `R` with residue field of characteristic `p`, the canonical map
+`ℤ_[p] →+* R`. -/
+noncomputable def padicIntOfCharP [IsLocalRing R] [IsAdicComplete (maximalIdeal R) R] (p : ℕ)
+    [Fact (Nat.Prime p)] (char : CharP (ResidueField R) p) : PadicInt p →+* R :=
+  have mem (n : ℕ) : (p ^ n : R) ∈ (maximalIdeal R) ^ n:= by
+    apply Ideal.pow_mem_pow
+    rw [← Ideal.Quotient.eq_zero_iff_mem, ← IsLocalRing.residue_def, map_natCast, char.cast_eq_zero]
+  let f (n : ℕ) : PadicInt p →+* (R ⧸ (maximalIdeal R) ^  n) :=
+    (Ideal.Quotient.lift _ (Int.castRingHom _) ((Ideal.span_singleton_le_iff_mem
+      (RingHom.ker (Int.castRingHom (R ⧸ maximalIdeal R ^ n)))).mpr (by
+        simp [← Ideal.Quotient.eq_zero_iff_mem.mpr (mem n)]))).comp (padicIntToIntQuotient p n)
+  IsAdicComplete.liftRingHom (maximalIdeal R) f (fun {m n} hle ↦ by
+    simp only [padicInt_to_int_quotient_comm p hle, f]
+    congr)
+
+lemma padicIntOfCharP_flat_of_isCohenRing [IsLocalRing R] [IsDomain R] [IsCohenRing R]
+    (p : ℕ) [Fact (Nat.Prime p)] (char : CharP (ResidueField R) p) :
+    (padicIntOfCharP R p char).Flat := by
+  let _ := (padicIntOfCharP R p char).toAlgebra
+  have inj : Function.Injective (padicIntOfCharP R p char) := by
+    rw [RingHom.injective_iff_ker_eq_bot]
+    by_contra ne
+    rcases PadicInt.ideal_eq_span_pow_p ne with ⟨n, hn⟩
+    have : (p : ℤ_[p]) ^ n ∈ RingHom.ker (padicIntOfCharP R p char) := by
+      simpa [hn] using Ideal.subset_span (Set.mem_singleton_of_eq rfl)
+    have ne : (p : R) ≠ 0 := by
+      by_contra eq0
+      absurd IsCohenRing.span (R := R)
+      simpa [ringChar.eq (ResidueField R) p, eq0] using IsDiscreteValuationRing.not_a_field R
+    simp [ne] at this
+  let _ : Module.IsTorsionFree ℤ_[p] R := {
+    isSMulRegular x hx := (isLeftRegular_iff_isRegular.mpr
+      (IsRegular.of_ne_zero ((map_ne_zero_iff _ inj).mpr hx.ne_zero))).isSMulRegular}
+  dsimp only [RingHom.Flat]
+  infer_instance
+
+/-- For `n : ℕ`, the map `R ⧸ nR →+* S ⧸ nS` inducsed by `R →+* S`. -/
 def RingHom.mapQuotientNat {R S : Type*} [CommRing R] [CommRing S] (f : R →+* S) (n : ℕ) :
     R ⧸ Ideal.span {(n : R)} →+* S ⧸ Ideal.span {(n : S)} :=
   Ideal.Quotient.lift (Ideal.span {(n : R)})
@@ -46,14 +179,22 @@ def RingHom.mapQuotientNat {R S : Type*} [CommRing R] [CommRing S] (f : R →+* 
 lemma quotient_power_char_formallySmooth [IsDomain R] [IsCohenRing R] (p : ℕ) (prime : Nat.Prime p)
     (char : CharP (ResidueField R) p) (n : ℕ) (ne0 : n ≠ 0) :
     (RingHom.mapQuotientNat (Int.castRingHom R) (p ^ n)).FormallySmooth := by
+  induction n with
+  | zero => simp at ne0
+  | succ n ih =>
+    by_cases eq0 : n = 0
+    · rw [eq0, zero_add, pow_one]
+      --should be able to obtain by extension is separable
+      sorry
+    · have ih' := ih eq0
 
-  sorry
+      sorry
 
 end IsCohenRing
 
 section
 
-variable {R : Type u} [CommRing R] [IsLocalRing R]
+variable {R} [IsLocalRing R]
 
 class IsCoefficientRing {S : Type*} [CommRing S] (f : S →+* R) extends
     IsLocalRing S, IsLocalHom f where
@@ -65,7 +206,67 @@ class IsCoefficientRing {S : Type*} [CommRing S] (f : S →+* R) extends
 lemma exists_section_of_charZero [IsAdicComplete (maximalIdeal R) R]
     (char : CharZero (ResidueField R)) :
     ∃ (f : ResidueField R →+* R), (IsLocalRing.residue R).comp f = RingHom.id _ := by
-  sorry
+  let _ : Algebra ℚ (ResidueField R) := DivisionRing.toRatAlgebra
+  let _ : Algebra.FormallySmooth ℚ (ResidueField R) :=
+    --should be able to obtain by extension is separable
+    sorry
+  let _ : Algebra ℚ R := EqualCharZero.algebraRat (fun I ne ↦
+    let tores : (R ⧸ I) →+* (ResidueField R) := Ideal.Quotient.factor (le_maximalIdeal ne)
+    tores.charZero)
+  have exists_lift (n : ℕ) (f : ResidueField R →+* (R ⧸ (maximalIdeal R) ^ (n + 1))) :
+    ∃ g : ResidueField R →+* (R ⧸ (maximalIdeal R) ^ (n + 1 + 1)),
+      (Ideal.Quotient.factorPowSucc _ (n + 1)).comp g = f := by
+    let h := Ideal.Quotient.factorPowSucc (maximalIdeal R) (n + 1)
+    have le := (maximalIdeal R).pow_le_pow_right (Nat.le_succ (n + 1))
+    have nil : IsNilpotent (RingHom.ker h) := by
+      have : RingHom.ker h = ((maximalIdeal R) ^ (n + 1)).map
+        (Ideal.Quotient.mk ((maximalIdeal R) ^ (n + 1 + 1))) := by
+        simp [h, Ideal.Quotient.factor_ker]
+      use 2
+      simp only [this, ← Ideal.map_pow, Submodule.zero_eq_bot, ← pow_mul]
+      exact Ideal.map_mk_eq_bot_of_le (Ideal.pow_le_pow_right (by omega))
+    let g := (Algebra.FormallySmooth.liftOfSurjective f.toRatAlgHom
+      h.toRatAlgHom (Ideal.Quotient.factor_surjective le) nil)
+    use g.toRingHom
+    have : h.toRatAlgHom.comp g = f.toRatAlgHom := Algebra.FormallySmooth.comp_liftOfSurjective
+      f.toRatAlgHom h.toRatAlgHom (Ideal.Quotient.factor_surjective le) nil
+    ext x
+    change (h.toRatAlgHom.comp g) x = _
+    simp [this]
+  let f_series (n : ℕ) : (ResidueField R →+* (R ⧸ (maximalIdeal R) ^ n)) := by
+    induction n with
+    | zero =>
+      exact Ideal.Quotient.factor (by simp)
+    | succ n ih =>
+      induction n with
+      | zero =>
+        exact Ideal.Quotient.factor (by simp)
+      | succ n ih =>
+        exact Classical.choose (exists_lift n ih)
+  have f_series1 : f_series 1 = Ideal.Quotient.factor (le_of_eq (pow_one _).symm) := rfl
+  have f_series_spec {n m : ℕ} (h : m = n + 1) : (Ideal.Quotient.factorPow _
+    (Nat.le.intro h.symm)).comp (f_series m) = f_series n := by
+    subst h
+    match n with
+    | 0 => exact Ideal.Quotient.factor_comp _ _
+    | n + 1 => exact Classical.choose_spec (exists_lift n _)
+  have f_series_spec' {m n : ℕ} (hle : m ≤ n) :
+    (Ideal.Quotient.factorPow (maximalIdeal R) hle).comp (f_series n) = f_series m := by
+    obtain ⟨l, hl⟩ := Nat.le.dest hle
+    subst hl
+    induction l with
+    | zero => simp
+    | succ l ih =>
+      have : m + (l + 1) = (m + l) + 1 := add_assoc m l 1
+      rw [← ih (Nat.le_add_right m l), ← f_series_spec this, ← RingHom.comp_assoc,
+        Ideal.Quotient.factor_comp]
+  let f := IsAdicComplete.liftRingHom (maximalIdeal R) f_series f_series_spec'
+  use f
+  have (x : R) : (residue R) x = (Ideal.Quotient.factor (by simp))
+    ((Ideal.Quotient.mk ((maximalIdeal R) ^ 1)) x) := rfl
+  ext x
+  rw [RingHom.comp_apply, this, IsAdicComplete.mk_liftRingHom, f_series1]
+  simp [ResidueField]
 
 lemma isCoefficientRing_of_residueField (char : CharZero (ResidueField R))
     (f : ResidueField R →+* R) (h : (IsLocalRing.residue R).comp f = RingHom.id _) :
@@ -82,10 +283,102 @@ lemma isCoefficientRing_of_residueField (char : CharZero (ResidueField R))
       exact (CharP.ringChar_zero_iff_CharZero (ResidueField R)).mpr char
     simpa [this] using maximalIdeal_eq_bot
 
-lemma exists_isCoeffientRing_isCohenRing [IsAdicComplete (maximalIdeal R) R] :
+lemma exists_isCoeffientRing_isCohenRing [IsAdicComplete (maximalIdeal R) R]
+    (charpos : ¬ CharZero (ResidueField R)) :
     ∃ (S : Type u) (_ : CommRing S) (_ : IsDomain S) (_ : IsCohenRing S) (f : S →+* R),
-    IsCoefficientRing f := by
-  sorry
+    IsCoefficientRing (Ideal.Quotient.lift (RingHom.ker f) f (by simp)) := by
+  rcases exists_isCohenRing_of_not_charZero (ResidueField R) charpos with ⟨S, _, _, cohen, ⟨e⟩⟩
+  use S, inferInstance, inferInstance, inferInstance
+  have char := CharP.exists' (ResidueField R)
+  simp only [charpos, false_or] at char
+  rcases char with ⟨p, _, char⟩
+  have char' : CharP (ResidueField S) p := CharP.of_ringHom_of_ne_zero
+    e.symm.toRingHom p (NeZero.ne' p).symm
+  have eqspan : maximalIdeal S = Ideal.span {(p : S)} := by
+    rw [IsCohenRing.span, ringChar.eq (ResidueField S) p]
+  have exists_lift (n : ℕ)
+    (f : (S ⧸ (maximalIdeal S) ^ (n + 1)) →+* (R ⧸ (maximalIdeal R) ^ (n + 1))) :
+    ∃ g : (S ⧸ (maximalIdeal S) ^ (n + 1 + 1)) →+* (R ⧸ (maximalIdeal R) ^ (n + 1 + 1)),
+      (Ideal.Quotient.factorPowSucc (maximalIdeal R) (n + 1)).comp g =
+      f.comp (Ideal.Quotient.factorPowSucc (maximalIdeal S) (n + 1)) := by
+
+    sorry
+  let _ : Unique (S ⧸ maximalIdeal S ^ 0) :=
+    @uniqueOfSubsingleton _ (Ideal.Quotient.subsingleton_iff.mpr (by simp)) 0
+  let _ : Unique (R ⧸ maximalIdeal R ^ 0) :=
+    @uniqueOfSubsingleton _ (Ideal.Quotient.subsingleton_iff.mpr (by simp)) 0
+  let f0 : S ⧸ maximalIdeal S ^ 0 ≃+* R ⧸ maximalIdeal R ^ 0 := RingEquiv.ofUnique
+  let f1 : S ⧸ maximalIdeal S ^ 1 ≃+* R ⧸ maximalIdeal R ^ 1 :=
+    ((Ideal.quotEquivOfEq (pow_one _)).trans e).trans (Ideal.quotEquivOfEq (pow_one _).symm)
+  let f_series (n : ℕ) : (S ⧸ (maximalIdeal S) ^ n →+* (R ⧸ (maximalIdeal R) ^ n)) := by
+    induction n with
+    | zero => exact f0.toRingHom
+    | succ n ih =>
+      induction n with
+      | zero => exact f1.toRingHom
+      | succ n ih => exact Classical.choose (exists_lift n ih)
+  have f_series1 : f_series 1 = f1.toRingHom := rfl
+  have f_series_spec {n m : ℕ} (h : m = n + 1) :
+    (Ideal.Quotient.factorPow (maximalIdeal R) (Nat.le.intro h.symm)).comp (f_series m) =
+    (f_series n).comp (Ideal.Quotient.factorPow (maximalIdeal S) (Nat.le.intro h.symm)) := by
+    subst h
+    match n with
+    | 0 =>
+      ext
+      exact Subsingleton.elim _ _
+    | n + 1 => exact Classical.choose_spec (exists_lift n _)
+  have f_series_spec' {m n : ℕ} (hle : m ≤ n) :
+    (Ideal.Quotient.factorPow (maximalIdeal R) hle).comp (f_series n) =
+    (f_series m).comp (Ideal.Quotient.factorPow (maximalIdeal S) hle) := by
+    obtain ⟨l, hl⟩ := Nat.le.dest hle
+    subst hl
+    induction l with
+    | zero => simp
+    | succ l ih =>
+      have : m + (l + 1) = (m + l) + 1 := add_assoc m l 1
+      have eq : Ideal.Quotient.factorPow (maximalIdeal R) hle =
+        (Ideal.Quotient.factorPow (maximalIdeal R) (Nat.le_add_right m l)).comp
+        (Ideal.Quotient.factorPow (maximalIdeal R) (Nat.le.intro this.symm)) := by simp
+      rw [eq, RingHom.comp_assoc, f_series_spec this, ← RingHom.comp_assoc,
+        ih (Nat.le_add_right m l), RingHom.comp_assoc, Ideal.Quotient.factor_comp]
+  let f' : AdicCompletion (maximalIdeal S) S →+* AdicCompletion (maximalIdeal R) R := {
+    toFun := fun x ↦ ⟨fun n ↦ (Ideal.Quotient.factor (le_of_eq (Ideal.mul_top _).symm))
+      (f_series n ((Ideal.Quotient.factor (le_of_eq (Ideal.mul_top _))) (x.1 n))),
+      fun {m n} hle ↦ by
+        simp only [smul_eq_mul, AdicCompletion.transitionMap, Submodule.factorPow,
+          Submodule.mapQ_eq_factor, Submodule.factor_eq_factor, Ideal.Quotient.factor_comp_apply]
+        have : Ideal.Quotient.factor _ = (Ideal.Quotient.factor
+          (le_of_eq (Ideal.mul_top _).symm)).comp (Ideal.Quotient.factorPow (maximalIdeal R) hle) :=
+          (Ideal.Quotient.factor_comp _ _).symm
+        rw [this, RingHom.comp_apply, ← RingHom.comp_apply _ (f_series n), f_series_spec' hle]
+        simp [← x.2 hle, AdicCompletion.transitionMap, Submodule.factorPow]⟩
+    map_one' := by ext; simp
+    map_mul' x y := by ext; simp
+    map_zero' := by ext; simp
+    map_add' x y := by ext; simp }
+  let f := ((AdicCompletion.ofAlgEquiv (maximalIdeal R)).symm.toRingHom.comp f').comp
+    (AdicCompletion.ofAlgEquiv (maximalIdeal S)).toRingHom
+  have eqe : (residue R).comp f = e.toRingHom.comp (residue S) := by
+    have res : residue R = (Ideal.Quotient.factor _).comp
+      (Ideal.Quotient.mk (maximalIdeal R ^ 1 • ⊤)) :=
+      (Ideal.Quotient.factor_comp_mk (le_of_eq ((Ideal.mul_top _).trans (pow_one _)))).symm
+    ext x
+    rw [res]
+    change (Ideal.Quotient.factor (le_of_eq ((Ideal.mul_top _).trans (pow_one _))))
+      ((Ideal.Quotient.mk (maximalIdeal R ^ 1 • ⊤))
+      ((AdicCompletion.ofAlgEquiv (maximalIdeal R)).symm
+      (f' ((AdicCompletion.ofAlgEquiv (maximalIdeal S)) x)))) = _
+    rw [AdicCompletion.mk_smul_top_ofAlgEquiv_symm, AdicCompletion.eval_apply]
+    simp [f', f_series1, f1, Ideal.quotEquivOfEq_eq_factor, ResidueField, residue]
+  let _ : IsLocalRing (S ⧸ RingHom.ker f) := by
+
+    sorry
+  let _ : IsLocalHom (Ideal.Quotient.lift (RingHom.ker f) f (by simp)) := by
+    sorry
+  refine ⟨f, ⟨RingHom.lift_injective_of_ker_le_ideal _ _ fun _ a ↦ a, ?_, ?_, ?_⟩⟩
+  · sorry
+  · sorry
+  · sorry
 
 lemma exists_mvPowerSeries_surjective_of_isCoeffientRing [IsAdicComplete (maximalIdeal R) R]
     (fg : (maximalIdeal R).FG) (S : Type u) [CommRing S] (f : S →+* R) [IsCoefficientRing f] :
@@ -97,7 +390,7 @@ end
 
 section corollary
 
-variable (R : Type u) [CommRing R] [IsLocalRing R] [IsNoetherianRing R]
+variable [IsLocalRing R] [IsNoetherianRing R]
 
 lemma exist_isRegularLocalRing_surjective_of_isAdicComplete [IsAdicComplete (maximalIdeal R) R] :
     ∃ (S : Type u) (_ : CommRing S) (_ : IsRegularLocalRing S) (f : S →+* R),
