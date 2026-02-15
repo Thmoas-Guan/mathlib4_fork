@@ -22,11 +22,12 @@ Noetherian local ring `R`, `AdicCompletion (maximalIdeal R) R` is always a compl
 
 public section
 
-variable {R : Type*} [CommRing R] (m : Ideal R) [m.IsMaximal]
+variable {R : Type*} [CommRing R]
 
 open Ideal Quotient
 
-theorem isLocalRing_of_isAdicComplete_maximal [IsAdicComplete m R] : IsLocalRing R := by
+theorem isLocalRing_of_isAdicComplete_maximal (m : Ideal R) [m.IsMaximal] [IsAdicComplete m R] :
+    IsLocalRing R := by
   refine IsLocalRing.of_unique_max_ideal ⟨m, ‹_›, fun m' hm' ↦ ?_⟩
   symm
   apply Ideal.IsMaximal.eq_of_le ‹_› IsPrime.ne_top'
@@ -209,8 +210,7 @@ lemma AdicCompletion.isMaximal_map (m : Ideal R) [m.IsMaximal] (le : I ≤ m) (f
     Ideal.IsMaximal.map_of_surjective_of_ker_le Ideal.Quotient.mk_surjective (by simpa using le)
   exact Ideal.comap_isMaximal_of_surjective _ (evalOneₐ_surjective I)
 
-instance [IsNoetherianRing R] [IsLocalRing R] :
-    IsLocalRing (AdicCompletion (maximalIdeal R) R) :=
+instance [IsNoetherianRing R] [IsLocalRing R] : IsLocalRing (AdicCompletion (maximalIdeal R) R) :=
   @isLocalRing_of_isAdicComplete_maximal _ _
     ((maximalIdeal R).map (algebraMap R (AdicCompletion (maximalIdeal R) R)))
     (AdicCompletion.isMaximal_map _ _ (le_refl _) (fg_of_isNoetherianRing (maximalIdeal R)))
