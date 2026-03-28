@@ -42,11 +42,14 @@ noncomputable def CotangentFunctor.map' {j₁ j₂ : J} (fj : j₁ ⟶ j₂) :
         Algebra.Generators.toExtension_Ring, RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply,
         Algebra.Generators.algebraMap_apply]
       simp only [RingHom.algebraMap_toAlgebra, MvPolynomial.aeval_rename]
-      sorry
+      simp [MvPolynomial.aeval_def, MvPolynomial.eval₂_map, MvPolynomial.eval₂_comp_left]
+      congr 1
+      ext
+      simp [RingHom.algebraMap_toAlgebra]
     }).toAddMonoidHom
 
 noncomputable def CotangentFunctor : J ⥤ AddCommGrpCat.{u} where
   obj := CotangentFunctor.obj' fRS
   map := CotangentFunctor.map' fRS
-  map_id := sorry
+  map_id := by sorry
   map_comp := sorry
