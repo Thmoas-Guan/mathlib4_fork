@@ -171,6 +171,14 @@ lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
 
 end specialX
 
+section induction
+
+def X_equiv_prod (l l' : List R) (a : R) (eq : l = l' ++ [a]) (n : ℕ) :
+    (koszulComplex.ofList l).X (n + 1) ≃ₗ[R]
+    ((koszulComplex.ofList l').X (n + 1) × (koszulComplex.ofList l').X n) := sorry
+
+end induction
+
 section H0
 
 noncomputable def zeroHomologyLinearEquiv (l : List R) :
