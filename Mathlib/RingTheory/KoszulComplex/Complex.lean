@@ -173,9 +173,27 @@ end specialX
 
 section induction
 
-def X_equiv_prod (l l' : List R) (a : R) (eq : l = l' ++ [a]) (n : ℕ) :
+def X_equiv_zero {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
+    (koszulComplex.ofList l).X 0 ≃ₗ[R] (koszulComplex.ofList l').X 0 := sorry
+
+def X_equiv_prod {l l' : List R} {a : R} (eq : l = l' ++ [a]) (n : ℕ) :
     (koszulComplex.ofList l).X (n + 1) ≃ₗ[R]
     ((koszulComplex.ofList l').X (n + 1) × (koszulComplex.ofList l').X n) := sorry
+
+lemma d_apply_eq_zero (l l' : List R) (a : R) (eq : l = l' ++ [a])
+    (x : (koszulComplex.ofList l).X (0 + 1)) :
+    (koszulComplex.ofList l).d (0 + 1) 0 x = (X_equiv_zero eq).symm
+      ((koszulComplex.ofList l').d (0 + 1) 0 (X_equiv_prod eq 0 x).1 +
+        a • (X_equiv_prod eq 0 x).2) := by
+  sorry
+
+lemma d_apply_eq_pos (l l' : List R) (a : R) (eq : l = l' ++ [a]) (n : ℕ)
+    (x : (koszulComplex.ofList l).X (n + 1 + 1)) :
+    (koszulComplex.ofList l).d (n + 1 + 1) (n + 1) x = (X_equiv_prod eq n).symm
+      ⟨(koszulComplex.ofList l').d (n + 1 + 1) (n + 1) (X_equiv_prod eq (n + 1) x).1 +
+        ((-1 : R) ^ (n + 1) * a) • (X_equiv_prod eq (n + 1) x).2,
+          (koszulComplex.ofList l').d (n + 1) n (X_equiv_prod eq (n + 1) x).2⟩ := by
+  sorry
 
 end induction
 

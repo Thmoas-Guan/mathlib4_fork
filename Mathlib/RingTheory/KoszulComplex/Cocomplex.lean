@@ -173,9 +173,28 @@ end specialX
 
 section induction
 
-def X_equiv_prod (l l' : List R) (a : R) (eq : l = l' ++ [a]) (n : ℕ) :
+variable {R}
+
+def X_equiv_zero {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
+    (koszulCocomplex.ofList R l).X 0 ≃ₗ[R] (koszulCocomplex.ofList R l').X 0 := sorry
+
+def X_equiv_prod {l l' : List R} {a : R} (eq : l = l' ++ [a]) (n : ℕ) :
     (koszulCocomplex.ofList R l).X (n + 1) ≃ₗ[R]
     ((koszulCocomplex.ofList R l').X (n + 1) × (koszulCocomplex.ofList R l').X n) := sorry
+
+lemma d_apply_eq_zero (l l' : List R) (a : R) (eq : l = l' ++ [a])
+    (x : (koszulCocomplex.ofList R l).X 0) :
+    (koszulCocomplex.ofList R l).d 0 (0 + 1) x = (X_equiv_prod eq 0).symm
+      ⟨(koszulCocomplex.ofList R l').d 0 (0 + 1) (X_equiv_zero eq x), a • (X_equiv_zero eq x)⟩ := by
+  sorry
+
+lemma d_apply_eq_pos (l l' : List R) (a : R) (eq : l = l' ++ [a]) (n : ℕ)
+    (x : (koszulCocomplex.ofList R l).X (n + 1)) :
+    (koszulCocomplex.ofList R l).d (n + 1) (n + 1 + 1) x = (X_equiv_prod eq (n + 1)).symm
+      ⟨(koszulCocomplex.ofList R l').d (n + 1) (n + 1 + 1) (X_equiv_prod eq n x).1,
+        (koszulCocomplex.ofList R l').d n (n + 1) (X_equiv_prod eq n x).2 +
+          ((-1 : R) ^ (n + 1) * a) • (X_equiv_prod eq n x).1⟩ := by
+  sorry
 
 end induction
 
