@@ -133,6 +133,9 @@ end functoriality
 
 section specialX
 
+noncomputable def XZeroLinearEquivRing (x : M) : (koszulCocomplex R x).X 0 ≃ₗ[R] R :=
+  exteriorPower.zeroEquiv R M
+
 /-- The top-cardinality subset type consists only of the full finite set. -/
 @[reducible]
 noncomputable instance nonempty_unique_top_powersetCard {ι : Type*} [Finite ι] :
