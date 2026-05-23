@@ -9,7 +9,6 @@ public import Mathlib.LinearAlgebra.ExteriorPower.Basic
 public import Mathlib.LinearAlgebra.ExteriorPower.Pairing
 public import Mathlib.RingTheory.Finiteness.Subalgebra
 public import Mathlib.LinearAlgebra.FreeModule.StrongRankCondition
-public import Mathlib.Data.Fin.Tuple.Sort
 
 /-!
 # Constructs a basis for exterior powers
