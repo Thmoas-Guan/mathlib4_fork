@@ -9,6 +9,7 @@ public import Mathlib.Algebra.Category.ModuleCat.Abelian
 public import Mathlib.Algebra.Category.ModuleCat.ExteriorPower
 public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
 public import Mathlib.Algebra.Homology.Augment
+public import Mathlib.Algebra.Homology.HomologySequence
 public import Mathlib.Algebra.Homology.ShortComplex.HomologicalComplex
 public import Mathlib.Algebra.Homology.ShortComplex.ShortExact
 public import Mathlib.Algebra.Module.SpanRank
@@ -202,6 +203,13 @@ variable (R) in
 noncomputable abbrev ofList_up_one (l : List R) : CochainComplex (ModuleCat R) ℕ :=
   (ofList R l).augment (X := ModuleCat.of R PUnit) 0 (by simp)
 
+/--
+The canonical isomorphism of homology for augumenting with zero object.
+May need to construct by cases whether `i = 0`.
+-/
+noncomputable abbrev ofList_up_one_homology_iso (l : List R) (i : ℕ) :
+    (ofList_up_one R l).homology (i + 1) ≅ (ofList R l).homology i := sorry
+
 noncomputable def from_ofList_up_one_hom {l l' : List R} {a : R} (eq : l = l' ++ [a]) (i : ℕ) :
     (ofList_up_one R l').X (i + 1) ⟶ (ofList R l).X (i + 1) :=
   ModuleCat.ofHom ((X_equiv_prod eq i).symm.toLinearMap.comp (LinearMap.inr R _ _))
@@ -269,7 +277,7 @@ noncomputable def to_ofList {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
       | 0 => to_self_hom_comm_zero eq
       | i + 1 => to_self_hom_comm_pos eq i)
 
-lemma to_ofList_comp_from_ofList_up_one_eq_zero {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
+lemma from_ofList_up_one_comp_to_ofList_eq_zero {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
     from_ofList_up_one eq ≫ to_ofList eq = 0 := by
   sorry
 
@@ -277,13 +285,18 @@ noncomputable def shortComplex_of_eq {l l' : List R} {a : R} (eq : l = l' ++ [a]
     ShortComplex (CochainComplex (ModuleCat R) ℕ) where
   f := from_ofList_up_one eq
   g := to_ofList eq
-  zero := to_ofList_comp_from_ofList_up_one_eq_zero eq
+  zero := from_ofList_up_one_comp_to_ofList_eq_zero eq
 
 lemma shortComplex_of_eq_shortExact {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
     (shortComplex_of_eq eq).ShortExact where
   exact := sorry
   mono_f := sorry
   epi_g := sorry
+
+lemma shortComplex_of_eq_δ_apply {l l' : List R} {a : R} (eq : l = l' ++ [a]) (i : ℕ) :
+    (shortComplex_of_eq_shortExact eq).δ i (i + 1) rfl =
+      ((-1 : R) ^ i * a) • (ofList_up_one_homology_iso l' i).inv := by
+  sorry
 
 end induction
 

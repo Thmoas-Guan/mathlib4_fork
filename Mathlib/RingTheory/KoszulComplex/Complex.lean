@@ -8,6 +8,7 @@ module
 public import Mathlib.Algebra.Category.ModuleCat.Abelian
 public import Mathlib.Algebra.Category.ModuleCat.ExteriorPower
 public import Mathlib.Algebra.Homology.Augment
+public import Mathlib.Algebra.Homology.HomologySequence
 public import Mathlib.Algebra.Homology.ShortComplex.HomologicalComplex
 public import Mathlib.Algebra.Homology.ShortComplex.ShortExact
 public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
@@ -238,6 +239,13 @@ noncomputable def from_ofList {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
 noncomputable abbrev ofList_up_one (l : List R) : ChainComplex (ModuleCat R) ℕ :=
   (ofList l).augment (X := ModuleCat.of R PUnit) 0 (by simp)
 
+/--
+The canonical isomorphism of homology for augumenting with zero object.
+May need to construct by cases whether `i = 0`.
+-/
+noncomputable abbrev ofList_up_one_homology_iso (l : List R) (i : ℕ) :
+    (ofList_up_one l).homology (i + 1) ≅ (ofList l).homology i := sorry
+
 noncomputable def to_up_one_hom {l l' : List R} {a : R} (eq : l = l' ++ [a]) (i : ℕ) :
     (ofList l).X (i + 1) ⟶ (ofList_up_one l').X (i + 1) :=
   ModuleCat.ofHom ((LinearMap.snd R _ _).comp (X_equiv_prod eq i).toLinearMap)
@@ -281,6 +289,11 @@ noncomputable def shortComplex_of_eq_shortExact {l l' : List R} {a : R} (eq : l 
   exact := sorry
   mono_f := sorry
   epi_g := sorry
+
+lemma shortComplex_of_eq_δ_apply {l l' : List R} {a : R} (eq : l = l' ++ [a]) (i : ℕ) :
+    (shortComplex_of_eq_shortExact eq).δ (i + 1) i rfl =
+      ((-1 : R) ^ i * a) • (ofList_up_one_homology_iso l' i).hom := by
+  sorry
 
 end induction
 
