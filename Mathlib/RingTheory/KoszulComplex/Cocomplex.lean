@@ -339,6 +339,7 @@ theorem exactAt_of_ne_length_of_isRegular (rs : List R) (reg : IsRegular R rs)
 
 end regular
 
+/-
 section basechange
 
 variable (S : Type (max u v)) [CommRing S] (f : R →+* S)
@@ -359,5 +360,6 @@ noncomputable def baseChange_iso (l : List R) (l' : List S) (eqmap : l.map f = l
   · sorry
 
 end basechange
+-/
 
 end koszulCocomplex
