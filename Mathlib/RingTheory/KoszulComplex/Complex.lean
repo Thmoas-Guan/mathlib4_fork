@@ -5,6 +5,7 @@ Authors: Jingting Wang, Nailin Guan, Yi Yuan, Yongle Hu
 -/
 module
 
+public import Mathlib.RingTheory.KoszulComplex.Preliminaries
 public import Mathlib.Algebra.Category.ModuleCat.Abelian
 public import Mathlib.Algebra.Category.ModuleCat.ExteriorPower
 public import Mathlib.Algebra.Homology.Augment
