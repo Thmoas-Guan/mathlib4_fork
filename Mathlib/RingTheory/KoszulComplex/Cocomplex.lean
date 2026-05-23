@@ -302,6 +302,18 @@ end induction
 
 section Htop
 
+theorem exactAt_of_gt_length_of_isRegular (rs : List R) (i : ℕ) (lt : i > rs.length) :
+    (koszulCocomplex.ofList R rs).ExactAt i := by
+  sorry
+
+/-
+Proof route: using the inductivity above, construct the isomorphism using long exact sequence of
+homology by induction on length.
+It would be better to have a separate isomorphism for the induction step `l = l' ++ [a]`
+i.e. isomorphism between `(ofList l).homology l.length` and
+`((ofList l').homology l'.length) ⧸ a • (⊤ : Submodule R ((ofList l').homology l'.length))`
+-/
+
 noncomputable def topHomologyLinearEquiv (l : List R) :
     (ofList R l).homology l.length ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
 
@@ -310,6 +322,11 @@ end Htop
 section regular
 
 open RingTheory.Sequence
+
+/-
+Proof route: proof exactness using vanishing of homology, using the inductivity above,
+obtain homology `IsZero` from long exact sequence of homology and sequence being regular.
+-/
 
 lemma exactAt_of_lt_length_of_isRegular (rs : List R) (reg : IsRegular R rs)
     (i : ℕ) (lt : i < rs.length) : (koszulCocomplex.ofList R rs).ExactAt i := by

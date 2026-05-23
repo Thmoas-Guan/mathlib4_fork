@@ -299,6 +299,13 @@ end induction
 
 section H0
 
+/-
+Proof route: using the inductivity above, construct the isomorphism using long exact sequence of
+homology by induction on length.
+It would be better to have a separate isomorphism for the induction step `l = l' ++ [a]`
+`(ofList l).homology 0 ≃ ((ofList l').homology 0) ⧸ a • (⊤ : Submodule R ((ofList l').homology 0))`
+-/
+
 noncomputable def zeroHomologyLinearEquiv (l : List R) :
     (ofList l).homology 0 ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
 
@@ -307,6 +314,11 @@ end H0
 section regular
 
 open RingTheory.Sequence
+
+/-
+Proof route: proof exactness using vanishing of homology, using the inductivity above,
+obtain homology `IsZero` from long exact sequence of homology and sequence being regular.
+-/
 
 lemma exactAt_of_isRegular (rs : List R) (reg : IsRegular R rs)
     (i : ℕ) (lt : i ≠ 0) : (ofList rs).ExactAt i := by
