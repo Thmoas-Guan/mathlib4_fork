@@ -13,7 +13,6 @@ public import Mathlib.Algebra.Module.SpanRank
 public import Mathlib.LinearAlgebra.ExteriorAlgebra.Grading
 public import Mathlib.LinearAlgebra.ExteriorPower.Basis
 public import Mathlib.RingTheory.Regular.RegularSequence
-public import Mathlib.Data.Fin.Tuple.Sort
 
 /-!
 # Definition of Koszul cocomplex
