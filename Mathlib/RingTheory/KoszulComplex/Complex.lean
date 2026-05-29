@@ -171,4 +171,31 @@ lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
 
 end specialX
 
+section basechange
+
+variable (S : Type (max u v)) [CommRing S] [Algebra R S] {l : List R} {l' : List S}
+
+open TensorProduct
+
+variable {S}
+
+noncomputable def Set.powersetCardEquiv (eqmap : l.map (algebraMap R S) = l') (i : ℕ) :
+    Set.powersetCard (Fin l'.length) i ≃ Set.powersetCard (Fin l'.length) i where
+  toFun := Set.powersetCard.map i (finCongr (by simp [← eqmap])).toEmbedding
+  invFun := Set.powersetCard.map i (finCongr (by simp [← eqmap])).toEmbedding
+  left_inv x := by
+    ext
+    simp
+  right_inv x := by
+    ext
+    simp
+
+noncomputable def exteriorPowerBaseChange_iso (eqmap : l.map (algebraMap R S) = l') (i : ℕ) :
+    ⋀[S]^i (Fin l'.length → S) ≃ₗ[S] S ⊗[R] ⋀[R]^i (Fin l'.length → R) :=
+  Module.Basis.equiv ((Pi.basisFun S (Fin l'.length)).exteriorPower i)
+    (((Pi.basisFun R (Fin l'.length)).exteriorPower i).baseChange S)
+    (Set.powersetCardEquiv eqmap i)
+
+end basechange
+
 end koszulComplex
