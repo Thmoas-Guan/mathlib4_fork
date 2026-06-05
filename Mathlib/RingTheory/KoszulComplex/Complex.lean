@@ -127,7 +127,7 @@ noncomputable def map (f : M →ₗ[R] N) (φ' : N →ₗ[R] R) (h : φ' ∘ₗ 
     koszulComplex φ ⟶ koszulComplex φ' :=
   ChainComplex.ofHom
     (fun i ↦ ModuleCat.ofHom (exteriorPower.map i f))
-    (fun i ↦ by simpa [d_eq_aux] using map_aux_comm φ f φ' h i)
+    (fun i ↦ by simpa [d_eq_aux] using! map_aux_comm φ f φ' h i)
 
 variable {L : Type v} [AddCommGroup L] [Module R L]
 
