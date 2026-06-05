@@ -196,8 +196,10 @@ noncomputable def exteriorPowerBaseChange_iso (eqmap : l.map (algebraMap R S) = 
     (((Pi.basisFun R (Fin l.length)).exteriorPower i).baseChange S)
     (Set.powersetCardEquiv eqmap i)
 
-set_option maxHeartbeats 300000 in
+set_option maxHeartbeats 600000 in
 --this is shit
+set_option trace.Meta.whnf true in
+set_option trace.profiler true in
 lemma exteriorPowerBaseChange_iso_comm (eqmap : l.map (algebraMap R S) = l') (i : ℕ) :
     (exteriorPowerBaseChange_iso eqmap i).toLinearMap.comp
       (koszulComplexAux (Fintype.linearCombination S l'.get) i) =
