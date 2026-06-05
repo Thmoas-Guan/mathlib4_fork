@@ -180,7 +180,7 @@ open TensorProduct
 variable {S}
 
 noncomputable def Set.powersetCardEquiv (eqmap : l.map (algebraMap R S) = l') (i : ℕ) :
-    Set.powersetCard (Fin l'.length) i ≃ Set.powersetCard (Fin l'.length) i where
+    Set.powersetCard (Fin l'.length) i ≃ Set.powersetCard (Fin l.length) i where
   toFun := Set.powersetCard.map i (finCongr (by simp [← eqmap])).toEmbedding
   invFun := Set.powersetCard.map i (finCongr (by simp [← eqmap])).toEmbedding
   left_inv x := by
@@ -191,9 +191,9 @@ noncomputable def Set.powersetCardEquiv (eqmap : l.map (algebraMap R S) = l') (i
     simp
 
 noncomputable def exteriorPowerBaseChange_iso (eqmap : l.map (algebraMap R S) = l') (i : ℕ) :
-    ⋀[S]^i (Fin l'.length → S) ≃ₗ[S] S ⊗[R] ⋀[R]^i (Fin l'.length → R) :=
+    ⋀[S]^i (Fin l'.length → S) ≃ₗ[S] S ⊗[R] ⋀[R]^i (Fin l.length → R) :=
   Module.Basis.equiv ((Pi.basisFun S (Fin l'.length)).exteriorPower i)
-    (((Pi.basisFun R (Fin l'.length)).exteriorPower i).baseChange S)
+    (((Pi.basisFun R (Fin l.length)).exteriorPower i).baseChange S)
     (Set.powersetCardEquiv eqmap i)
 
 end basechange
