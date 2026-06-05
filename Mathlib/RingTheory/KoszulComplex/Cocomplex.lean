@@ -195,6 +195,12 @@ noncomputable def exteriorPowerBaseChange_iso (eqmap : l.map (algebraMap R S) = 
     (((Pi.basisFun R (Fin l.length)).exteriorPower i).baseChange S)
     (Set.powersetCardEquiv eqmap i)
 
+lemma exteriorPowerBaseChange_iso_comm (eqmap : l.map (algebraMap R S) = l') (i : ℕ) :
+    (exteriorPowerBaseChange_iso eqmap (i + 1)).toLinearMap.comp
+      (koszulCocomplexAux S _ l'.get i) = ((koszulCocomplexAux R _ l.get i).baseChange S).comp
+        (exteriorPowerBaseChange_iso eqmap i).toLinearMap := by
+  sorry
+
 end basechange
 
 end koszulCocomplex
