@@ -9,6 +9,7 @@ public import Mathlib.Algebra.Category.ModuleCat.Semi
 public import Mathlib.Algebra.Category.Grp.Preadditive
 public import Mathlib.CategoryTheory.Linear.Basic
 public import Mathlib.CategoryTheory.Preadditive.AdditiveFunctor
+public import Mathlib.LinearAlgebra.BilinearMap
 
 /-!
 # The category of `R`-modules
@@ -151,7 +152,7 @@ lemma hom_ext {M N : ModuleCat.{v} R} {f g : M ⟶ N} (hf : f.hom = g.hom) : f =
 
 lemma hom_bijective {M N : ModuleCat.{v} R} :
     Function.Bijective (Hom.hom : (M ⟶ N) → (M →ₗ[R] N)) where
-  left f g h := by cases f; cases g; simpa using h
+  left f g h := by cases f; cases g; simpa using! h
   right f := ⟨⟨f⟩, rfl⟩
 
 /-- Convenience shortcut for `ModuleCat.hom_bijective.injective`. -/
@@ -455,6 +456,9 @@ section
 variable {S : Type u} [CommRing S]
 
 instance : Linear S (ModuleCat.{v} S) := ModuleCat.Algebra.instLinear
+
+lemma lsmul_eq_smul_id (M : ModuleCat.{v} S) (s : S) :
+    ModuleCat.ofHom (LinearMap.lsmul S M s) = s • 𝟙 M := rfl
 
 variable {X Y X' Y' : ModuleCat.{v} S}
 

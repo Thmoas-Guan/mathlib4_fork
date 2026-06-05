@@ -143,8 +143,8 @@ noncomputable def koszulCocomplex.smul_id_homotopicToZero (x : M) (φ : M →ₗ
     simp [hij]
   comm i := by
     cases i with
-    | zero => simpa using scalar_homotopy_comm_zero x φ
-    | succ i => simpa using koszulCocomplex.scalar_homotopy_comm x φ i
+    | zero => simpa using! scalar_homotopy_comm_zero x φ
+    | succ i => simpa using! koszulCocomplex.scalar_homotopy_comm x φ i
 
 noncomputable def koszulComplex.smul_id_homotopicToZero (x : M) (φ : M →ₗ[R] R) :
     Homotopy ((φ x) • 𝟙 (koszulComplex φ)) (0 : koszulComplex φ ⟶ koszulComplex φ) where
@@ -155,8 +155,8 @@ noncomputable def koszulComplex.smul_id_homotopicToZero (x : M) (φ : M →ₗ[R
     simp [hij]
   comm i := by
     cases i with
-    | zero => simpa using scalar_homotopy_comm_zero (R := R) x φ
-    | succ i => simpa using scalar_homotopy_comm (R := R) x φ i
+    | zero => simpa using! scalar_homotopy_comm_zero (R := R) x φ
+    | succ i => simpa using! scalar_homotopy_comm (R := R) x φ i
 
 end homotopy
 
