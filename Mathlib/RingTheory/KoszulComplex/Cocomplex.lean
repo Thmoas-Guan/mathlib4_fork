@@ -6,6 +6,7 @@ Authors: Jingting Wang, Nailin Guan
 module
 
 public import Mathlib.RingTheory.KoszulComplex.Preliminaries
+public import Mathlib.RingTheory.KoszulComplex.ExteriorPowerBaseChange
 public import Mathlib.Algebra.Category.ModuleCat.Abelian
 public import Mathlib.Algebra.Category.ModuleCat.ExteriorPower
 public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
@@ -174,6 +175,19 @@ lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
 
 end specialX
 
+section basechange
 
+variable {R} {S : Type (max u v)} [CommRing S] [Algebra R S] {l : List R} {l' : List S}
+
+open TensorProduct
+
+lemma exteriorPower.baseChangeIso_comm_aux (x : M) (i : ℕ) :
+    (exteriorPower.baseChangeIso R M S (i + 1)).toLinearMap.comp
+    ((koszulCocomplexAux R M x i).baseChange S) =
+    (koszulCocomplexAux S (S ⊗[R] M) (1 ⊗ₜ[R] x) i).comp
+    (exteriorPower.baseChangeIso R M S i).toLinearMap := by
+  sorry
+
+end basechange
 
 end koszulCocomplex
