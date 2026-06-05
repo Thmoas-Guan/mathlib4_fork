@@ -12,6 +12,7 @@ public import Mathlib.Algebra.Homology.ShortComplex.HomologicalComplex
 public import Mathlib.Algebra.Module.SpanRank
 public import Mathlib.LinearAlgebra.ExteriorAlgebra.Grading
 public import Mathlib.LinearAlgebra.ExteriorPower.Basis
+public import Mathlib.LinearAlgebra.ExteriorPower.BaseChange
 public import Mathlib.RingTheory.Regular.RegularSequence
 
 /-!
@@ -175,6 +176,13 @@ section basechange
 variable {R} {S : Type (max u v)} [CommRing S] [Algebra R S] {l : List R} {l' : List S}
 
 open TensorProduct
+
+lemma exteriorPower.baseChangeIso_comm_aux (x : M) (i : ℕ) :
+    (exteriorPower.baseChangeIso R M S (i + 1)).toLinearMap.comp
+    ((koszulCocomplexAux R M x i).baseChange S) =
+    (koszulCocomplexAux S (S ⊗[R] M) (1 ⊗ₜ[R] x) i).comp
+    (exteriorPower.baseChangeIso R M S i).toLinearMap := by
+  sorry
 
 end basechange
 
