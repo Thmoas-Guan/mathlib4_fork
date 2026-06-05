@@ -196,15 +196,23 @@ noncomputable def exteriorPowerBaseChange_iso (eqmap : l.map (algebraMap R S) = 
     (((Pi.basisFun R (Fin l.length)).exteriorPower i).baseChange S)
     (Set.powersetCardEquiv eqmap i)
 
-set_option maxHeartbeats 600000 in
---this is shit
-set_option trace.Meta.whnf true in
-set_option trace.profiler true in
+lemma exteriorPowerBaseChange_iso_comm_apply (eqmap : l.map (algebraMap R S) = l') (i : ℕ)
+    (x : ⋀[S]^(i + 1) (Fin l'.length → S)) :
+    (exteriorPowerBaseChange_iso eqmap i).toLinearMap
+      (koszulComplexAux (Fintype.linearCombination S l'.get) i x) =
+        (koszulComplexAux (Fintype.linearCombination R l.get) i).baseChange S
+          ((exteriorPowerBaseChange_iso eqmap (i + 1)).toLinearMap x) := by
+  sorry
+
 lemma exteriorPowerBaseChange_iso_comm (eqmap : l.map (algebraMap R S) = l') (i : ℕ) :
-    (exteriorPowerBaseChange_iso eqmap i).toLinearMap.comp
-      (koszulComplexAux (Fintype.linearCombination S l'.get) i) =
-        ((koszulComplexAux (Fintype.linearCombination R l.get) i).baseChange S).comp
-          (exteriorPowerBaseChange_iso eqmap (i + 1)).toLinearMap := by
+    (((exteriorPowerBaseChange_iso eqmap i).toLinearMap ∘ₗ
+      koszulComplexAux (Fintype.linearCombination S l'.get) i :
+        ⋀[S]^(i + 1) (Fin l'.length → S) →ₗ[S]
+          S ⊗[R] ⋀[R]^i (Fin l.length → R)) =
+        ((koszulComplexAux (Fintype.linearCombination R l.get) i).baseChange S ∘ₗ
+          (exteriorPowerBaseChange_iso eqmap (i + 1)).toLinearMap :
+            ⋀[S]^(i + 1) (Fin l'.length → S) →ₗ[S]
+              S ⊗[R] ⋀[R]^i (Fin l.length → R))) := by
   sorry
 
 end basechange
