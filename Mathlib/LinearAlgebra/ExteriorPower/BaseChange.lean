@@ -206,86 +206,54 @@ noncomputable def exteriorPower.baseChangeIsoInverse (i : ℕ) :
     ⋀[S]^i (S ⊗[R] M) →ₗ[S] S ⊗[R] (⋀[R]^i M) :=
   exteriorPower.alternatingMapLinearEquiv (baseChangeInverseAlternating R M S i)
 
-/-- Helper for KoszulComplex baseChangeIso: the inverse-side map retracts the forward map. -/
-lemma exteriorPower.base_change_left_inverse (i : ℕ) :
+lemma exteriorPower.baseChangeIsoInverse_apply_tmul (i : ℕ) (s : Fin i → S) (m : Fin i → M) :
+    exteriorPower.baseChangeIsoInverse R M S i (ιMulti S i (fun j ↦ s j ⊗ₜ[R] m j)) =
+      (Finset.univ.prod fun j ↦ s j) ⊗ₜ[R] exteriorPower.ιMulti R i m := by
+  simp [exteriorPower.baseChangeIsoInverse, baseChangeInverseAlternating_apply_tmul]
+
+lemma exteriorPower.baseChange_left_inverse (i : ℕ) :
     (baseChangeIsoInverse R M S i).comp (baseChangeIsoForward R M S i) = LinearMap.id := by
   ext m
   have : ((mk R S M) 1) ∘ m = fun j ↦ 1 ⊗ₜ[R] m j := rfl
   simp [baseChangeIsoForward_apply_one_tmul_ιMulti, baseChangeIsoInverse, this,
     baseChangeInverseAlternating_apply_tmul R M S i (fun _ ↦ 1) m]
 
-lemma exteriorPower.base_change_right_inverse (i : ℕ) :
+lemma exteriorPower.baseChangeIsoForward_surjective (i : ℕ) :
+    Function.Surjective (baseChangeIsoForward R M S i) := by
+  have eqtop : Submodule.span S (Set.range (TensorProduct.mk R S M 1 : M →ₗ[R] S ⊗[R] M)) = ⊤ := by
+    rw [← Set.image_univ, ← Submodule.baseChange_span, Submodule.span_univ,
+      Submodule.baseChange_top]
+  rw [← LinearMap.range_eq_top, eq_top_iff, ← exteriorPower.ιMulti_span_of_span S i _ eqtop,
+    Submodule.span_le, Set.image_subset_iff]
+  intro a ha
+  let m (j : Fin i) : M := Classical.choose (ha (Set.mem_range_self j))
+  have aeq : a = (TensorProduct.mk R S M 1) ∘ m := by
+    ext j
+    exact (Classical.choose_spec (ha (Set.mem_range_self j))).symm
+  simp only [Set.mem_preimage, SetLike.mem_coe, LinearMap.mem_range, aeq]
+  use 1 ⊗ₜ[R] exteriorPower.ιMulti R i m
+  rw [baseChangeIsoForward_apply_one_tmul_ιMulti]
+
+lemma exteriorPower.baseChange_right_inverse (i : ℕ) :
     (baseChangeIsoForward R M S i).comp (baseChangeIsoInverse R M S i) = LinearMap.id := by
-  sorry
+  refine LinearMap.ext (fun x ↦ ?_)
+  rcases exteriorPower.baseChangeIsoForward_surjective R M S i x with ⟨y, rfl⟩
+  simp only [LinearMap.coe_comp, Function.comp_apply, LinearMap.id_coe, id_eq]
+  rw [← LinearMap.comp_apply _ _ y, exteriorPower.baseChange_left_inverse, LinearMap.id_coe, id_eq]
 
-/-
-/-- Helper for KoszulComplex baseChangeIso: the tensors `1 ⊗ m` span the base-changed module. -/
-lemma tensorProduct_mk_one_span :
-    Submodule.span S (Set.range (TensorProduct.mk R S M 1 : M →ₗ[R] S ⊗[R] M)) = ⊤ := by
-  -- Every pure tensor is an `S`-multiple of a tensor of the form `1 ⊗ m`.
-  apply top_unique
-  intro x _
-  refine TensorProduct.induction_on x (Submodule.zero_mem _) ?_ ?_
-  · intro s m
-    rw [show s ⊗ₜ[R] m = s • (((TensorProduct.mk R S M 1) m)) by
-      simp [TensorProduct.smul_tmul']]
-    exact Submodule.smul_mem _ s <| Submodule.subset_span (Set.mem_range_self m)
-  · intro x y hx hy
-    exact Submodule.add_mem _ hx hy
-
-/-- Helper for KoszulComplex baseChangeIso: the visible forward map is surjective because it
-contains the exterior generators arising from the spanning set `1 ⊗ M`. -/
-lemma base_change_forward_surjective (i : ℕ) :
-    Function.Surjective (base_change_forward R M S i) := by
-  intro y
-  let generators :
-      Set (⋀[S]^i (S ⊗[R] M)) :=
-    exteriorPower.ιMulti S i ''
-      { a | Set.range a ⊆ Set.range (TensorProduct.mk R S M 1 : M →ₗ[R] S ⊗[R] M) }
-  have hspan :
-      Submodule.span S generators = ⊤ := by
-    -- The codomain is spanned by exterior products of vectors from the spanning set `1 ⊗ M`.
-    simpa [generators] using exteriorPower.ιMulti_span_of_span
-      (R := S) (M := S ⊗[R] M) (n := i)
-      (s := Set.range (TensorProduct.mk R S M 1 : M →ₗ[R] S ⊗[R] M))
-      (tensorProduct_mk_one_span R M S)
-  have hy : y ∈ Submodule.span S generators := by
-    simp [hspan]
-  have hyRange : y ∈ LinearMap.range (base_change_forward R M S i) := by
-    refine Submodule.span_induction
-      (p := fun z _ ↦ z ∈ LinearMap.range (base_change_forward R M S i))
-      ?_ (Submodule.zero_mem _) ?_ ?_ hy
-    · intro z hz
-      rcases hz with ⟨a, ha, rfl⟩
-      classical
-      let m : Fin i → M := fun j => Classical.choose (ha (Set.mem_range_self j))
-      have hm : a = (TensorProduct.mk R S M 1) ∘ m := by
-        funext j
-        exact (Classical.choose_spec (ha (Set.mem_range_self j))).symm
-      refine LinearMap.mem_range.2 ⟨1 ⊗ₜ[R] exteriorPower.ιMulti R i m, ?_⟩
-      simpa [base_change_forward, hm] using!
-        congrArg ((Submodule.restrictScalarsEquiv R S (p := (⋀[S]^i (S ⊗[R] M)))).symm)
-          (baseChangeIso_forward_apply_one_tmul_ιMulti R M S i m)
-    · intro x z hx hz hxRange hzRange
-      exact Submodule.add_mem _ hxRange hzRange
-    · intro a x hx hxRange
-      exact Submodule.smul_mem _ a hxRange
-  exact LinearMap.mem_range.1 hyRange
-
-/-- Helper for KoszulComplex baseChangeIso: the visible forward map is bijective. -/
-lemma base_change_forward_bijective (i : ℕ) : Function.Bijective (base_change_forward R M S i) := by
-  refine ⟨?_, base_change_forward_surjective R M S i⟩
-  -- The explicit left inverse shows injectivity.
-  have hleft : Function.LeftInverse (base_change_inverse R M S i)
-    (base_change_forward R M S i) := by
-    intro x
-    exact LinearMap.congr_fun (base_change_left_inverse R M S i) x
-  exact hleft.injective
--/
-
-def exteriorPower.baseChangeIso (i : ℕ) : S ⊗[R] (⋀[R]^i M) ≃ₗ[S] ⋀[S]^i (S ⊗[R] M) := sorry
+noncomputable def exteriorPower.baseChangeIso (i : ℕ) :
+    S ⊗[R] (⋀[R]^i M) ≃ₗ[S] ⋀[S]^i (S ⊗[R] M) where
+  __ := baseChangeIsoForward R M S i
+  invFun := baseChangeIsoInverse R M S i
+  left_inv x := LinearMap.congr_fun (exteriorPower.baseChange_left_inverse R M S i) x
+  right_inv x := LinearMap.congr_fun (exteriorPower.baseChange_right_inverse R M S i) x
 
 lemma exteriorPower.baseChangeIso_apply_tmul (i : ℕ) (m : Fin i → M) :
     exteriorPower.baseChangeIso R M S i (1 ⊗ₜ[R] (exteriorPower.ιMulti R i m)) =
     exteriorPower.ιMulti S i ((TensorProduct.mk R S M 1) ∘ m) := by
-  sorry
+  simp [exteriorPower.baseChangeIso, baseChangeIsoForward_apply_one_tmul_ιMulti]
+
+lemma exteriorPower.baseChangeIso_symm_apply_tmul (i : ℕ) (s : Fin i → S) (m : Fin i → M) :
+    (exteriorPower.baseChangeIso R M S i).symm ((ιMulti S i (fun j ↦ s j ⊗ₜ[R] m j))) =
+    (Finset.univ.prod fun j ↦ s j) ⊗ₜ[R] exteriorPower.ιMulti R i m := by
+  simp [exteriorPower.baseChangeIso, exteriorPower.baseChangeIsoInverse_apply_tmul]
