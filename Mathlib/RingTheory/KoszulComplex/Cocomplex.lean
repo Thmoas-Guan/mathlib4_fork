@@ -51,6 +51,14 @@ noncomputable abbrev koszulCocomplexAux (x : M) (n : ℕ) :
   GradedAlgebra.linearGMul (fun i : ℕ ↦ ⋀[R]^i M) (add_comm n 1)
     ((exteriorPower.oneEquiv R M).symm x)
 
+lemma koszulCocomplexAux_apply_ιMulti (x : M) (i : ℕ) (m : Fin i → M) :
+    koszulCocomplexAux R M x i (exteriorPower.ιMulti R i m) =
+      exteriorPower.ιMulti R (i + 1) (Matrix.vecCons x m) := by
+  apply Subtype.ext
+  simp [koszulCocomplexAux, exteriorPower.oneEquiv_symm_apply,
+    GradedAlgebra.linearGMul_eq_mul, exteriorPower.ιMulti_apply_coe,
+    ExteriorAlgebra.ιMulti_succ_apply]
+
 set_option backward.isDefEq.respectTransparency false in
 variable {M} in
 noncomputable def koszulCocomplex (x : M) : CochainComplex (ModuleCat.{max u v} R) ℕ :=
@@ -182,7 +190,15 @@ lemma exteriorPower.baseChangeIso_comm_aux (x : M) (i : ℕ) :
     ((koszulCocomplexAux R M x i).baseChange S) =
     (koszulCocomplexAux S (S ⊗[R] M) (1 ⊗ₜ[R] x) i).comp
     (exteriorPower.baseChangeIso R M S i).toLinearMap := by
-  sorry
+  ext m
+  rw [Subtype.val_inj]
+  have : ((TensorProduct.mk R S M) 1) ∘ Matrix.vecCons x m =
+    Matrix.vecCons (1 ⊗ₜ[R] x) (((TensorProduct.mk R S M) 1) ∘ m) := by
+    ext j
+    rcases Fin.eq_zero_or_eq_succ j with rfl|⟨i, rfl⟩
+    · simp
+    · simp
+  simp [exteriorPower.baseChangeIso_apply_tmul, koszulCocomplexAux_apply_ιMulti, this]
 
 end basechange
 
