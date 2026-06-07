@@ -183,7 +183,26 @@ lemma exteriorPower.baseChangeIso_comm_aux (φ : M →ₗ[R] R) (i : ℕ) :
       ((koszulComplexAux φ i).baseChange S) =
         (koszulComplexAux ((TensorProduct.AlgebraTensorModule.rid R S S).toLinearMap.comp
           (φ.baseChange S)) i).comp (exteriorPower.baseChangeIso R M S (i + 1)).toLinearMap := by
-  sorry
+  ext m
+  simp only [koszulComplexAux, AlgebraTensorModule.curry_apply, LinearMap.restrictScalars_comp,
+    LinearMap.compAlternatingMap_apply, curry_apply, LinearMap.coe_comp,
+    LinearMap.coe_restrictScalars, LinearEquiv.coe_coe, Function.comp_apply,
+    LinearMap.baseChange_tmul, exteriorPower.alternatingMapLinearEquiv_apply_ιMulti,
+    exteriorPower.baseChangeIso_apply_tmul, SetLike.coe_eq_coe]
+  trans ∑ j : Fin (i + 1), (((-1 : S) ^ (j : ℕ)) * algebraMap R S (φ (m j))) •
+    exteriorPower.ιMulti S i ((TensorProduct.mk R S M 1) ∘ j.removeNth m)
+  · rw [koszulComplexAuxAlternating_apply, TensorProduct.tmul_sum, map_sum]
+    congr
+    funext j
+    rw [tmul_smul, ← algebraMap_smul S, map_smul, map_mul, map_pow, map_neg, map_one,
+      exteriorPower.baseChangeIso_apply_tmul]
+  · rw [koszulComplexAuxAlternating_apply]
+    congr
+    funext j
+    simp only [Function.comp_apply, mk_apply, LinearMap.coe_comp, LinearEquiv.coe_coe,
+      LinearMap.baseChange_tmul, AlgebraTensorModule.rid_tmul, Algebra.mul_smul_comm, mul_one]
+    rw [mul_smul, ← smul_assoc, smul_eq_mul, mul_comm, ← Algebra.smul_def]
+    congr
 
 end basechange
 
