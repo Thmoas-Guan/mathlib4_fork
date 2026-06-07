@@ -21,7 +21,7 @@ public import Mathlib.RingTheory.Regular.RegularSequence
 
 @[expose] public section
 
-universe u v w w'
+universe u v
 
 open CategoryTheory Category MonoidalCategory Limits Module
 
@@ -82,6 +82,7 @@ theorem d_eq_aux (x : M) (i : ℕ) :
     (koszulCocomplex R x).d i (i + 1) = ModuleCat.ofHom (koszulCocomplexAux R M x i) := by
   simp [koszulCocomplex]
 
+variable {R} in
 noncomputable abbrev ofList (l : List R) :=
   koszulCocomplex R l.get
 
@@ -161,7 +162,7 @@ noncomputable def topXLinearEquivOfBasis {ι : Type*} [Finite ι] [LinearOrder �
   (b.exteriorPower (Nat.card ι)).equivFun.trans (LinearEquiv.funUnique _ R R)
 
 noncomputable def topXLinearEquivOfBasisOfList (l : List R) :
-    (ofList R l).X l.length ≃ₗ[R] R := by
+    (ofList l).X l.length ≃ₗ[R] R := by
   have : l.length = Nat.card (Fin l.length) := by simp
   rw [this]
   exact topXLinearEquivOfBasis R l.get (Pi.basisFun R (Fin l.length))
@@ -172,7 +173,7 @@ lemma X_isZero_of_card_generators_le (x : M) {ι : Type*} [Finite ι] [LinearOrd
   ModuleCat.isZero_of_iff_subsingleton.mpr (subsingleton_of_card_generators_le R M g hg i hi)
 
 lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
-    IsZero ((koszulCocomplex.ofList R l).X i) :=
+    IsZero ((koszulCocomplex.ofList l).X i) :=
   X_isZero_of_card_generators_le R l.get
   (Pi.basisFun R (Fin l.length)) (Pi.basisFun R (Fin l.length)).span_eq i
   (by simpa [Nat.card_eq_fintype_card] using hi)
@@ -181,11 +182,12 @@ end specialX
 
 section basechange
 
-variable {R} {S : Type (max u v)} [CommRing S] [Algebra R S] {l : List R} {l' : List S}
+variable {R}
 
 open TensorProduct
 
-lemma exteriorPower.baseChangeIso_comm_aux (x : M) (i : ℕ) :
+universe w in
+lemma exteriorPower.baseChangeIso_comm_aux (S : Type w) [CommRing S] [Algebra R S] (x : M) (i : ℕ) :
     (exteriorPower.baseChangeIso R M S (i + 1)).toLinearMap.comp
     ((koszulCocomplexAux R M x i).baseChange S) =
     (koszulCocomplexAux S (S ⊗[R] M) (1 ⊗ₜ[R] x) i).comp

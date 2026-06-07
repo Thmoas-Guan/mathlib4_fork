@@ -174,11 +174,11 @@ end specialX
 
 section basechange
 
-variable {S : Type (max u v)} [CommRing S] [Algebra R S] {l : List R} {l' : List S}
-
 open TensorProduct
 
-lemma exteriorPower.baseChangeIso_comm_aux (φ : M →ₗ[R] R) (i : ℕ) :
+universe w in
+lemma exteriorPower.baseChangeIso_comm_aux (S : Type w) [CommRing S] [Algebra R S] (φ : M →ₗ[R] R)
+    (i : ℕ) :
     (exteriorPower.baseChangeIso R M S i).toLinearMap.comp
       ((koszulComplexAux φ i).baseChange S) =
         (koszulComplexAux ((TensorProduct.AlgebraTensorModule.rid R S S).toLinearMap.comp
