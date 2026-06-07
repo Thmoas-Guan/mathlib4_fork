@@ -13,6 +13,7 @@ public import Mathlib.Algebra.Module.SpanRank
 public import Mathlib.LinearAlgebra.ExteriorAlgebra.Grading
 public import Mathlib.LinearAlgebra.ExteriorPower.Basis
 public import Mathlib.LinearAlgebra.ExteriorPower.BaseChange
+public import Mathlib.LinearAlgebra.TensorProduct.Pi
 public import Mathlib.RingTheory.Regular.RegularSequence
 public import Mathlib.LinearAlgebra.Alternating.Uncurry.Fin
 
@@ -203,6 +204,47 @@ lemma exteriorPower.baseChangeIso_comm_aux (S : Type w) [CommRing S] [Algebra R 
       LinearMap.baseChange_tmul, AlgebraTensorModule.rid_tmul, Algebra.mul_smul_comm, mul_one]
     rw [mul_smul, ← smul_assoc, smul_eq_mul, mul_comm, ← Algebra.smul_def]
     congr
+
+instance (T : Type v) [CommRing T] (g : R →+* T) :
+    (ModuleCat.extendScalars.{u, v, u} g).Additive where
+  map_add {X Y a b} := by
+    simp only [ModuleCat.extendScalars, ModuleCat.ExtendScalars.map',
+      ModuleCat.hom_add, LinearMap.baseChange_add]
+    rfl
+
+variable {S : Type (max u v)} [CommRing S] (f : R →+* S)
+
+noncomputable def baseChangeIso {M : Type u} [AddCommGroup M] [Module R M] (φ : M →ₗ[R] R) :
+    letI := f.toAlgebra
+    ((ModuleCat.extendScalars (algebraMap R S)).mapHomologicalComplex _).obj (koszulComplex φ) ≅
+      koszulComplex ((TensorProduct.AlgebraTensorModule.rid R S S).toLinearMap.comp
+        (φ.baseChange S)) :=
+  let := f.toAlgebra
+  HomologicalComplex.Hom.isoOfComponents
+    (fun i ↦ (exteriorPower.baseChangeIso R M S i).toModuleIso) (fun i j hij ↦ by
+      simp only [ComplexShape.down_Rel] at hij
+      subst hij
+      simp only [koszulComplex, LinearEquiv.toModuleIso_hom, ChainComplex.of_d,
+        Functor.mapHomologicalComplex_obj_d]
+      exact congrArg ModuleCat.ofHom (exteriorPower.baseChangeIso_comm_aux S φ j).symm)
+
+noncomputable def ofListBaseChangeIso (l : List R) (l' : List S) (eqmap : l.map f = l') :
+    ((ModuleCat.extendScalars f).mapHomologicalComplex _).obj (ofList l) ≅ ofList l' :=
+  let := f.toAlgebra
+  let e : Fin l.length ≃ Fin l'.length := finCongr (by simp [← eqmap])
+  (baseChangeIso f (Fintype.linearCombination R l.get)).trans
+    (koszulComplex.isoOfEquiv _ ((TensorProduct.piScalarRight R S S (Fin l.length)).trans
+      (LinearEquiv.funCongrLeft S S e.symm)) _ (by
+        ext i
+        have : (LinearMap.funLeft S S e.symm) (fun j ↦ f (Pi.single (M := fun _ ↦ R) i 1 j)) =
+          Pi.single (e i) 1 := by
+          ext j
+          rcases eq_or_ne (e i) j with rfl|ne
+          · simp
+          · simp [e.symm_apply_eq.not.mpr ne.symm, ne]
+        have eq : l'.get (e i) = f (l.get i) := by simp [← eqmap, e]
+        simpa [-List.get_eq_getElem, ← Algebra.algebraMap_eq_smul_one, RingHom.algebraMap_toAlgebra,
+          this] using eq))
 
 end basechange
 

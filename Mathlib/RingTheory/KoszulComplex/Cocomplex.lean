@@ -13,6 +13,7 @@ public import Mathlib.Algebra.Module.SpanRank
 public import Mathlib.LinearAlgebra.ExteriorAlgebra.Grading
 public import Mathlib.LinearAlgebra.ExteriorPower.Basis
 public import Mathlib.LinearAlgebra.ExteriorPower.BaseChange
+public import Mathlib.LinearAlgebra.TensorProduct.Pi
 public import Mathlib.RingTheory.Regular.RegularSequence
 
 /-!
@@ -201,6 +202,38 @@ lemma exteriorPower.baseChangeIso_comm_aux (S : Type w) [CommRing S] [Algebra R 
     · simp
     · simp
   simp [exteriorPower.baseChangeIso_apply_tmul, koszulCocomplexAux_apply_ιMulti, this]
+
+instance (T : Type v) [CommRing T] (g : R →+* T) :
+    (ModuleCat.extendScalars.{u, v, u} g).Additive where
+  map_add {X Y a b} := by
+    simp only [ModuleCat.extendScalars, ModuleCat.ExtendScalars.map',
+      ModuleCat.hom_add, LinearMap.baseChange_add]
+    rfl
+
+variable {S : Type (max u v)} [CommRing S] (f : R →+* S)
+
+noncomputable def baseChangeIso {M : Type u} [AddCommGroup M] [Module R M] (x : M) :
+    letI := f.toAlgebra
+    ((ModuleCat.extendScalars (algebraMap R S)).mapHomologicalComplex _).obj
+      (koszulCocomplex R x) ≅ koszulCocomplex S ((1 : S) ⊗ₜ[R] x) :=
+  let := f.toAlgebra
+  HomologicalComplex.Hom.isoOfComponents
+    (fun i ↦ (exteriorPower.baseChangeIso R M S i).toModuleIso) (fun i j hij ↦ by
+      simp only [ComplexShape.up_Rel] at hij
+      subst hij
+      simp only [koszulCocomplex, LinearEquiv.toModuleIso_hom, CochainComplex.of_d,
+        Functor.mapHomologicalComplex_obj_d]
+      exact congrArg ModuleCat.ofHom (exteriorPower.baseChangeIso_comm_aux S x i).symm)
+
+noncomputable def ofListBaseChangeIso (l : List R) (l' : List S) (eqmap : l.map f = l') :
+    ((ModuleCat.extendScalars f).mapHomologicalComplex _).obj (ofList l) ≅ ofList l' :=
+  let := f.toAlgebra
+  let e : Fin l.length ≃ Fin l'.length := finCongr (by simp [← eqmap])
+  (baseChangeIso f l.get).trans
+    (koszulCocomplex.isoOfEquiv S ((TensorProduct.piScalarRight R S S (Fin l.length)).trans
+      (LinearEquiv.funCongrLeft S S e.symm)) (by
+        ext x
+        simp [e, ← eqmap, ← Algebra.algebraMap_eq_smul_one, RingHom.algebraMap_toAlgebra]))
 
 end basechange
 
