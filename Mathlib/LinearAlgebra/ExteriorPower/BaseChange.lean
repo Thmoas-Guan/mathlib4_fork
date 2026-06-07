@@ -72,15 +72,15 @@ noncomputable def base_change_generator (i : ℕ) :
 /-- Helper for KoszulComplex baseChangeIso: the generator-side alternating map
 `m ↦ ιMulti_S (1 ⊗ m)` cod-restricted to the fixed-degree summand. -/
 noncomputable def base_change_generator_codrestrict (i : ℕ) :
-    M [⋀^Fin i]→ₗ[R] ↥((⋀[S]^i (S ⊗[R] M)).restrictScalars R) :=
-  (base_change_generator R M S i).codRestrict _ fun m =>
+    M [⋀^Fin i]→ₗ[R] (⋀[S]^i (S ⊗[R] M)) :=
+  (base_change_generator R M S i).codRestrict (((⋀[S]^i (S ⊗[R] M)).restrictScalars R)) fun m =>
     -- The image of `ιMulti` already lies in the fixed-degree exterior-power summand.
     ExteriorAlgebra.ιMulti_range S i (Set.mem_range_self ((TensorProduct.mk R S M 1) ∘ m))
 
 /-- Helper for KoszulComplex baseChangeIso: the forward linear map before upgrading
 from the restricted-scalars target to the `S`-linear equivalence. -/
 noncomputable def exteriorPower.baseChangeIsoForward (i : ℕ) :
-    S ⊗[R] (⋀[R]^i M) →ₗ[S] ↥((⋀[S]^i (S ⊗[R] M)).restrictScalars R) :=
+    S ⊗[R] (⋀[R]^i M) →ₗ[S] (⋀[S]^i (S ⊗[R] M)) :=
   -- Tensor-lift the `R`-linear map so the scalar on the left tensor factor acts on the target.
   TensorProduct.AlgebraTensorModule.lift {
     toFun s := s • exteriorPower.alternatingMapLinearEquiv
@@ -90,7 +90,7 @@ noncomputable def exteriorPower.baseChangeIsoForward (i : ℕ) :
 
 /-- Helper for KoszulComplex baseChangeIso: the forward map sends the pure generator
 `1 ⊗ ιMulti_R m` to `ιMulti_S (1 ⊗ m)`. -/
-lemma baseChangeIso_forward_apply_one_tmul_ιMulti (i : ℕ) (m : Fin i → M) :
+lemma baseChangeIsoForward_apply_one_tmul_ιMulti (i : ℕ) (m : Fin i → M) :
     exteriorPower.baseChangeIsoForward R M S i (1 ⊗ₜ[R] exteriorPower.ιMulti R i m) =
       ⟨exteriorPower.ιMulti S i ((TensorProduct.mk R S M 1) ∘ m),
         ExteriorAlgebra.ιMulti_range S i
@@ -118,25 +118,24 @@ lemma exteriorPower.degreeProjection_apply_ιMulti (i : ℕ) (m : Fin i → M) :
 
 /-- Helper for KoszulComplex baseChangeIso: the tensor-side generator map
 `s ⊗ m ↦ s ⊗ ι_R(m)` into the base-changed exterior algebra. -/
-noncomputable def base_change_tensor_generator :
+noncomputable def ExteriorAlgebra.BaseChangeι :
     S ⊗[R] M →ₗ[S] S ⊗[R] ExteriorAlgebra R M :=
-  TensorProduct.AlgebraTensorModule.map (LinearMap.id : S →ₗ[S] S)
-    (ExteriorAlgebra.ι R : M →ₗ[R] ExteriorAlgebra R M)
+  (ExteriorAlgebra.ι R : M →ₗ[R] ExteriorAlgebra R M).baseChange S
 
 /-- Helper for KoszulComplex baseChangeIso: tensor generators anticommute in the
 base-changed exterior algebra. -/
-lemma base_change_tensor_generator_mul_add_swap (x y : S ⊗[R] M) :
-    base_change_tensor_generator R M S x * base_change_tensor_generator R M S y +
-      base_change_tensor_generator R M S y * base_change_tensor_generator R M S x = 0 := by
+lemma ExteriorAlgebra.BaseChangeι_mul_add_swap (x y : S ⊗[R] M) :
+    ExteriorAlgebra.BaseChangeι R M S x * ExteriorAlgebra.BaseChangeι R M S y +
+      ExteriorAlgebra.BaseChangeι R M S y * ExteriorAlgebra.BaseChangeι R M S x = 0 := by
   -- Reduce the anticommutation relation to pure tensors in each variable.
   refine TensorProduct.induction_on x ?_ ?_ ?_
-  · simp [base_change_tensor_generator]
+  · simp [ExteriorAlgebra.BaseChangeι]
   · intro s m
     refine TensorProduct.induction_on y ?_ ?_ ?_
-    · simp [base_change_tensor_generator]
+    · simp [ExteriorAlgebra.BaseChangeι]
     · intro t n
       -- On pure tensors this is exactly the usual exterior-algebra anticommutation relation.
-      simp [base_change_tensor_generator, Algebra.TensorProduct.tmul_mul_tmul,
+      simp [ExteriorAlgebra.BaseChangeι, Algebra.TensorProduct.tmul_mul_tmul,
         ExteriorAlgebra.ι_add_mul_swap, mul_comm, ← TensorProduct.tmul_add]
     · intro y₁ y₂ hy₁ hy₂
       -- Bilinearity turns the add case into the sum of the previously established identities.
@@ -149,43 +148,42 @@ lemma base_change_tensor_generator_mul_add_swap (x y : S ⊗[R] M) :
 
 /-- Helper for KoszulComplex baseChangeIso: every tensor generator squares to zero in
 the base-changed exterior algebra. -/
-lemma base_change_tensor_generator_sq_zero (x : S ⊗[R] M) :
-    base_change_tensor_generator R M S x * base_change_tensor_generator R M S x = 0 := by
+lemma ExteriorAlgebra.BaseChangeι_sq_zero (x : S ⊗[R] M) :
+    ExteriorAlgebra.BaseChangeι R M S x * ExteriorAlgebra.BaseChangeι R M S x = 0 := by
   -- Check the square-zero relation by induction on the tensor and use the anticommutation lemma
   -- for the cross term in the add case.
   refine TensorProduct.induction_on x ?_ ?_ ?_
-  · simp [base_change_tensor_generator]
+  · simp [ExteriorAlgebra.BaseChangeι]
   · intro s m
-    simp [base_change_tensor_generator, Algebra.TensorProduct.tmul_mul_tmul]
+    simp [ExteriorAlgebra.BaseChangeι, Algebra.TensorProduct.tmul_mul_tmul]
   · intro x y hx hy
     simp only [map_add, mul_add, add_mul, add_left_comm, add_assoc]
-    simp [hx, hy, base_change_tensor_generator_mul_add_swap R M S x y]
+    simp [hx, hy, ExteriorAlgebra.BaseChangeι_mul_add_swap R M S x y]
 
 /-- Helper for KoszulComplex baseChangeIso: the ambient exterior-algebra map from
 `ExteriorAlgebra S (S ⊗[R] M)` to `S ⊗[R] ExteriorAlgebra R M`. -/
-noncomputable def base_change_exterior_to_tensor :
+noncomputable def baseChangeExteriorAlgebraToTensor :
     ExteriorAlgebra S (S ⊗[R] M) →ₐ[S] S ⊗[R] ExteriorAlgebra R M :=
   ExteriorAlgebra.lift S
-    ⟨base_change_tensor_generator R M S, base_change_tensor_generator_sq_zero R M S⟩
+    ⟨ExteriorAlgebra.BaseChangeι R M S, ExteriorAlgebra.BaseChangeι_sq_zero R M S⟩
 
 /-- Helper for KoszulComplex baseChangeIso: the inverse-side alternating map obtained by
 passing through the ambient exterior algebra and then projecting to degree `i`. -/
-noncomputable def base_change_inverse_alternating (i : ℕ) :
+noncomputable def baseChangeInverseAlternating (i : ℕ) :
     (S ⊗[R] M) [⋀^Fin i]→ₗ[S] S ⊗[R] (⋀[R]^i M) :=
   ((TensorProduct.AlgebraTensorModule.map
       (LinearMap.id : S →ₗ[S] S)
       (exteriorPower.degreeProjection R M i)).comp
-      (base_change_exterior_to_tensor R M S).toLinearMap).compAlternatingMap
+      (baseChangeExteriorAlgebraToTensor R M S).toLinearMap).compAlternatingMap
     (ExteriorAlgebra.ιMulti S i)
 
 /-- Helper for KoszulComplex baseChangeIso: the inverse-side alternating map sends a tuple of
 pure tensors to the scalar product tensor the degree-`i` exterior generator. -/
-lemma base_change_inverse_alternating_apply_tmul
-    (i : ℕ) (s : Fin i → S) (m : Fin i → M) :
-    base_change_inverse_alternating R M S i (fun j ↦ s j ⊗ₜ[R] m j) =
+lemma baseChangeInverseAlternating_apply_tmul (i : ℕ) (s : Fin i → S) (m : Fin i → M) :
+    baseChangeInverseAlternating R M S i (fun j ↦ s j ⊗ₜ[R] m j) =
       (Finset.univ.prod fun j ↦ s j) ⊗ₜ[R] exteriorPower.ιMulti R i m := by
   -- Expand the ambient `ιMulti`, evaluate the lift on generators, and then project to degree `i`.
-  simp only [base_change_inverse_alternating, LinearMap.comp_apply,
+  simp only [baseChangeInverseAlternating, LinearMap.comp_apply,
     LinearMap.compAlternatingMap_apply, AlgHom.toLinearMap_apply, ExteriorAlgebra.ιMulti_apply]
   have hprod : (List.ofFn fun j ↦ s j ⊗ₜ[R] ExteriorAlgebra.ι R (m j)).prod =
     (Finset.univ.prod fun j ↦ s j) ⊗ₜ[R] (List.ofFn fun j ↦ ExteriorAlgebra.ι R (m j)).prod := by
@@ -194,68 +192,59 @@ lemma base_change_inverse_alternating_apply_tmul
     | succ i ih =>
       rw [List.ofFn_succ, List.ofFn_succ, List.prod_cons, List.prod_cons, ih]
       simp [Algebra.TensorProduct.tmul_mul_tmul, Fin.prod_univ_succ]
-  rw [map_list_prod (base_change_exterior_to_tensor R M S)]
-  have himages :
-      List.map (base_change_exterior_to_tensor R M S)
-          (List.ofFn fun j ↦ ExteriorAlgebra.ι S (s j ⊗ₜ[R] m j)) =
-        List.ofFn fun j ↦ s j ⊗ₜ[R] ExteriorAlgebra.ι R (m j) := by
+  rw [map_list_prod (baseChangeExteriorAlgebraToTensor R M S)]
+  have himages : List.map (baseChangeExteriorAlgebraToTensor R M S)
+    (List.ofFn fun j ↦ ExteriorAlgebra.ι S (s j ⊗ₜ[R] m j)) =
+      List.ofFn fun j ↦ s j ⊗ₜ[R] ExteriorAlgebra.ι R (m j) := by
     ext j
-    simp [base_change_exterior_to_tensor, base_change_tensor_generator]
-  rw [himages]
-  rw [hprod]
-  rw [TensorProduct.AlgebraTensorModule.map_tmul]
+    simp [baseChangeExteriorAlgebraToTensor, ExteriorAlgebra.BaseChangeι]
+  rw [himages, hprod, TensorProduct.AlgebraTensorModule.map_tmul]
   simpa [ExteriorAlgebra.ιMulti_apply] using
     congrArg (fun x ↦ (Finset.univ.prod fun j ↦ s j) ⊗ₜ[R] x)
       (exteriorPower.degreeProjection_apply_ιMulti R M i m)
 
-/-- Helper for KoszulComplex baseChangeIso: the visible forward linear map with codomain
-`⋀[S]^i (S ⊗[R] M)` after removing the restricted-scalars wrapper. -/
-noncomputable def base_change_forward (i : ℕ) :
-    S ⊗[R] (⋀[R]^i M) →ₗ[S] ⋀[S]^i (S ⊗[R] M) :=
-  (Submodule.restrictScalarsEquiv
-      (R := S) (S := R) (p := (⋀[S]^i (S ⊗[R] M)))).symm.toLinearMap.comp
-    (exteriorPower.baseChangeIsoForward R M S i)
-
 /-- Helper for KoszulComplex baseChangeIso: the linear map on the `i`th exterior power induced
 by the inverse-side alternating map. -/
-noncomputable def base_change_inverse (i : ℕ) :
+noncomputable def exteriorPower.baseChangeIsoInverse (i : ℕ) :
     ⋀[S]^i (S ⊗[R] M) →ₗ[S] S ⊗[R] (⋀[R]^i M) :=
-  exteriorPower.alternatingMapLinearEquiv (base_change_inverse_alternating R M S i)
+  exteriorPower.alternatingMapLinearEquiv (baseChangeInverseAlternating R M S i)
 
 /-- Helper for KoszulComplex baseChangeIso: the inverse-side map retracts the forward map. -/
-lemma base_change_left_inverse (i : ℕ) :
-    (base_change_inverse R M S i).comp (base_change_forward R M S i) = LinearMap.id := by
+lemma exteriorPower.base_change_left_inverse (i : ℕ) :
+    (baseChangeIsoInverse R M S i).comp (baseChangeIsoForward R M S i) = LinearMap.id := by
   -- Use the tensor-lift equivalence: an `S`-linear map out of `S ⊗[R] X` is determined by its
   -- curried form, and the latter is determined by the value at `1`.
   apply (TensorProduct.AlgebraTensorModule.lift.equiv R S S S _ _).symm.injective
   change TensorProduct.AlgebraTensorModule.curry
-      ((base_change_inverse R M S i).comp (base_change_forward R M S i)) =
+      ((baseChangeIsoInverse R M S i).comp (baseChangeIsoForward R M S i)) =
     TensorProduct.AlgebraTensorModule.curry LinearMap.id
   apply LinearMap.ext (fun s ↦ ?_)
   apply LinearMap.ext (fun x ↦ ?_)
-  rw [show s = s • (1 : S) by simp]
+  have : s = s • (1 : S) := by simp
+  rw [this]
   simp only [TensorProduct.AlgebraTensorModule.curry_apply, map_smul]
   -- The remaining `R`-linear statement on `⋀[R]^i M` is checked on the canonical generators.
-  have hmk : (((base_change_inverse R M S i).comp
-    (base_change_forward R M S i)).restrictScalars R).comp (TensorProduct.mk R S (⋀[R]^i M) 1) =
+  have hmk : (((baseChangeIsoInverse R M S i).comp
+    (baseChangeIsoForward R M S i)).restrictScalars R).comp (TensorProduct.mk R S (⋀[R]^i M) 1) =
       TensorProduct.mk R S (⋀[R]^i M) 1 := by
     apply exteriorPower.linearMap_ext
     ext m
     -- Both sides agree on the canonical exterior generators.
-    have hforward : base_change_forward R M S i (1 ⊗ₜ[R] exteriorPower.ιMulti R i m) =
-      exteriorPower.ιMulti S i ((TensorProduct.mk R S M 1) ∘ m) := by
-      simpa [base_change_forward] using!
+    have hforward :
+      exteriorPower.baseChangeIsoForward R M S i (1 ⊗ₜ[R] exteriorPower.ιMulti R i m) =
+        exteriorPower.ιMulti S i ((TensorProduct.mk R S M 1) ∘ m) := by
+      simpa [exteriorPower.baseChangeIsoForward] using!
         congrArg ((Submodule.restrictScalarsEquiv R S (p := (⋀[S]^i (S ⊗[R] M)))).symm)
-          (baseChangeIso_forward_apply_one_tmul_ιMulti R M S i m)
+          (baseChangeIsoForward_apply_one_tmul_ιMulti R M S i m)
     simp only [LinearMap.restrictScalars_comp, LinearMap.compAlternatingMap_apply,
       LinearMap.coe_comp, LinearMap.coe_restrictScalars, Function.comp_apply, mk_apply]
-    rw [hforward, base_change_inverse, exteriorPower.alternatingMapLinearEquiv_apply_ιMulti]
+    rw [hforward, baseChangeIsoInverse, exteriorPower.alternatingMapLinearEquiv_apply_ιMulti]
     simpa [Finset.prod_const_one] using!
-      base_change_inverse_alternating_apply_tmul R M S i (fun _ ↦ 1) m
+      baseChangeInverseAlternating_apply_tmul R M S i (fun _ ↦ 1) m
   simpa using congrArg (fun t ↦ s • t) (LinearMap.congr_fun hmk x)
 
-lemma base_change_right_inverse (i : ℕ) :
-    (base_change_forward R M S i).comp (base_change_inverse R M S i) = LinearMap.id := by
+lemma exteriorPower.base_change_right_inverse (i : ℕ) :
+    (baseChangeIsoForward R M S i).comp (baseChangeIsoInverse R M S i) = LinearMap.id := by
   sorry
 
 /-
