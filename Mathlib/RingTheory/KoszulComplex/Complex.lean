@@ -13,7 +13,7 @@ public import Mathlib.Algebra.Homology.ShortComplex.HomologicalComplex
 public import Mathlib.Algebra.Homology.ShortComplex.ShortExact
 public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
 public import Mathlib.Algebra.Module.SpanRank
-public import Mathlib.LinearAlgebra.ExteriorAlgebra.Grading
+public import Mathlib.LinearAlgebra.ExteriorAlgebra.Product
 public import Mathlib.LinearAlgebra.ExteriorPower.Basis
 public import Mathlib.RingTheory.Regular.RegularSequence
 public import Mathlib.LinearAlgebra.Alternating.Uncurry.Fin
@@ -176,123 +176,125 @@ end specialX
 
 section induction
 
-def X_equiv_zero {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
-    (koszulComplex.ofList l).X 0 ≃ₗ[R] (koszulComplex.ofList l').X 0 := sorry
+variable (φ : M →ₗ[R] R) (a : R)
 
-def X_equiv_prod {l l' : List R} {a : R} (eq : l = l' ++ [a]) (n : ℕ) :
-    (koszulComplex.ofList l).X (n + 1) ≃ₗ[R]
-    ((koszulComplex.ofList l').X (n + 1) × (koszulComplex.ofList l').X n) := sorry
+abbrev appendMap : M × R →ₗ[R] R := φ.comp (LinearMap.fst R M R) + a • (LinearMap.snd R M R)
 
-lemma d_apply_eq_zero {l l' : List R} {a : R} (eq : l = l' ++ [a])
-    (x : (koszulComplex.ofList l).X (0 + 1)) :
-    (koszulComplex.ofList l).d (0 + 1) 0 x = (X_equiv_zero eq).symm
-      ((koszulComplex.ofList l').d (0 + 1) 0 (X_equiv_prod eq 0 x).1 +
-        a • (X_equiv_prod eq 0 x).2) := by
+def X_equiv_zero : (koszulComplex (appendMap φ a)).X 0 ≃ₗ[R] (koszulComplex φ).X 0 := sorry
+
+def X_equiv_prod (n : ℕ) : (koszulComplex (appendMap φ a)).X (n + 1) ≃ₗ[R]
+    ((koszulComplex φ).X (n + 1) × (koszulComplex φ).X n) := sorry
+
+lemma d_apply_eq_zero (x : (koszulComplex (appendMap φ a)).X (0 + 1)) :
+    (koszulComplex (appendMap φ a)).d (0 + 1) 0 x = (X_equiv_zero φ a).symm
+      ((koszulComplex φ).d (0 + 1) 0 (X_equiv_prod φ a 0 x).1 +
+        a • (X_equiv_prod φ a 0 x).2) := by
   sorry
 
-lemma d_apply_eq_pos {l l' : List R} {a : R} (eq : l = l' ++ [a]) (n : ℕ)
-    (x : (koszulComplex.ofList l).X (n + 1 + 1)) :
-    (koszulComplex.ofList l).d (n + 1 + 1) (n + 1) x = (X_equiv_prod eq n).symm
-      ⟨(koszulComplex.ofList l').d (n + 1 + 1) (n + 1) (X_equiv_prod eq (n + 1) x).1 +
-        ((-1 : R) ^ (n + 1) * a) • (X_equiv_prod eq (n + 1) x).2,
-          (koszulComplex.ofList l').d (n + 1) n (X_equiv_prod eq (n + 1) x).2⟩ := by
+lemma d_apply_eq_pos (n : ℕ) (x : (koszulComplex (appendMap φ a)).X (n + 1 + 1)) :
+    (koszulComplex (appendMap φ a)).d (n + 1 + 1) (n + 1) x = (X_equiv_prod φ a n).symm
+      ⟨(koszulComplex φ).d (n + 1 + 1) (n + 1) (X_equiv_prod φ a (n + 1) x).1 +
+        ((-1 : R) ^ (n + 1) * a) • (X_equiv_prod φ a (n + 1) x).2,
+          (koszulComplex φ).d (n + 1) n (X_equiv_prod φ a (n + 1) x).2⟩ := by
   sorry
 
-noncomputable def from_ofList_hom_zero {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
-    (ofList l').X 0 ⟶ (ofList l).X 0 :=
-  ModuleCat.ofHom (X_equiv_zero eq).symm.toLinearMap
+noncomputable def from_ofList_hom_zero :
+    (koszulComplex φ).X 0 ⟶ (koszulComplex (appendMap φ a)).X 0 :=
+  ModuleCat.ofHom (X_equiv_zero φ a).symm.toLinearMap
 
-noncomputable def from_ofList_hom_pos {l l' : List R} {a : R} (eq : l = l' ++ [a]) (i : ℕ) :
-    (ofList l').X (i + 1) ⟶ (ofList l).X (i + 1) :=
-  ModuleCat.ofHom ((X_equiv_prod eq i).symm.toLinearMap.comp (LinearMap.inl R _ _))
+noncomputable def from_ofList_hom_pos (i : ℕ) :
+    (koszulComplex φ).X (i + 1) ⟶ (koszulComplex (appendMap φ a)).X (i + 1) :=
+  ModuleCat.ofHom ((X_equiv_prod φ a i).symm.toLinearMap.comp (LinearMap.inl R _ _))
 
-lemma from_ofList_hom_comm_zero {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
-    from_ofList_hom_pos eq 0 ≫ (ofList l).d (0 + 1) 0 =
-    (ofList l').d (0 + 1) 0 ≫ from_ofList_hom_zero eq := by
+lemma from_ofList_hom_comm_zero :
+    from_ofList_hom_pos φ a 0 ≫ (koszulComplex (appendMap φ a)).d (0 + 1) 0 =
+    (koszulComplex φ).d (0 + 1) 0 ≫ from_ofList_hom_zero φ a := by
   ext x
-  change (ofList l).d (0 + 1) 0 ((X_equiv_prod eq 0).symm (LinearMap.inl R _ _ x)) =
-    (X_equiv_zero eq).symm ((ofList l').d (0 + 1) 0 x)
-  rw [d_apply_eq_zero eq]
+  change (koszulComplex (appendMap φ a)).d (0 + 1) 0
+    ((X_equiv_prod φ a 0).symm (LinearMap.inl R _ _ x)) =
+    (X_equiv_zero φ a).symm ((koszulComplex φ).d (0 + 1) 0 x)
+  rw [d_apply_eq_zero φ a]
   simp
 
-lemma from_ofList_hom_comm_pos {l l' : List R} {a : R} (eq : l = l' ++ [a]) (i : ℕ) :
-    from_ofList_hom_pos eq (i + 1) ≫ (ofList l).d (i + 1 + 1) (i + 1) =
-      (ofList l').d (i + 1 + 1) (i + 1) ≫ from_ofList_hom_pos eq i := by
+lemma from_ofList_hom_comm_pos (i : ℕ) :
+    from_ofList_hom_pos φ a (i + 1) ≫ (koszulComplex (appendMap φ a)).d (i + 1 + 1) (i + 1) =
+      (koszulComplex φ).d (i + 1 + 1) (i + 1) ≫ from_ofList_hom_pos φ a i := by
   ext x
-  change (ofList l).d (i + 1 + 1) (i + 1) ((X_equiv_prod eq (i + 1)).symm (LinearMap.inl R _ _ x)) =
-    (X_equiv_prod eq i).symm (LinearMap.inl R _ _ ((ofList l').d (i + 1 + 1) (i + 1) x))
-  rw [d_apply_eq_pos eq]
+  change (koszulComplex (appendMap φ a)).d (i + 1 + 1) (i + 1)
+    ((X_equiv_prod φ a (i + 1)).symm (LinearMap.inl R _ _ x)) =
+    (X_equiv_prod φ a i).symm (LinearMap.inl R _ _ ((koszulComplex φ).d (i + 1 + 1) (i + 1) x))
+  rw [d_apply_eq_pos φ a]
   simp
 
-noncomputable def from_ofList {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
-    koszulComplex.ofList l' ⟶ koszulComplex.ofList l :=
+noncomputable def toAppendMap :
+    koszulComplex φ ⟶ koszulComplex (appendMap φ a) :=
   ChainComplex.ofHom
     (fun i ↦
       match i with
-      | 0 => from_ofList_hom_zero eq
-      | i + 1 => from_ofList_hom_pos eq i)
+      | 0 => from_ofList_hom_zero φ a
+      | i + 1 => from_ofList_hom_pos φ a i)
     (fun i ↦
       match i with
-      | 0 => from_ofList_hom_comm_zero eq
-      | i + 1 => from_ofList_hom_comm_pos eq i)
+      | 0 => from_ofList_hom_comm_zero φ a
+      | i + 1 => from_ofList_hom_comm_pos φ a i)
 
-noncomputable abbrev ofList_up_one (l : List R) : ChainComplex (ModuleCat R) ℕ :=
-  (ofList l).augment (X := ModuleCat.of R PUnit) 0 (by simp)
+noncomputable abbrev upOne : ChainComplex (ModuleCat R) ℕ :=
+  (koszulComplex φ).augment (X := ModuleCat.of R PUnit) 0 (by simp)
 
 /--
 The canonical isomorphism of homology for augumenting with zero object.
 May need to construct by cases whether `i = 0`.
 -/
-noncomputable abbrev ofList_up_one_homology_iso (l : List R) (i : ℕ) :
-    (ofList_up_one l).homology (i + 1) ≅ (ofList l).homology i := sorry
+noncomputable abbrev upOneHomologyIso (i : ℕ) :
+    (upOne φ).homology (i + 1) ≅ (koszulComplex φ).homology i := sorry
 
-noncomputable def to_up_one_hom {l l' : List R} {a : R} (eq : l = l' ++ [a]) (i : ℕ) :
-    (ofList l).X (i + 1) ⟶ (ofList_up_one l').X (i + 1) :=
-  ModuleCat.ofHom ((LinearMap.snd R _ _).comp (X_equiv_prod eq i).toLinearMap)
+noncomputable def toUpOneHom (i : ℕ) :
+    (koszulComplex (appendMap φ a)).X (i + 1) ⟶ (upOne φ).X (i + 1) :=
+  ModuleCat.ofHom ((LinearMap.snd R _ _).comp (X_equiv_prod φ a i).toLinearMap)
 
-lemma to_self_hom_comm {l l' : List R} {a : R} (eq : l = l' ++ [a]) (i : ℕ) :
-    to_up_one_hom eq (i + 1) ≫ (ofList l').d (i + 1) i =
-      (ofList l).d (i + 1 + 1) (i + 1) ≫ to_up_one_hom eq i := by
+lemma to_self_hom_comm (i : ℕ) :
+    toUpOneHom φ a (i + 1) ≫ (koszulComplex φ).d (i + 1) i =
+      (koszulComplex (appendMap φ a)).d (i + 1 + 1) (i + 1) ≫ toUpOneHom φ a i := by
   ext x
-  change (ofList l').d (i + 1) i (X_equiv_prod eq (i + 1) x).2 =
-    ((X_equiv_prod eq i) ((ofList l).d (i + 1 + 1) (i + 1) x)).2
-  rw [d_apply_eq_pos eq]
+  change (koszulComplex φ).d (i + 1) i (X_equiv_prod φ a (i + 1) x).2 =
+    ((X_equiv_prod φ a i) ((koszulComplex (appendMap φ a)).d (i + 1 + 1) (i + 1) x)).2
+  rw [d_apply_eq_pos φ a]
   simp
 
-noncomputable def to_ofList_up_one {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
-    koszulComplex.ofList l ⟶ koszulComplex.ofList_up_one l' :=
+noncomputable def toUpOne :
+    koszulComplex (appendMap φ a) ⟶ upOne φ :=
   ChainComplex.ofHom
     (fun i ↦
       match i with
       | 0 => 0
-      | i + 1 => to_up_one_hom eq i)
+      | i + 1 => toUpOneHom φ a i)
     (fun i ↦
       match i with
       | 0 => by
         simp only [Nat.reduceAdd, ChainComplex.augment_X_zero, ChainComplex.augment_X_succ,
           ChainComplex.augment_d_one_zero, comp_zero]
         exact comp_zero.symm
-      | i + 1 => to_self_hom_comm eq i)
+      | i + 1 => to_self_hom_comm φ a i)
 
-lemma from_ofList_comp_to_ofList_up_one_eq_zero {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
-    from_ofList eq ≫ to_ofList_up_one eq = 0 := by
+lemma toAppendMap_comp_toUpOne_eq_zero :
+    toAppendMap φ a ≫ toUpOne φ a = 0 := by
   sorry
 
-noncomputable def shortComplex_of_eq {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
+noncomputable def shortComplex_of_eq :
     ShortComplex (ChainComplex (ModuleCat R) ℕ) where
-  f := from_ofList eq
-  g := to_ofList_up_one eq
-  zero := from_ofList_comp_to_ofList_up_one_eq_zero eq
+  f := toAppendMap φ a
+  g := toUpOne φ a
+  zero := toAppendMap_comp_toUpOne_eq_zero φ a
 
-noncomputable def shortComplex_of_eq_shortExact {l l' : List R} {a : R} (eq : l = l' ++ [a]) :
-    (shortComplex_of_eq eq).ShortExact where
+noncomputable def shortComplex_of_eq_shortExact :
+    (shortComplex_of_eq φ a).ShortExact where
   exact := sorry
   mono_f := sorry
   epi_g := sorry
 
 lemma shortComplex_of_eq_δ_apply {l l' : List R} {a : R} (eq : l = l' ++ [a]) (i : ℕ) :
-    (shortComplex_of_eq_shortExact eq).δ (i + 1) i rfl =
-      ((-1 : R) ^ i * a) • (ofList_up_one_homology_iso l' i).hom := by
+    (shortComplex_of_eq_shortExact φ a).δ (i + 1) i rfl =
+      ((-1 : R) ^ i * a) • (upOneHomologyIso φ i).hom := by
   sorry
 
 end induction
@@ -325,26 +327,5 @@ lemma exactAt_of_isRegular (rs : List R) (reg : IsRegular R rs)
   sorry
 
 end regular
-
-section basechange
-
-variable (S : Type (max u v)) [CommRing S] (f : R →+* S)
-
-instance (T : Type v) [CommRing T] (g : R →+* T) :
-    (ModuleCat.extendScalars.{u, v, u} g).Additive where
-  map_add {X Y a b} := by
-    simp only [ModuleCat.extendScalars, ModuleCat.ExtendScalars.map',
-      ModuleCat.hom_add, LinearMap.baseChange_add]
-    rfl
-
-open TensorProduct in
-noncomputable def baseChange_iso (l : List R) (l' : List S) (eqmap : l.map f = l') :
-    ofList l' ≅ ((ModuleCat.extendScalars f).mapHomologicalComplex _).obj (ofList l) := by
-  refine HomologicalComplex.Hom.isoOfComponents
-    (fun i ↦ LinearEquiv.toModuleIso ?_) (fun i j ↦ ?_)
-  · sorry
-  · sorry
-
-end basechange
 
 end koszulComplex
