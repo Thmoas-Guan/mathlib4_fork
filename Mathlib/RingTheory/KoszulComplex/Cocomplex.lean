@@ -336,8 +336,10 @@ lemma exactAt_of_lt_length_of_isRegular (rs : List R) (reg : IsRegular R rs)
   sorry
 
 theorem exactAt_of_ne_length_of_isRegular (rs : List R) (reg : IsRegular R rs)
-    (i : ℕ) (lt : i ≠ rs.length) : (koszulCocomplex.ofList rs).ExactAt i := by
-  sorry
+    (i : ℕ) (ne : i ≠ rs.length) : (koszulCocomplex.ofList rs).ExactAt i := by
+  rcases ne.lt_or_gt with lt|gt
+  · exact exactAt_of_lt_length_of_isRegular R rs reg i lt
+  · exact ShortComplex.exact_of_isZero_X₂ _ (ofList_X_isZero_of_length_le R rs i gt)
 
 end regular
 
