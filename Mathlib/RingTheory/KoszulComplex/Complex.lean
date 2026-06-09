@@ -10,6 +10,7 @@ public import Mathlib.Algebra.Category.ModuleCat.ExteriorPower
 public import Mathlib.Algebra.Homology.Augment
 public import Mathlib.Algebra.Homology.HomologySequence
 public import Mathlib.Algebra.Homology.ShortComplex.HomologicalComplex
+public import Mathlib.Algebra.Homology.ShortComplex.ModuleCat
 public import Mathlib.Algebra.Homology.ShortComplex.ShortExact
 public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
 public import Mathlib.Algebra.Module.SpanRank
@@ -300,15 +301,29 @@ end induction
 
 section H0
 
-/-
-Proof route: using the inductivity above, construct the isomorphism using long exact sequence of
-homology by induction on length.
-It would be better to have a separate isomorphism for the induction step `l = l' ++ [a]`
-`(ofList l).homology 0 ≃ ((ofList l').homology 0) ⧸ a • (⊤ : Submodule R ((ofList l').homology 0))`
--/
+variable (φ : M →ₗ[R] R)
 
-noncomputable def zeroHomologyLinearEquiv (l : List R) :
-    (ofList l).homology 0 ≃ₗ[R] R ⧸ Ideal.ofList l := sorry
+noncomputable def zeroHomologyLinearEquivAux : (koszulComplex φ).homology 0 ≃ₗ[R]
+    (⋀[R]^0 M) ⧸ (koszulComplexAux φ 0).range :=
+  (((koszulComplex φ).isoHomologyι₀.trans
+    ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp))).trans
+      ((koszulComplex φ).sc' 1 0 0).moduleCatOpcyclesIso).toLinearEquiv
+
+lemma equiv_comp_koszulComplexAux_zero_eq :
+    (exteriorPower.zeroEquiv R M).toLinearMap.comp (koszulComplexAux φ 0) =
+      φ.comp (exteriorPower.oneEquiv R M).toLinearMap := by
+  ext m
+  simp [koszulComplexAux, koszulComplexAuxAlternating_apply]
+
+lemma koszulComplexAux_zero_range_map :
+    (koszulComplexAux φ 0).range.map (exteriorPower.zeroEquiv R _).toLinearMap = φ.range := by
+  rw [← LinearMap.range_comp, equiv_comp_koszulComplexAux_zero_eq]
+  simp
+
+noncomputable def zeroHomologyOfListLinearEquiv (l : List R) :
+    (ofList l).homology 0 ≃ₗ[R] R ⧸ Ideal.ofList l :=
+  (zeroHomologyLinearEquivAux _).trans (Submodule.Quotient.equiv _ _ (exteriorPower.zeroEquiv R _)
+    (by simp [koszulComplexAux_zero_range_map]))
 
 end H0
 
