@@ -280,19 +280,17 @@ noncomputable def fromProd :
 lemma from_ofList_up_one_comp_to_ofList_eq_zero : fromUpOne x a ≫ fromProd x a = 0 := by
   sorry
 
-noncomputable def shortComplexProd :
-    ShortComplex (CochainComplex (ModuleCat R) ℕ) where
+noncomputable def shortComplexProd : ShortComplex (CochainComplex (ModuleCat R) ℕ) where
   f := fromUpOne x a
   g := fromProd x a
   zero := from_ofList_up_one_comp_to_ofList_eq_zero x a
 
-lemma shortComplexProd_shortExact :
-    (shortComplexProd x a).ShortExact where
+lemma shortComplexProd_shortExact : (shortComplexProd x a).ShortExact where
   exact := sorry
   mono_f := sorry
   epi_g := sorry
 
-lemma shortComplex_of_eq_δ_apply {l l' : List R} {a : R} (eq : l = l' ++ [a]) (i : ℕ) :
+lemma shortComplex_of_eq_δ_apply (i : ℕ) :
     (shortComplexProd_shortExact x a).δ i (i + 1) rfl =
       ((-1 : R) ^ i * a) • (upOneHomologyIso x i).inv := by
   sorry

@@ -283,19 +283,17 @@ lemma toAppendMap_comp_toUpOne_eq_zero :
     toAppendMap φ a ≫ toUpOne φ a = 0 := by
   sorry
 
-noncomputable def shortComplex_of_eq :
-    ShortComplex (ChainComplex (ModuleCat R) ℕ) where
+noncomputable def shortComplex_of_eq : ShortComplex (ChainComplex (ModuleCat R) ℕ) where
   f := toAppendMap φ a
   g := toUpOne φ a
   zero := toAppendMap_comp_toUpOne_eq_zero φ a
 
-noncomputable def shortComplex_of_eq_shortExact :
-    (shortComplex_of_eq φ a).ShortExact where
+noncomputable def shortComplex_of_eq_shortExact : (shortComplex_of_eq φ a).ShortExact where
   exact := sorry
   mono_f := sorry
   epi_g := sorry
 
-lemma shortComplex_of_eq_δ_apply {l l' : List R} {a : R} (eq : l = l' ++ [a]) (i : ℕ) :
+lemma shortComplex_of_eq_δ_apply (i : ℕ) :
     (shortComplex_of_eq_shortExact φ a).δ (i + 1) i rfl =
       ((-1 : R) ^ i * a) • (upOneHomologyIso φ i).hom := by
   sorry
