@@ -15,6 +15,7 @@ public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
 public import Mathlib.Algebra.Module.SpanRank
 public import Mathlib.LinearAlgebra.ExteriorAlgebra.Product
 public import Mathlib.LinearAlgebra.ExteriorPower.Basis
+public import Mathlib.LinearAlgebra.ExteriorPower.Product
 public import Mathlib.RingTheory.Regular.RegularSequence
 public import Mathlib.LinearAlgebra.Alternating.Uncurry.Fin
 
@@ -180,10 +181,12 @@ variable (φ : M →ₗ[R] R) (a : R)
 
 abbrev appendMap : M × R →ₗ[R] R := φ.comp (LinearMap.fst R M R) + a • (LinearMap.snd R M R)
 
-def X_equiv_zero : (koszulComplex (appendMap φ a)).X 0 ≃ₗ[R] (koszulComplex φ).X 0 := sorry
+noncomputable def X_equiv_zero : (koszulComplex (appendMap φ a)).X 0 ≃ₗ[R] (koszulComplex φ).X 0 :=
+  (XZeroLinearEquivRing _).trans (XZeroLinearEquivRing _).symm
 
 def X_equiv_prod (n : ℕ) : (koszulComplex (appendMap φ a)).X (n + 1) ≃ₗ[R]
-    ((koszulComplex φ).X (n + 1) × (koszulComplex φ).X n) := sorry
+    ((koszulComplex φ).X (n + 1) × (koszulComplex φ).X n) :=
+  exteriorPowerProdEquivProd R M n
 
 lemma d_apply_eq_zero (x : (koszulComplex (appendMap φ a)).X (0 + 1)) :
     (koszulComplex (appendMap φ a)).d (0 + 1) 0 x = (X_equiv_zero φ a).symm

@@ -15,6 +15,7 @@ public import Mathlib.Algebra.Homology.ShortComplex.ShortExact
 public import Mathlib.Algebra.Module.SpanRank
 public import Mathlib.LinearAlgebra.ExteriorAlgebra.Grading
 public import Mathlib.LinearAlgebra.ExteriorPower.Basis
+public import Mathlib.LinearAlgebra.ExteriorPower.Product
 public import Mathlib.RingTheory.Regular.RegularSequence
 
 /-!
@@ -178,12 +179,13 @@ section induction
 
 variable {R} (x : M) (a : R)
 
-def X_equiv_zero : (koszulCocomplex R (⟨x, a⟩ : M × R)).X 0 ≃ₗ[R] (koszulCocomplex R x).X 0 :=
-  sorry
+noncomputable def X_equiv_zero :
+    (koszulCocomplex R (⟨x, a⟩ : M × R)).X 0 ≃ₗ[R] (koszulCocomplex R x).X 0 :=
+  (XZeroLinearEquivRing R _).trans (XZeroLinearEquivRing R _).symm
 
 def X_equiv_prod (n : ℕ) : (koszulCocomplex R (⟨x, a⟩ : M × R)).X (n + 1) ≃ₗ[R]
     ((koszulCocomplex R x).X (n + 1) × (koszulCocomplex R x).X n) :=
-  sorry
+  exteriorPowerProdEquivProd R M n
 
 lemma d_apply_eq_zero (y : (koszulCocomplex R (⟨x, a⟩ : M × R)).X 0) :
     (koszulCocomplex R (⟨x, a⟩ : M × R)).d 0 (0 + 1) y = (X_equiv_prod x a 0).symm
