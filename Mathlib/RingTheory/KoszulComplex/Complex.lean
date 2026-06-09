@@ -279,18 +279,18 @@ lemma toAppendMap_comp_toUpOne_eq_zero :
     toAppendMap φ a ≫ toUpOne φ a = 0 := by
   sorry
 
-noncomputable def shortComplex_of_eq : ShortComplex (ChainComplex (ModuleCat R) ℕ) where
+noncomputable def shortComplexProd : ShortComplex (ChainComplex (ModuleCat R) ℕ) where
   f := toAppendMap φ a
   g := toUpOne φ a
   zero := toAppendMap_comp_toUpOne_eq_zero φ a
 
-noncomputable def shortComplex_of_eq_shortExact : (shortComplex_of_eq φ a).ShortExact where
+noncomputable def shortComplexProd_shortExact : (shortComplexProd φ a).ShortExact where
   exact := sorry
   mono_f := sorry
   epi_g := sorry
 
-lemma shortComplex_of_eq_δ_apply (i : ℕ) :
-    (shortComplex_of_eq_shortExact φ a).δ (i + 1) i rfl =
+lemma shortComplexProd_δ_eq (i : ℕ) :
+    (shortComplexProd_shortExact φ a).δ (i + 1) i rfl =
       ((-1 : R) ^ i * a) • (upOneHomologyIso φ i).hom := by
   sorry
 
@@ -348,25 +348,39 @@ noncomputable def ofListIsoOfEq {rs' rs : List R} {a : R} (eq : rs = rs' ++ [a])
   isoOfEquiv _ (ofListIsoOfEqAux eq) _ (ofListIsoOfEqAux_comp eq)
 
 lemma exactAt_of_isRegular (rs : List R) (reg : IsRegular R rs)
-    (i : ℕ) (lt : i ≠ 0) : (ofList rs).ExactAt i := by
+    (i : ℕ) (ne : i ≠ 0) : (ofList rs).ExactAt i := by
   generalize h : rs.length = n
   induction n generalizing rs i with
   | zero =>
     apply ShortComplex.exact_of_isZero_X₂
     exact ofList_X_isZero_of_length_lt rs i (by simpa [h, ← Nat.ne_zero_iff_zero_lt])
   | succ n ih =>
-    have ne : rs ≠ [] := List.ne_nil_of_length_eq_add_one h
+    have nenil : rs ≠ [] := List.ne_nil_of_length_eq_add_one h
     let rs' := rs.dropLast
-    have reg' : IsRegular R rs' := sorry
-    let a := rs.getLast ne
-    have areg : IsSMulRegular (R ⧸ Ideal.ofList rs') a := sorry
-    have eq : rs = rs' ++ [a] := (List.dropLast_concat_getLast ne).symm
+    have reg' : IsRegular R rs' :=
+      sorry
+    let a := rs.getLast nenil
+    have areg : IsSMulRegular (R ⧸ Ideal.ofList rs') a :=
+      sorry
+    have eq : rs = rs' ++ [a] := (List.dropLast_concat_getLast nenil).symm
     apply HomologicalComplex.ExactAt.of_iso _ (ofListIsoOfEq eq).symm
     set φ := Fintype.linearCombination R rs'.get
-    have ih' (i : ℕ) (ne : i ≠ 0) : (koszulComplex φ).ExactAt i :=
-      ih rs' reg' i ne (by simp [rs', h])
-
-    sorry
+    have ih' (i : ℕ) (ne : i ≠ 0) : IsZero ((koszulComplex φ).homology i) :=
+      ((koszulComplex φ).exactAt_iff_isZero_homology i).mp (ih rs' reg' i ne (by simp [rs', h]))
+    rw [HomologicalComplex.exactAt_iff_isZero_homology]
+    apply ((shortComplexProd_shortExact φ a).homology_exact₂ i).isZero_X₂
+      ((ih' i ne).eq_zero_of_src _)
+    rcases Nat.exists_eq_succ_of_ne_zero ne with ⟨j, rfl⟩
+    rcases eq_or_ne j 0 with rfl|ne0
+    · simp only [Nat.succ_eq_add_one]
+      rw [← ((shortComplexProd_shortExact φ a).homology_exact₃ (0 + 1) 0 rfl).mono_g_iff]
+      simp only [ModuleCat.mono_iff_injective, shortComplexProd_δ_eq]
+      simp only [Nat.reduceAdd, pow_zero, one_mul, ← LinearMap.ker_eq_bot, LinearMap.ker_eq_bot']
+      intro x hx
+      apply (upOneHomologyIso φ 0).toLinearEquiv.map_eq_zero_iff.mp
+      exact (((zeroHomologyOfListLinearEquiv rs').isSMulRegular_congr a).mpr
+        areg).right_eq_zero_of_smul hx
+    · exact ((upOneHomologyIso φ j).isZero_iff.mpr (ih' j ne0)).eq_zero_of_tgt _
 
 end regular
 

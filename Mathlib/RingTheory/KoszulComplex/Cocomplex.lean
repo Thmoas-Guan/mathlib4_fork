@@ -172,14 +172,14 @@ noncomputable def topXLinearEquivOfBasisOfList (l : List R) :
   rw [this]
   exact topXLinearEquivOfBasis R l.get (Pi.basisFun R (Fin l.length))
 
-lemma X_isZero_of_card_generators_le (x : M) {ι : Type*} [Finite ι] [LinearOrder ι] (g : ι → M)
+lemma X_isZero_of_card_generators_lt (x : M) {ι : Type*} [Finite ι] [LinearOrder ι] (g : ι → M)
     (hg : Submodule.span R (Set.range g) = ⊤) (i : ℕ) (hi : Nat.card ι < i) :
     IsZero ((koszulCocomplex R x).X i) :=
   ModuleCat.isZero_of_iff_subsingleton.mpr (subsingleton_of_card_generators_le R M g hg i hi)
 
-lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
+lemma ofList_X_isZero_of_length_lt (l : List R) (i : ℕ) (hi : l.length < i) :
     IsZero ((koszulCocomplex.ofList l).X i) :=
-  X_isZero_of_card_generators_le R l.get
+  X_isZero_of_card_generators_lt R l.get
   (Pi.basisFun R (Fin l.length)) (Pi.basisFun R (Fin l.length)).span_eq i
   (by simpa [Nat.card_eq_fintype_card] using hi)
 
@@ -339,7 +339,7 @@ theorem exactAt_of_ne_length_of_isRegular (rs : List R) (reg : IsRegular R rs)
     (i : ℕ) (ne : i ≠ rs.length) : (koszulCocomplex.ofList rs).ExactAt i := by
   rcases ne.lt_or_gt with lt|gt
   · exact exactAt_of_lt_length_of_isRegular R rs reg i lt
-  · exact ShortComplex.exact_of_isZero_X₂ _ (ofList_X_isZero_of_length_le R rs i gt)
+  · exact ShortComplex.exact_of_isZero_X₂ _ (ofList_X_isZero_of_length_lt R rs i gt)
 
 end regular
 
