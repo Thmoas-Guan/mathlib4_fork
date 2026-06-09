@@ -56,16 +56,7 @@ lemma map_inl_inr_anticomm (i j : ℕ) (a : ⋀[R]^i M) (b : ⋀[R]^j N) :
   · rintro x y ⟨mx, rfl⟩ ⟨my, rfl⟩
 
     sorry
-  · simp
-  · simp
-  · intro x y z hx hy hz eq1 eq2
-    simp [add_mul, mul_add, eq1, eq2]
-  · intro x y z hx hy hz eq1 eq2
-    simp [add_mul, mul_add, eq1, eq2]
-  · intro r x y hx hy eq
-    simp [eq]
-  · intro r x y hx hy eq
-    simp [eq]
+  all_goals simp +contextual [add_mul, mul_add]
 
 noncomputable def prodEquivTensorInverse :
     ((fun (i : ℕ) => ⋀[R]^i M) ᵍ⊗[R] (fun (i : ℕ) => ⋀[R]^i N)) →ₐ[R] ExteriorAlgebra R (M × N) :=
