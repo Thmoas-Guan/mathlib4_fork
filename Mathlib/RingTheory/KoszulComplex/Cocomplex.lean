@@ -54,6 +54,14 @@ noncomputable abbrev koszulCocomplexAux (x : M) (n : ℕ) :
   GradedAlgebra.linearGMul (fun i : ℕ ↦ ⋀[R]^i M) (add_comm n 1)
     ((exteriorPower.oneEquiv R M).symm x)
 
+lemma koszulCocomplexAux_apply_ιMulti (x : M) (i : ℕ) (m : Fin i → M) :
+    koszulCocomplexAux R M x i (exteriorPower.ιMulti R i m) =
+      exteriorPower.ιMulti R (i + 1) (Matrix.vecCons x m) := by
+  apply Subtype.ext
+  simp [koszulCocomplexAux, exteriorPower.oneEquiv_symm_apply,
+    GradedAlgebra.linearGMul_eq_mul, exteriorPower.ιMulti_apply_coe,
+    ExteriorAlgebra.ιMulti_succ_apply]
+
 set_option backward.isDefEq.respectTransparency false in
 variable {M} in
 noncomputable def koszulCocomplex (x : M) : CochainComplex (ModuleCat.{max u v} R) ℕ :=
@@ -71,6 +79,8 @@ noncomputable def koszulCocomplex (x : M) : CochainComplex (ModuleCat.{max u v} 
       rfl)
 
 namespace koszulCocomplex
+
+theorem X_eq (x : M) (i : ℕ) : (koszulCocomplex R x).X i = (ModuleCat.of R M).exteriorPower i := rfl
 
 /-- The differential of `koszulCocomplex R x` is exterior multiplication by `x` in each degree. -/
 theorem d_eq_aux (x : M) (i : ℕ) :
@@ -179,25 +189,32 @@ section induction
 
 variable {R} (x : M) (a : R)
 
-noncomputable def X_equiv_zero :
-    (koszulCocomplex R (⟨x, a⟩ : M × R)).X 0 ≃ₗ[R] (koszulCocomplex R x).X 0 :=
-  (XZeroLinearEquivRing R _).trans (XZeroLinearEquivRing R _).symm
+variable (R M) in
+noncomputable abbrev X_equiv_zero : ⋀[R]^0 M ≃ₗ[R] ⋀[R]^0 (M × R):=
+  (exteriorPower.zeroEquiv R _).trans (exteriorPower.zeroEquiv R _).symm
 
-def X_equiv_prod (n : ℕ) : (koszulCocomplex R (⟨x, a⟩ : M × R)).X (n + 1) ≃ₗ[R]
-    ((koszulCocomplex R x).X (n + 1) × (koszulCocomplex R x).X n) :=
+def X_equiv_prod (n : ℕ) : ((koszulCocomplex R x).X (n + 1) × (koszulCocomplex R x).X n) ≃ₗ[R]
+    (koszulCocomplex R (⟨x, a⟩ : M × R)).X (n + 1) :=
   exteriorPowerProdEquivProd R M n
 
-lemma d_apply_eq_zero (y : (koszulCocomplex R (⟨x, a⟩ : M × R)).X 0) :
-    (koszulCocomplex R (⟨x, a⟩ : M × R)).d 0 (0 + 1) y = (X_equiv_prod x a 0).symm
-      ⟨(koszulCocomplex R x).d 0 (0 + 1) (X_equiv_zero x a y), a • (X_equiv_zero x a y)⟩ := by
+lemma koszulCocomplexAux_eq_zero :
+  (koszulCocomplexAux R (M × R) ⟨x, a⟩ 0).comp (X_equiv_zero R M).toLinearMap =
+    (exteriorPowerProdEquivProd R M 0).toLinearMap.comp
+      (((LinearMap.inl R _ _).comp (koszulCocomplexAux R M x 0) + a • (LinearMap.inr R _ _))) := by
+  ext m
   sorry
 
-lemma d_apply_eq_pos (n : ℕ) (y : (koszulCocomplex R (⟨x, a⟩ : M × R)).X (n + 1)) :
-    (koszulCocomplex R (⟨x, a⟩ : M × R)).d (n + 1) (n + 1 + 1) y = (X_equiv_prod x a (n + 1)).symm
-      ⟨(koszulCocomplex R x).d (n + 1) (n + 1 + 1) (X_equiv_prod x a n y).1,
-        (koszulCocomplex R x).d n (n + 1) (X_equiv_prod x a n y).2 +
-          ((-1 : R) ^ (n + 1) * a) • (X_equiv_prod x a n y).1⟩ := by
-  sorry
+lemma koszulCocomplexAux_eq_pos (n : ℕ) :
+    (koszulCocomplexAux R (M × R) ⟨x, a⟩ (n + 1)).comp
+      (exteriorPowerProdEquivProd R M n).toLinearMap =
+        (exteriorPowerProdEquivProd R M (n + 1)).toLinearMap.comp
+          (((LinearMap.inl R _ _).comp ((koszulCocomplexAux R M x (n + 1)).comp
+            (LinearMap.fst R _ _)) + (LinearMap.inr R _ _).comp ((koszulCocomplexAux R M x n).comp
+              (LinearMap.snd R _ _)) + (-1 : ℤ) ^ (n + 1) • a • (LinearMap.inr R _ _).comp
+                (LinearMap.fst R _ _))) := by
+  ext m
+  · sorry
+  · sorry
 
 variable (R) in
 noncomputable abbrev upOne : CochainComplex (ModuleCat R) ℕ :=
@@ -212,17 +229,13 @@ noncomputable abbrev upOneHomologyIso (i : ℕ) :
 
 noncomputable def fromUpOneHom (i : ℕ) :
     (upOne R x).X (i + 1) ⟶ (koszulCocomplex R (⟨x, a⟩ : M × R)).X (i + 1) :=
-  ModuleCat.ofHom ((X_equiv_prod x a i).symm.toLinearMap.comp (LinearMap.inr R _ _))
+  ModuleCat.ofHom ((X_equiv_prod x a i).toLinearMap.comp (LinearMap.inr R _ _))
 
 lemma fromUpOneHom_comm (i : ℕ) :
     fromUpOneHom x a i ≫ (koszulCocomplex R (⟨x, a⟩ : M × R)).d (i + 1) (i + 1 + 1) =
       (koszulCocomplex R x).d i (i + 1) ≫ fromUpOneHom x a (i + 1) := by
   ext y
-  change (koszulCocomplex R (⟨x, a⟩ : M × R)).d (i + 1) (i + 1 + 1)
-    ((X_equiv_prod x a i).symm ((LinearMap.inr R _ _) y)) =
-    (X_equiv_prod x a (i + 1)).symm ((LinearMap.inr R _ _) ((koszulCocomplex R x).d i (i + 1) y))
-  rw [d_apply_eq_pos x a i]
-  simp
+  sorry
 
 noncomputable def fromUpOne : upOne R x ⟶ koszulCocomplex R (⟨x, a⟩ : M × R) :=
   CochainComplex.ofHom
@@ -240,30 +253,23 @@ noncomputable def fromUpOne : upOne R x ⟶ koszulCocomplex R (⟨x, a⟩ : M ×
 
 noncomputable def fromProdHomZero :
     (koszulCocomplex R (⟨x, a⟩ : M × R)).X 0 ⟶ (koszulCocomplex R x).X 0 :=
-  ModuleCat.ofHom (X_equiv_zero x a).toLinearMap
+  ModuleCat.ofHom (X_equiv_zero R M).symm.toLinearMap
 
 noncomputable def fromProdHomPos (i : ℕ) :
     (koszulCocomplex R (⟨x, a⟩ : M × R)).X (i + 1) ⟶ (koszulCocomplex R x).X (i + 1) :=
-  ModuleCat.ofHom ((LinearMap.fst R _ _).comp (X_equiv_prod x a i).toLinearMap)
+  ModuleCat.ofHom ((LinearMap.fst R _ _).comp (X_equiv_prod x a i).symm.toLinearMap)
 
 lemma fromProdHom_comm_zero :
     fromProdHomZero x a ≫ (koszulCocomplex R x).d 0 (0 + 1) =
       (koszulCocomplex R (⟨x, a⟩ : M × R)).d 0 (0 + 1) ≫ fromProdHomPos x a 0 := by
   ext y
-  change ((koszulCocomplex R x).d 0 (0 + 1) (X_equiv_zero x a y)) =
-    (X_equiv_prod x a 0 ((koszulCocomplex R (⟨x, a⟩ : M × R)).d 0 (0 + 1) y)).1
-  rw [d_apply_eq_zero x a]
-  simp
+  sorry
 
 lemma fromProdHom_comm_pos (i : ℕ) :
     fromProdHomPos x a i ≫ (koszulCocomplex R x).d (i + 1) (i + 1 + 1) =
       (koszulCocomplex R (⟨x, a⟩ : M × R)).d (i + 1) (i + 1 + 1) ≫ fromProdHomPos x a (i + 1) := by
   ext y
-  simp only [ModuleCat.hom_comp, LinearMap.coe_comp, Function.comp_apply]
-  change ((koszulCocomplex R x).d (i + 1) (i + 1 + 1)) (X_equiv_prod x a i y).1 =
-    (X_equiv_prod x a (i + 1) ((koszulCocomplex R (⟨x, a⟩ : M × R)).d (i + 1) (i + 1 + 1) y)).1
-  rw [d_apply_eq_pos x a]
-  simp
+  sorry
 
 noncomputable def fromProd :
     koszulCocomplex R (⟨x, a⟩ : M × R) ⟶ koszulCocomplex R x :=

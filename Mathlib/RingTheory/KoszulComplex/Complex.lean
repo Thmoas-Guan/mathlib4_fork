@@ -181,53 +181,54 @@ variable (φ : M →ₗ[R] R) (a : R)
 
 abbrev appendMap : M × R →ₗ[R] R := φ.comp (LinearMap.fst R M R) + a • (LinearMap.snd R M R)
 
-noncomputable def X_equiv_zero : (koszulComplex (appendMap φ a)).X 0 ≃ₗ[R] (koszulComplex φ).X 0 :=
-  (XZeroLinearEquivRing _).trans (XZeroLinearEquivRing _).symm
+variable (R M) in
+noncomputable abbrev X_equiv_zero : ⋀[R]^0 M ≃ₗ[R] ⋀[R]^0 (M × R):=
+  (exteriorPower.zeroEquiv R _).trans (exteriorPower.zeroEquiv R _).symm
 
-def X_equiv_prod (n : ℕ) : (koszulComplex (appendMap φ a)).X (n + 1) ≃ₗ[R]
-    ((koszulComplex φ).X (n + 1) × (koszulComplex φ).X n) :=
+def X_equiv_prod (n : ℕ) : ((koszulComplex φ).X (n + 1) × (koszulComplex φ).X n) ≃ₗ[R]
+    (koszulComplex (appendMap φ a)).X (n + 1) :=
   exteriorPowerProdEquivProd R M n
 
-lemma d_apply_eq_zero (x : (koszulComplex (appendMap φ a)).X (0 + 1)) :
-    (koszulComplex (appendMap φ a)).d (0 + 1) 0 x = (X_equiv_zero φ a).symm
-      ((koszulComplex φ).d (0 + 1) 0 (X_equiv_prod φ a 0 x).1 +
-        a • (X_equiv_prod φ a 0 x).2) := by
-  sorry
+lemma koszulComplexAux_eq_zero :
+    (koszulComplexAux (appendMap φ a) 0).comp (exteriorPowerProdEquivProd R M 0).toLinearMap =
+      (X_equiv_zero R M).toLinearMap.comp ((koszulComplexAux φ 0).comp (LinearMap.fst R _ _) +
+        a • (LinearMap.snd R _ _)) := by
+  ext m
+  · sorry
+  · sorry
 
-lemma d_apply_eq_pos (n : ℕ) (x : (koszulComplex (appendMap φ a)).X (n + 1 + 1)) :
-    (koszulComplex (appendMap φ a)).d (n + 1 + 1) (n + 1) x = (X_equiv_prod φ a n).symm
-      ⟨(koszulComplex φ).d (n + 1 + 1) (n + 1) (X_equiv_prod φ a (n + 1) x).1 +
-        ((-1 : R) ^ (n + 1) * a) • (X_equiv_prod φ a (n + 1) x).2,
-          (koszulComplex φ).d (n + 1) n (X_equiv_prod φ a (n + 1) x).2⟩ := by
-  sorry
+variable (n : ℕ)
+
+lemma koszulComplexAux_eq_pos (n : ℕ) :
+    (koszulComplexAux (appendMap φ a) (n + 1)).comp
+      (exteriorPowerProdEquivProd R M (n + 1)).toLinearMap =
+        (exteriorPowerProdEquivProd R M n).toLinearMap.comp
+          ((LinearMap.inl R _ _).comp ((koszulComplexAux φ (n + 1)).comp (LinearMap.fst R _ _)) +
+            (LinearMap.inr R _ _).comp ((koszulComplexAux φ n).comp (LinearMap.snd R _ _)) +
+              (-1 : ℤ) ^ (n + 1) • a • (LinearMap.inl R _ _).comp (LinearMap.snd R _ _)) := by
+  ext m
+  · sorry
+  · sorry
 
 noncomputable def from_ofList_hom_zero :
     (koszulComplex φ).X 0 ⟶ (koszulComplex (appendMap φ a)).X 0 :=
-  ModuleCat.ofHom (X_equiv_zero φ a).symm.toLinearMap
+  ModuleCat.ofHom (X_equiv_zero R M).toLinearMap
 
 noncomputable def from_ofList_hom_pos (i : ℕ) :
     (koszulComplex φ).X (i + 1) ⟶ (koszulComplex (appendMap φ a)).X (i + 1) :=
-  ModuleCat.ofHom ((X_equiv_prod φ a i).symm.toLinearMap.comp (LinearMap.inl R _ _))
+  ModuleCat.ofHom ((X_equiv_prod φ a i).toLinearMap.comp (LinearMap.inl R _ _))
 
 lemma from_ofList_hom_comm_zero :
     from_ofList_hom_pos φ a 0 ≫ (koszulComplex (appendMap φ a)).d (0 + 1) 0 =
     (koszulComplex φ).d (0 + 1) 0 ≫ from_ofList_hom_zero φ a := by
-  ext x
-  change (koszulComplex (appendMap φ a)).d (0 + 1) 0
-    ((X_equiv_prod φ a 0).symm (LinearMap.inl R _ _ x)) =
-    (X_equiv_zero φ a).symm ((koszulComplex φ).d (0 + 1) 0 x)
-  rw [d_apply_eq_zero φ a]
-  simp
+  ext y
+  sorry
 
 lemma from_ofList_hom_comm_pos (i : ℕ) :
     from_ofList_hom_pos φ a (i + 1) ≫ (koszulComplex (appendMap φ a)).d (i + 1 + 1) (i + 1) =
       (koszulComplex φ).d (i + 1 + 1) (i + 1) ≫ from_ofList_hom_pos φ a i := by
-  ext x
-  change (koszulComplex (appendMap φ a)).d (i + 1 + 1) (i + 1)
-    ((X_equiv_prod φ a (i + 1)).symm (LinearMap.inl R _ _ x)) =
-    (X_equiv_prod φ a i).symm (LinearMap.inl R _ _ ((koszulComplex φ).d (i + 1 + 1) (i + 1) x))
-  rw [d_apply_eq_pos φ a]
-  simp
+  ext y
+  sorry
 
 noncomputable def toAppendMap :
     koszulComplex φ ⟶ koszulComplex (appendMap φ a) :=
@@ -253,16 +254,13 @@ noncomputable abbrev upOneHomologyIso (i : ℕ) :
 
 noncomputable def toUpOneHom (i : ℕ) :
     (koszulComplex (appendMap φ a)).X (i + 1) ⟶ (upOne φ).X (i + 1) :=
-  ModuleCat.ofHom ((LinearMap.snd R _ _).comp (X_equiv_prod φ a i).toLinearMap)
+  ModuleCat.ofHom ((LinearMap.snd R _ _).comp (X_equiv_prod φ a i).symm.toLinearMap)
 
 lemma to_self_hom_comm (i : ℕ) :
     toUpOneHom φ a (i + 1) ≫ (koszulComplex φ).d (i + 1) i =
       (koszulComplex (appendMap φ a)).d (i + 1 + 1) (i + 1) ≫ toUpOneHom φ a i := by
-  ext x
-  change (koszulComplex φ).d (i + 1) i (X_equiv_prod φ a (i + 1) x).2 =
-    ((X_equiv_prod φ a i) ((koszulComplex (appendMap φ a)).d (i + 1 + 1) (i + 1) x)).2
-  rw [d_apply_eq_pos φ a]
-  simp
+  ext y
+  sorry
 
 noncomputable def toUpOne :
     koszulComplex (appendMap φ a) ⟶ upOne φ :=

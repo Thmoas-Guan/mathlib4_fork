@@ -31,17 +31,24 @@ lemma exteriorPower_prod_eq_map_sup (i : ℕ) :
   --TensorProduct.range_map_eq_span_tmul
   sorry
 
-def exteriorPowerProdEquivProd (i : ℕ) : ⋀[R]^(i + 1) (M × R) ≃ₗ[R] ⋀[R]^(i + 1) M × ⋀[R]^i M :=
+def exteriorPowerProdEquivProd (i : ℕ) : (⋀[R]^(i + 1) M × ⋀[R]^i M) ≃ₗ[R] ⋀[R]^(i + 1) (M × R) :=
   sorry
 
-lemma exteriorPowerProdEquivProd_symm_comp_inl (i : ℕ) :
-    (exteriorPowerProdEquivProd R M i).symm.toLinearMap.comp (LinearMap.inl R _ _) =
+lemma exteriorPowerProdEquivProd_apply_inl_ιMulti (i : ℕ) (m : Fin (i + 1) → M) :
+    (exteriorPowerProdEquivProd R M i) (exteriorPower.ιMulti R (i + 1) m, 0) =
+      exteriorPower.ιMulti R (i + 1) ((LinearMap.inl R M R) ∘ m) := by
+  sorry
+
+lemma exteriorPowerProdEquivProd_comp_inl (i : ℕ) :
+    (exteriorPowerProdEquivProd R M i).toLinearMap.comp (LinearMap.inl R _ _) =
     exteriorPower.map (i + 1) (LinearMap.inl R _ _) := by
   ext m
-  sorry
+  have : Matrix.vecTail ((LinearMap.inl R M R) ∘ m) =
+    fun j ↦ Matrix.vecTail (fun i ↦ Prod.mk (m i)) j 0 := rfl
+  simp [exteriorPowerProdEquivProd_apply_inl_ιMulti, ← this]
 
-lemma exteriorPowerProdEquivProd_symm_apply_inr_ιMulti (i : ℕ) (m : Fin i → M) :
-    (exteriorPowerProdEquivProd R M i).symm ⟨0, exteriorPower.ιMulti R i m⟩ =
-      exteriorPower.ιMulti R (i + 1) (Fin.append ((LinearMap.inl R M R) ∘ m)
-        ((LinearMap.inr R M R) ∘ ((LinearEquiv.funUnique (Fin 1) R R).symm 1))) := by
+lemma exteriorPowerProdEquivProd_apply_inr_ιMulti (i : ℕ) (m : Fin i → M) :
+    (exteriorPowerProdEquivProd R M i) (0, exteriorPower.ιMulti R i m) =
+      ExteriorAlgebra.ιMulti R i ((LinearMap.inl R M R) ∘ m) *
+        ExteriorAlgebra.ι R ((0, 1) : M × R) := by
   sorry
