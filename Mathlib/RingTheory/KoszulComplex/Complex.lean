@@ -164,15 +164,16 @@ noncomputable def XZeroLinearEquivRing : (koszulComplex φ).X 0 ≃ₗ[R] R :=
   exteriorPower.zeroEquiv R M
 
 set_option backward.isDefEq.respectTransparency false in
-lemma X_isZero_of_card_generators_le {ι : Type*} [Finite ι] [LinearOrder ι] (g : ι → M)
+lemma X_isZero_of_card_generators_lt {ι : Type*} [Finite ι] [LinearOrder ι] (g : ι → M)
     (hg : Submodule.span R (Set.range g) = ⊤) (i : ℕ) (hi : Nat.card ι < i) :
     IsZero ((koszulComplex φ).X i) :=
   ModuleCat.isZero_of_iff_subsingleton.mpr (subsingleton_of_card_generators_le R M g hg i hi)
 
-lemma ofList_X_isZero_of_length_le (l : List R) (i : ℕ) (hi : l.length < i) :
-    IsZero ((ofList l).X i) := X_isZero_of_card_generators_le _
-  (Pi.basisFun R (Fin l.length)) (Pi.basisFun R (Fin l.length)).span_eq i
-  (by simpa [Nat.card_eq_fintype_card] using hi)
+lemma ofList_X_isZero_of_length_lt (l : List R) (i : ℕ) (hi : l.length < i) :
+    IsZero ((ofList l).X i) :=
+  X_isZero_of_card_generators_lt _ (Pi.basisFun R (Fin l.length))
+    (Pi.basisFun R (Fin l.length)).span_eq i
+      (by simpa [Nat.card_eq_fintype_card] using hi)
 
 end specialX
 
@@ -185,10 +186,6 @@ abbrev appendMap : M × R →ₗ[R] R := φ.comp (LinearMap.fst R M R) + a • (
 variable (R M) in
 noncomputable abbrev X_equiv_zero : ⋀[R]^0 M ≃ₗ[R] ⋀[R]^0 (M × R):=
   (exteriorPower.zeroEquiv R _).trans (exteriorPower.zeroEquiv R _).symm
-
-def X_equiv_prod (n : ℕ) : ((koszulComplex φ).X (n + 1) × (koszulComplex φ).X n) ≃ₗ[R]
-    (koszulComplex (appendMap φ a)).X (n + 1) :=
-  exteriorPowerProdEquivProd R M n
 
 lemma koszulComplexAux_eq_zero :
     (koszulComplexAux (appendMap φ a) 0).comp (exteriorPowerProdEquivProd R M 0).toLinearMap =
@@ -217,7 +214,7 @@ noncomputable def from_ofList_hom_zero :
 
 noncomputable def from_ofList_hom_pos (i : ℕ) :
     (koszulComplex φ).X (i + 1) ⟶ (koszulComplex (appendMap φ a)).X (i + 1) :=
-  ModuleCat.ofHom ((X_equiv_prod φ a i).toLinearMap.comp (LinearMap.inl R _ _))
+  ModuleCat.ofHom ((exteriorPowerProdEquivProd R M i).toLinearMap.comp (LinearMap.inl R _ _))
 
 lemma from_ofList_hom_comm_zero :
     from_ofList_hom_pos φ a 0 ≫ (koszulComplex (appendMap φ a)).d (0 + 1) 0 =
@@ -255,7 +252,7 @@ noncomputable abbrev upOneHomologyIso (i : ℕ) :
 
 noncomputable def toUpOneHom (i : ℕ) :
     (koszulComplex (appendMap φ a)).X (i + 1) ⟶ (upOne φ).X (i + 1) :=
-  ModuleCat.ofHom ((LinearMap.snd R _ _).comp (X_equiv_prod φ a i).symm.toLinearMap)
+  ModuleCat.ofHom ((LinearMap.snd R _ _).comp (exteriorPowerProdEquivProd R M i).symm.toLinearMap)
 
 lemma to_self_hom_comm (i : ℕ) :
     toUpOneHom φ a (i + 1) ≫ (koszulComplex φ).d (i + 1) i =
@@ -336,9 +333,40 @@ Proof route: proof exactness using vanishing of homology, using the inductivity 
 obtain homology `IsZero` from long exact sequence of homology and sequence being regular.
 -/
 
+def ofListIsoOfEqAux {rs' rs : List R} {a : R} (eq : rs = rs' ++ [a]) :
+    (Fin rs.length → R) ≃ₗ[R] (Fin rs'.length → R) × R := by
+
+  sorry
+
+lemma ofListIsoOfEqAux_comp {rs' rs : List R} {a : R} (eq : rs = rs' ++ [a]) :
+    (appendMap (Fintype.linearCombination R rs'.get) a).comp (ofListIsoOfEqAux eq).toLinearMap =
+      Fintype.linearCombination R rs.get := by
+  sorry
+
+noncomputable def ofListIsoOfEq {rs' rs : List R} {a : R} (eq : rs = rs' ++ [a]) : ofList rs ≅
+    koszulComplex (appendMap (Fintype.linearCombination R rs'.get) a) :=
+  isoOfEquiv _ (ofListIsoOfEqAux eq) _ (ofListIsoOfEqAux_comp eq)
+
 lemma exactAt_of_isRegular (rs : List R) (reg : IsRegular R rs)
     (i : ℕ) (lt : i ≠ 0) : (ofList rs).ExactAt i := by
-  sorry
+  generalize h : rs.length = n
+  induction n generalizing rs i with
+  | zero =>
+    apply ShortComplex.exact_of_isZero_X₂
+    exact ofList_X_isZero_of_length_lt rs i (by simpa [h, ← Nat.ne_zero_iff_zero_lt])
+  | succ n ih =>
+    have ne : rs ≠ [] := List.ne_nil_of_length_eq_add_one h
+    let rs' := rs.dropLast
+    have reg' : IsRegular R rs' := sorry
+    let a := rs.getLast ne
+    have areg : IsSMulRegular (R ⧸ Ideal.ofList rs') a := sorry
+    have eq : rs = rs' ++ [a] := (List.dropLast_concat_getLast ne).symm
+    apply HomologicalComplex.ExactAt.of_iso _ (ofListIsoOfEq eq).symm
+    set φ := Fintype.linearCombination R rs'.get
+    have ih' (i : ℕ) (ne : i ≠ 0) : (koszulComplex φ).ExactAt i :=
+      ih rs' reg' i ne (by simp [rs', h])
+
+    sorry
 
 end regular
 
