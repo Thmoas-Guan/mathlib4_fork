@@ -193,10 +193,6 @@ variable (R M) in
 noncomputable abbrev X_equiv_zero : ⋀[R]^0 M ≃ₗ[R] ⋀[R]^0 (M × R):=
   (exteriorPower.zeroEquiv R _).trans (exteriorPower.zeroEquiv R _).symm
 
-def X_equiv_prod (n : ℕ) : ((koszulCocomplex R x).X (n + 1) × (koszulCocomplex R x).X n) ≃ₗ[R]
-    (koszulCocomplex R (⟨x, a⟩ : M × R)).X (n + 1) :=
-  exteriorPowerProdEquivProd R M n
-
 lemma koszulCocomplexAux_eq_zero :
   (koszulCocomplexAux R (M × R) ⟨x, a⟩ 0).comp (X_equiv_zero R M).toLinearMap =
     (exteriorPowerProdEquivProd R M 0).toLinearMap.comp
@@ -229,7 +225,7 @@ noncomputable abbrev upOneHomologyIso (i : ℕ) :
 
 noncomputable def fromUpOneHom (i : ℕ) :
     (upOne R x).X (i + 1) ⟶ (koszulCocomplex R (⟨x, a⟩ : M × R)).X (i + 1) :=
-  ModuleCat.ofHom ((X_equiv_prod x a i).toLinearMap.comp (LinearMap.inr R _ _))
+  ModuleCat.ofHom ((exteriorPowerProdEquivProd R M i).toLinearMap.comp (LinearMap.inr R _ _))
 
 lemma fromUpOneHom_comm (i : ℕ) :
     fromUpOneHom x a i ≫ (koszulCocomplex R (⟨x, a⟩ : M × R)).d (i + 1) (i + 1 + 1) =
@@ -257,7 +253,7 @@ noncomputable def fromProdHomZero :
 
 noncomputable def fromProdHomPos (i : ℕ) :
     (koszulCocomplex R (⟨x, a⟩ : M × R)).X (i + 1) ⟶ (koszulCocomplex R x).X (i + 1) :=
-  ModuleCat.ofHom ((LinearMap.fst R _ _).comp (X_equiv_prod x a i).symm.toLinearMap)
+  ModuleCat.ofHom ((LinearMap.fst R _ _).comp (exteriorPowerProdEquivProd R M i).symm.toLinearMap)
 
 lemma fromProdHom_comm_zero :
     fromProdHomZero x a ≫ (koszulCocomplex R x).d 0 (0 + 1) =
