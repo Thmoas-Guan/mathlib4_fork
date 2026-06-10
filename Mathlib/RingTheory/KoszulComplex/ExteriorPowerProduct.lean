@@ -23,12 +23,22 @@ variable (M N : Type*) [AddCommGroup M] [Module R M] [AddCommGroup N] [Module R 
 
 open TensorProduct
 
-lemma exteriorPower_prod_eq_map_sup (i : ℕ) :
-    ⋀[R]^(i + 1) (M × R) = Submodule.map (ExteriorAlgebra.prodEquivTensor R M R).symm.toLinearMap
-      (((map (⋀[R]^(i + 1) M).subtype (⋀[R]^0 R).subtype).range ⊔ (map (⋀[R]^i M).subtype
-        (⋀[R]^1 R).subtype).range).map (GradedTensorProduct.of R _ _).toLinearMap) := by
-  --try write rightside to span of tmul of ιMulti
-  --TensorProduct.range_map_eq_span_tmul
+def ExteriorAlgebra.prodEquivProd :
+    (ExteriorAlgebra R M × ExteriorAlgebra R M) ≃ₗ[R] ExteriorAlgebra R (M × R) := sorry
+
+lemma ExteriorAlgebra.prodEquivProd_comp_inl :
+    (ExteriorAlgebra.prodEquivProd R M).comp (LinearMap.inl R _ _) =
+      ExteriorAlgebra.map (LinearMap.inl R M R) := by
+  sorry
+
+lemma ExteriorAlgebra.prodEquivProd_apply_snd (a : ExteriorAlgebra R M) :
+    ExteriorAlgebra.prodEquivProd R M (0, a) =
+      (ExteriorAlgebra.map (LinearMap.inl R M R) a) * ExteriorAlgebra.ι R ((0, 1) : M × R) := by
+  sorry
+
+lemma ExteriorAlgebra.prodEquivProd_mem_exteriorPower (i : ℕ) (x y : ExteriorAlgebra R M) :
+    ExteriorAlgebra.prodEquivProd R M (x, y) ∈ ⋀[R]^(i + 1) (M × R) ↔
+    (x ∈ ⋀[R]^(i + 1) M ∧ y ∈ ⋀[R]^i M) := by
   sorry
 
 def exteriorPowerProdEquivProd (i : ℕ) : (⋀[R]^(i + 1) M × ⋀[R]^i M) ≃ₗ[R] ⋀[R]^(i + 1) (M × R) :=
