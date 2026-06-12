@@ -35,12 +35,29 @@ noncomputable def prodEquivTensorForwardAux :
 variable {M N} in
 lemma prodEquivTensorForwardAux_apply_mul (m : M × N) :
     (prodEquivTensorForwardAux R M N) m * (prodEquivTensorForwardAux R M N) m = 0 := by
-
-  sorry
+  let a : ⋀[R]^1 M := ⟨ι R m.1, by simp⟩
+  let b : ⋀[R]^1 N := ⟨ι R m.2, by simp⟩
+  have h : prodEquivTensorForwardAux R M N m = a.val ᵍ⊗ₜ[R] 1 + 1 ᵍ⊗ₜ[R] b.val := rfl
+  rw [h, add_mul, mul_add, mul_add, GradedTensorProduct.tmul_one_mul_coe_tmul,
+    GradedTensorProduct.tmul_one_mul_one_tmul, GradedTensorProduct.tmul_coe_mul_coe_tmul,
+    GradedTensorProduct.tmul_coe_mul_one_tmul]
+  simp [a, b, mul_one, one_mul, uzpow_one, Units.neg_smul, one_smul, GradedTensorProduct.tmul,
+    TensorProduct.zero_tmul, TensorProduct.tmul_zero, map_zero]
 
 noncomputable def prodEquivTensorForward :
     ExteriorAlgebra R (M × N) →ₐ[R] ((fun (i : ℕ) => ⋀[R]^i M) ᵍ⊗[R] (fun (i : ℕ) => ⋀[R]^i N)) :=
   ExteriorAlgebra.lift R ⟨prodEquivTensorForwardAux R M N, prodEquivTensorForwardAux_apply_mul R⟩
+
+@[simp]
+lemma prodEquivTensorForward_ι_apply (m : M × N) :
+    prodEquivTensorForward R M N (ι R m) = ι R m.1 ᵍ⊗ₜ[R] 1 + 1 ᵍ⊗ₜ[R] ι R m.2 := by
+  simp [prodEquivTensorForward, lift_ι_apply, prodEquivTensorForwardAux]
+
+variable {M N} in
+/-- Wedges of generators commute up to the sign prescribed by their degrees. -/
+lemma ιMulti_mul_ιMulti_comm {i j : ℕ} (u : Fin i → M) (v : Fin j → M) :
+    ιMulti R i u * ιMulti R j v = ((-1 : ℤˣ) ^ (j * i)) • (ιMulti R j v * ιMulti R i u) := by
+  sorry
 
 variable {M N} in
 lemma map_inl_inr_anticomm (i j : ℕ) (a : ⋀[R]^i M) (b : ⋀[R]^j N) :
@@ -54,8 +71,8 @@ lemma map_inl_inr_anticomm (i j : ℕ) (a : ⋀[R]^i M) (b : ⋀[R]^j N) :
       (-1) ^ (j * i) • ((map (LinearMap.inr R M N)) y * (map (LinearMap.inl R M N)) x))
         ?_ ?_ ?_ ?_ ?_ ?_ ?_ amem bmem
   · rintro x y ⟨mx, rfl⟩ ⟨my, rfl⟩
-
-    sorry
+    rw [map_apply_ιMulti, map_apply_ιMulti]
+    exact ιMulti_mul_ιMulti_comm R _ _
   all_goals simp +contextual [add_mul, mul_add]
 
 noncomputable def prodEquivTensorInverse :
@@ -63,13 +80,27 @@ noncomputable def prodEquivTensorInverse :
   GradedTensorProduct.lift _ _ (ExteriorAlgebra.map (LinearMap.inl R M N))
     (ExteriorAlgebra.map (LinearMap.inr R M N)) (map_inl_inr_anticomm R)
 
+@[simp]
+lemma prodEquivTensorInverse_ι_tmul_one (m : M) :
+    prodEquivTensorInverse R M N (ι R m ᵍ⊗ₜ[R] (1 : ExteriorAlgebra R N)) = ι R (m, 0) := by
+  rw [prodEquivTensorInverse, GradedTensorProduct.lift_tmul, map_one, mul_one, map_apply_ι]
+  rfl
+
+@[simp]
+lemma prodEquivTensorInverse_one_tmul_ι (n : N) :
+    prodEquivTensorInverse R M N ((1 : ExteriorAlgebra R M) ᵍ⊗ₜ[R] ι R n) = ι R (0, n) := by
+  rw [prodEquivTensorInverse, GradedTensorProduct.lift_tmul, map_one, one_mul, map_apply_ι]
+  rfl
+
 lemma prodEquivTensor_inverse_comp_forward :
     (prodEquivTensorInverse R M N).comp (prodEquivTensorForward R M N) = AlgHom.id R _ := by
   sorry
 
 lemma prodEquivTensor_forward_comp_inverse :
     (prodEquivTensorForward R M N).comp (prodEquivTensorInverse R M N) = AlgHom.id R _ := by
-  sorry
+  ext
+  · simp
+  · simp
 
 noncomputable def prodEquivTensor :
     ExteriorAlgebra R (M × N) ≃ₐ[R]
