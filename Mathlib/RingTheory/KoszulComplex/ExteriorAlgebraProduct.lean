@@ -54,10 +54,27 @@ lemma prodEquivTensorForward_ι_apply (m : M × N) :
   simp [prodEquivTensorForward, lift_ι_apply, prodEquivTensorForwardAux]
 
 variable {M N} in
+/-- A single generator `ι R z` anticommutes with a wedge of `j` generators. -/
+lemma ι_mul_ιMulti_comm {j : ℕ} (z : M) (v : Fin j → M) :
+    ι R z * ιMulti R j v = ((-1 : ℤˣ) ^ j) • (ιMulti R j v * ι R z) := by
+  induction j with
+  | zero => simp
+  | succ j ih =>
+    have hzw : ι R z * ι R (v 0) = -(ι R (v 0) * ι R z) :=
+      eq_neg_of_add_eq_zero_left (ι_add_mul_swap z (v 0))
+    rw [ιMulti_succ_apply, ← mul_assoc, hzw, neg_mul, mul_assoc, ih (Matrix.vecTail v),
+      mul_smul_comm, uzpow_add, uzpow_one, mul_smul, Units.neg_smul, one_smul, smul_neg,
+      mul_assoc]
+
+variable {M N} in
 /-- Wedges of generators commute up to the sign prescribed by their degrees. -/
 lemma ιMulti_mul_ιMulti_comm {i j : ℕ} (u : Fin i → M) (v : Fin j → M) :
     ιMulti R i u * ιMulti R j v = ((-1 : ℤˣ) ^ (j * i)) • (ιMulti R j v * ιMulti R i u) := by
-  sorry
+  induction i with
+  | zero => simp
+  | succ i ih =>
+    rw [ιMulti_succ_apply, mul_assoc, ih (Matrix.vecTail u), mul_smul_comm, ← mul_assoc,
+      ι_mul_ιMulti_comm, smul_mul_assoc, smul_smul, ← uzpow_add, Nat.mul_succ, mul_assoc]
 
 variable {M N} in
 lemma map_inl_inr_anticomm (i j : ℕ) (a : ⋀[R]^i M) (b : ⋀[R]^j N) :
@@ -94,13 +111,17 @@ lemma prodEquivTensorInverse_one_tmul_ι (n : N) :
 
 lemma prodEquivTensor_inverse_comp_forward :
     (prodEquivTensorInverse R M N).comp (prodEquivTensorForward R M N) = AlgHom.id R _ := by
-  sorry
+  ext m
+  · dsimp
+    rw [prodEquivTensorForward_ι_apply, map_add]
+    simp [GradedTensorProduct.tmul]
+  · dsimp
+    rw [prodEquivTensorForward_ι_apply, map_add]
+    simp [GradedTensorProduct.tmul]
 
 lemma prodEquivTensor_forward_comp_inverse :
     (prodEquivTensorForward R M N).comp (prodEquivTensorInverse R M N) = AlgHom.id R _ := by
-  ext
-  · simp
-  · simp
+  ext <;> simp
 
 noncomputable def prodEquivTensor :
     ExteriorAlgebra R (M × N) ≃ₐ[R]
