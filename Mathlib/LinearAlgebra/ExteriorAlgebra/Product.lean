@@ -110,10 +110,8 @@ attribute [local simp] prodEquivTensorInverse_ι_tmul_one prodEquivTensorInverse
 lemma prodEquivTensor_inverse_comp_forward :
     (prodEquivTensorInverse R M N).comp (prodEquivTensorForward R M N) = AlgHom.id R _ := by
   ext m
-  · dsimp
-    simp [prodEquivTensorForward_ι_apply, GradedTensorProduct.tmul]
-  · dsimp
-    simp [prodEquivTensorForward_ι_apply, GradedTensorProduct.tmul]
+  · simp [prodEquivTensorForward_ι_apply, GradedTensorProduct.tmul]
+  · simp [prodEquivTensorForward_ι_apply, GradedTensorProduct.tmul]
 
 lemma prodEquivTensor_forward_comp_inverse :
     (prodEquivTensorForward R M N).comp (prodEquivTensorInverse R M N) = AlgHom.id R _ := by
