@@ -76,6 +76,20 @@ lemma ιMulti_mul_ιMulti_comm {i j : ℕ} (u : Fin i → M) (v : Fin j → M) :
       ι_mul_ιMulti_comm, smul_mul_assoc, smul_smul, ← uzpow_add, Nat.mul_succ, mul_assoc]
 
 variable {M N} in
+/-- A version of `ι_mul_ιMulti_comm` for arbitrary elements of an exterior power,
+with the sign valued in the base ring. -/
+lemma ι_mul_mem_exteriorPower_comm {k : ℕ} {w : ExteriorAlgebra R M} (hw : w ∈ ⋀[R]^k M)
+    (z : M) : ι R z * w = ((-1 : ℤ) ^ k) • (w * ι R z) := by
+  rw [← ιMulti_span_fixedDegree] at hw
+  induction hw using Submodule.span_induction with
+  | mem a ha =>
+    obtain ⟨v, rfl⟩ := ha
+    exact ι_mul_ιMulti_comm _ _ _
+  | zero => simp
+  | add a b _ _ iha ihb => rw [mul_add, iha, ihb, add_mul, smul_add]
+  | smul c a _ ih => simp [ih]
+
+variable {M N} in
 lemma map_inl_inr_anticomm (i j : ℕ) (a : ⋀[R]^i M) (b : ⋀[R]^j N) :
     (map (LinearMap.inl R M N)) a * (map (LinearMap.inr R M N)) b =
       (-1) ^ (j * i) • ((map (LinearMap.inr R M N)) b * (map (LinearMap.inl R M N)) a) := by
@@ -131,5 +145,10 @@ lemma prodEquivTensor_symm_apply_tmul_ιMulti (i j : ℕ) (m : Fin i → M) (n :
     (prodEquivTensor R M N).symm (ιMulti R i m ᵍ⊗ₜ[R] ιMulti R j n) =
       ιMulti R (i + j) (Fin.append (LinearMap.inl R M N ∘ m) (LinearMap.inr R M N ∘ n)) := by
   simp [prodEquivTensor, prodEquivTensorInverse, ExteriorAlgebra.ιMulti_mul_ιMulti]
+
+lemma prodEquivTensor_symm_tmul (a : ExteriorAlgebra R M) (b : ExteriorAlgebra R N) :
+    (prodEquivTensor R M N).symm (a ᵍ⊗ₜ[R] b) =
+      map (LinearMap.inl R M N) a * map (LinearMap.inr R M N) b :=
+  rfl
 
 end ExteriorAlgebra
