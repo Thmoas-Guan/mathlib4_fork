@@ -379,39 +379,20 @@ lemma shortComplexProd_shortExact : (shortComplexProd φ a).ShortExact := by
   apply HomologicalComplex.shortExact_of_degreewise_shortExact
   intro n
   rcases n with _ | n
-  · refine { exact := ?_, mono_f := ?_, epi_g := ?_ }
-    · rw [ShortComplex.moduleCat_exact_iff]
-      intro x₂ _
-      exact ⟨(X_equiv_zero R M).symm x₂, (X_equiv_zero R M).apply_symm_apply x₂⟩
-    · rw [ModuleCat.mono_iff_injective]
-      exact (X_equiv_zero R M).injective
-    · rw [ModuleCat.epi_iff_surjective]
-      intro x
-      haveI : Subsingleton (((shortComplexProd φ a).map
-          (HomologicalComplex.eval (ModuleCat R) (ComplexShape.down ℕ) 0)).X₃) :=
-        inferInstanceAs (Subsingleton PUnit)
-      exact ⟨0, Subsingleton.elim _ _⟩
-  · refine { exact := ?_, mono_f := ?_, epi_g := ?_ }
-    · rw [ShortComplex.moduleCat_exact_iff]
-      intro x₂ hx₂
-      refine ⟨((exteriorPowerProdEquivProd R M n).symm x₂).1, ?_⟩
-      change (exteriorPowerProdEquivProd R M n)
-        ((((exteriorPowerProdEquivProd R M n).symm x₂).1, 0)) = x₂
-      have hsnd : (exteriorPowerProdEquivProd R M n).symm x₂ =
-          ((((exteriorPowerProdEquivProd R M n).symm x₂).1), 0) := by
-        rw [Prod.ext_iff]
-        exact ⟨rfl, hx₂⟩
-      rw [← hsnd, LinearEquiv.apply_symm_apply]
-    · rw [ModuleCat.mono_iff_injective]
-      intro x y hxy
-      have h2 := (exteriorPowerProdEquivProd R M n).injective hxy
-      exact congrArg Prod.fst h2
-    · rw [ModuleCat.epi_iff_surjective]
-      intro z
-      refine ⟨(exteriorPowerProdEquivProd R M n) (0, z), ?_⟩
-      change (LinearMap.snd R _ _) ((exteriorPowerProdEquivProd R M n).symm
-        ((exteriorPowerProdEquivProd R M n) (0, z))) = z
-      simp [LinearEquiv.symm_apply_apply]
+  · apply ShortComplex.ShortExact.mk' _
+      ((ModuleCat.mono_iff_injective _).mpr (X_equiv_zero R M).injective)
+      ((ModuleCat.epi_iff_surjective _).mpr fun x ↦ ⟨0, rfl⟩)
+    rw [ShortComplex.moduleCat_exact_iff]
+    intro x₂ _
+    exact ⟨(X_equiv_zero R M).symm x₂, (X_equiv_zero R M).apply_symm_apply x₂⟩
+  · let e := exteriorPowerProdEquivProd R M n
+    apply ShortComplex.ShortExact.mk' _
+      ((ModuleCat.mono_iff_injective _).mpr (e.injective.comp (Prod.mk_left_injective 0)))
+      ((ModuleCat.epi_iff_surjective _).mpr (Prod.snd_surjective.comp e.symm.surjective))
+    rw [ShortComplex.moduleCat_exact_iff]
+    intro x₂ hx₂
+    have : e.symm x₂ = ((e.symm x₂).1, 0) := Prod.ext_iff.mpr ⟨rfl, hx₂⟩
+    exact ⟨(e.symm x₂).1, e.eq_symm_apply.mp this.symm⟩
 
 set_option backward.isDefEq.respectTransparency false in
 lemma shortComplexProd_δ_eq (i : ℕ) :
