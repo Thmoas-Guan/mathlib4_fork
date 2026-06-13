@@ -86,12 +86,11 @@ lemma eq_algebraMap_add_ι (t : ExteriorAlgebra R R) :
 
 variable {R} in
 /-- The exterior algebra of the base ring is a free module of rank two, with basis `1, ι 1`. -/
-noncomputable def prodRingEquiv : (R × R) ≃ₗ[R] ExteriorAlgebra R R :=
-  LinearEquiv.ofLinear
-    (LinearMap.coprod (Algebra.linearMap R (ExteriorAlgebra R R)) (ι R))
-    (algebraMapInv.toLinearMap.prod ιInv)
-    (LinearMap.ext fun t => by simpa using (eq_algebraMap_add_ι R t).symm)
-    (LinearMap.ext fun c => by simp)
+noncomputable def prodRingEquiv : (R × R) ≃ₗ[R] ExteriorAlgebra R R where
+  __ := LinearMap.coprod (Algebra.linearMap R (ExteriorAlgebra R R)) (ι R)
+  invFun := algebraMapInv.toLinearMap.prod ιInv
+  left_inv x := by simp
+  right_inv x := by simp [← eq_algebraMap_add_ι R x]
 
 variable {R} in
 @[simp]
@@ -115,10 +114,9 @@ lemma prodEquivProd_apply (x y : ExteriorAlgebra R M) :
     prodEquivProd R M (x, y) = ExteriorAlgebra.map (LinearMap.inl R M R) x +
       ExteriorAlgebra.map (LinearMap.inl R M R) y * ι R ((0, 1) : M × R) := by
   have hsplit : (x ⊗ₜ[R] (1 : R), y ⊗ₜ[R] (1 : R)) =
-    (x ⊗ₜ[R] 1, x ⊗ₜ[R] 0) + (y ⊗ₜ[R] 0, y ⊗ₜ[R] 1) := by
-    simp
-  rw [prodEquivProd]
-  simp only [LinearEquiv.trans_apply, LinearEquiv.prodCongr_apply, TensorProduct.rid_symm_apply]
+    (x ⊗ₜ[R] 1, x ⊗ₜ[R] 0) + (y ⊗ₜ[R] 0, y ⊗ₜ[R] 1) := by simp
+  simp only [prodEquivProd, LinearEquiv.trans_apply, LinearEquiv.prodCongr_apply,
+    TensorProduct.rid_symm_apply]
   rw [hsplit, map_add, TensorProduct.prodRight_symm_tmul, TensorProduct.prodRight_symm_tmul,
     map_add, TensorProduct.congr_tmul, TensorProduct.congr_tmul, map_add, map_add]
   simp only [LinearEquiv.refl_apply, prodRingEquiv_apply, map_one, map_zero, add_zero, zero_add,
@@ -129,9 +127,7 @@ lemma prodEquivProd_comp_inl :
     (ExteriorAlgebra.prodEquivProd R M).comp (LinearMap.inl R _ _) =
       ExteriorAlgebra.map (LinearMap.inl R M R) := by
   refine LinearMap.ext fun x => ?_
-  simp only [LinearMap.comp_apply, LinearMap.inl_apply, LinearEquiv.coe_coe]
-  rw [prodEquivProd_apply, map_zero, zero_mul, add_zero]
-  rfl
+  simp [prodEquivProd_apply]
 
 lemma prodEquivProd_apply_snd (a : ExteriorAlgebra R M) :
     ExteriorAlgebra.prodEquivProd R M (0, a) =
@@ -239,14 +235,9 @@ noncomputable def exteriorPowerProdEquivProd (i : ℕ) :
     (⋀[R]^(i + 1) M × ⋀[R]^i M) ≃ₗ[R] ⋀[R]^(i + 1) (M × R) :=
   LinearEquiv.ofBijective
     (LinearMap.codRestrict _ ((prodEquivProd R M).toLinearMap.comp
-      (((⋀[R]^(i + 1) M).subtype).prodMap ((⋀[R]^i M).subtype)))
+      ((⋀[R]^(i + 1) M).subtype.prodMap ((⋀[R]^i M).subtype)))
       fun c => (prodEquivProd_mem_exteriorPower R M i c.1 c.2).mpr ⟨c.1.2, c.2.2⟩)
-    ⟨fun a b hab => by
-      have h : prodEquivProd R M (a.1.1, a.2.1) = prodEquivProd R M (b.1.1, b.2.1) :=
-        congrArg Subtype.val hab
-      have h2 := Prod.ext_iff.mp ((prodEquivProd R M).injective h)
-      exact Prod.ext (Subtype.ext h2.1) (Subtype.ext h2.2),
-    fun z => by
+    ⟨by simp [← LinearMap.ker_eq_bot], fun z => by
       obtain ⟨w, hw⟩ := (prodEquivProd R M).surjective z.1
       have hmem := (prodEquivProd_mem_exteriorPower R M i w.1 w.2).mp (by simp [hw])
       exact ⟨(⟨w.1, hmem.1⟩, ⟨w.2, hmem.2⟩), Subtype.ext hw⟩⟩
