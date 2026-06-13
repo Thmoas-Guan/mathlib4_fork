@@ -140,14 +140,13 @@ lemma prodEquivProd_apply_snd (a : ExteriorAlgebra R M) :
 
 section MemDecomp
 
-variable {R M}
+variable {R M N}
 
 /-- `ExteriorAlgebra.map` along `inl` sends the `k`-th exterior power into the `k`-th exterior
 power. -/
-private lemma map_inl_mem {k : ℕ} {w : ExteriorAlgebra R M} (hw : w ∈ ⋀[R]^k M) :
-    ExteriorAlgebra.map (LinearMap.inl R M R) w ∈ ⋀[R]^k (M × R) := by
-  have := (exteriorPower.map k (LinearMap.inl R M R) ⟨w, hw⟩).2
-  rwa [exteriorPower.coe_map] at this
+lemma map_mem_exteriorPower (f : M →ₗ[R] N) {k : ℕ} {w : ExteriorAlgebra R M} (hw : w ∈ ⋀[R]^k M) :
+    ExteriorAlgebra.map f w ∈ ⋀[R]^k N := by
+  simpa [exteriorPower.coe_map] using (exteriorPower.map k f ⟨w, hw⟩).2
 
 /-- Every element of `⋀[R]^(i+1) (M × R)` decomposes as `map inl x + map inl y * ι (0, 1)` with
 `x` and `y` of the appropriate degrees. -/
@@ -195,10 +194,10 @@ lemma exists_decomp (i : ℕ) :
       · refine add_mem ?_ (Submodule.smul_mem _ _ hx)
         simpa [Nat.add_comm 1 i] using SetLike.mul_mem_graded hι1 hy
       · have hD : ι R (0, 1) * (ExteriorAlgebra.map (LinearMap.inl R M R) y * ι R (0, 1)) = 0 := by
-          rw [← mul_assoc, ι_mul_mem_exteriorPower_comm R (map_inl_mem hy), smul_mul_assoc,
-            mul_assoc, ι_sq_zero, mul_zero, smul_zero]
-        rw [ιMulti_succ_apply, heq, hv0, add_mul, mul_add, mul_add, smul_mul_assoc,
-          smul_mul_assoc, hD, smul_zero, add_zero, ι_mul_mem_exteriorPower_comm R (map_inl_mem hx)]
+          rw [← mul_assoc, ι_mul_mem_exteriorPower_comm R (map_mem_exteriorPower _ hy),
+            smul_mul_assoc, mul_assoc, ι_sq_zero, mul_zero, smul_zero]
+        rw [ιMulti_succ_apply, heq, hv0, add_mul, mul_add, mul_add, smul_mul_assoc, smul_mul_assoc,
+          hD, smul_zero, add_zero, ι_mul_mem_exteriorPower_comm R (map_mem_exteriorPower _ hx)]
         simp [← algebraMap_smul R (R := ℤ), smul_smul, mul_comm ((v 0).2), add_mul, ← mul_assoc,
           add_assoc]
     | zero => exact ⟨0, zero_mem _, 0, zero_mem _, by simp⟩
@@ -227,9 +226,9 @@ lemma prodEquivProd_mem_exteriorPower (i : ℕ) (x y : ExteriorAlgebra R M) :
     obtain ⟨h1, h2⟩ := Prod.mk.injEq .. ▸ hinj
     exact ⟨h1 ▸ hx', h2 ▸ hy'⟩
   · rw [prodEquivProd_apply]
-    refine add_mem (map_inl_mem hx) ?_
+    refine add_mem (map_mem_exteriorPower _ hx) ?_
     have hι : ι R ((0, 1) : M × R) ∈ ⋀[R]^1 (M × R) := by simp
-    exact SetLike.mul_mem_graded (map_inl_mem hy) hι
+    exact SetLike.mul_mem_graded (map_mem_exteriorPower _ hy) hι
 
 end ExteriorAlgebra
 
@@ -243,11 +242,9 @@ noncomputable def exteriorPowerProdEquivProd (i : ℕ) :
       (((⋀[R]^(i + 1) M).subtype).prodMap ((⋀[R]^i M).subtype)))
       fun c => (prodEquivProd_mem_exteriorPower R M i c.1 c.2).mpr ⟨c.1.2, c.2.2⟩)
     ⟨fun a b hab => by
-      have h : prodEquivProd R M ((a.1 : ExteriorAlgebra R M), (a.2 : ExteriorAlgebra R M)) =
-          prodEquivProd R M ((b.1 : ExteriorAlgebra R M), (b.2 : ExteriorAlgebra R M)) :=
+      have h : prodEquivProd R M (a.1.1, a.2.1) = prodEquivProd R M (b.1.1, b.2.1) :=
         congrArg Subtype.val hab
-      have h2 := (prodEquivProd R M).injective h
-      rw [Prod.ext_iff] at h2
+      have h2 := Prod.ext_iff.mp ((prodEquivProd R M).injective h)
       exact Prod.ext (Subtype.ext h2.1) (Subtype.ext h2.2),
     fun z => by
       obtain ⟨w, hw⟩ := (prodEquivProd R M).surjective z.1
