@@ -202,13 +202,8 @@ lemma koszulComplexAux_eq_zero :
   · have hE : (exteriorPowerProdEquivProd R M 0) (0, exteriorPower.ιMulti R 0 m) =
         exteriorPower.ιMulti R 1 (fun _ => ((0, 1) : M × R)) := by
       apply Subtype.ext
-      rw [exteriorPowerProdEquivProd_apply_inr_ιMulti]
-      simp
-    simp only [LinearMap.compAlternatingMap_apply, LinearMap.coe_comp, Function.comp_apply,
-      LinearEquiv.coe_coe, LinearMap.add_apply, LinearMap.coe_fst,
-      LinearMap.smul_apply, LinearMap.coe_snd, map_zero, zero_add, LinearMap.coe_inr]
-    rw [hE]
-    simp [koszulComplexAux, koszulComplexAuxAlternating_apply, X_equiv_zero, appendMap,
+      simp [exteriorPowerProdEquivProd_apply_inr_ιMulti]
+    simp [hE, koszulComplexAux, koszulComplexAuxAlternating_apply, X_equiv_zero, appendMap,
       exteriorPower.zeroEquiv_symm_apply]
 
 variable (n : ℕ)
@@ -228,8 +223,7 @@ private lemma removeNth_castSucc_snoc {α : Type*} {k : ℕ} (u : Fin (k + 1) �
 
 lemma exteriorPowerProdEquivProd_apply_inr_eq_snoc (k : ℕ) (v : Fin k → M) :
     (exteriorPowerProdEquivProd R M k) (0, exteriorPower.ιMulti R k v) =
-      exteriorPower.ιMulti R (k + 1)
-        (Fin.snoc (⇑(LinearMap.inl R M R) ∘ v) ((0, 1) : M × R)) := by
+      exteriorPower.ιMulti R (k + 1) (Fin.snoc ((LinearMap.inl R M R) ∘ v) (0, 1)) := by
   apply Subtype.ext
   have : ExteriorAlgebra.ι R ((0, 1) : M × R) =
     ExteriorAlgebra.ιMulti R 1 ![((0, 1) : M × R)] := by simp
@@ -246,11 +240,10 @@ lemma koszulComplexAux_eq_pos (n : ℕ) :
               (-1 : ℤ) ^ (n + 1) • a • (LinearMap.inl R _ _).comp (LinearMap.snd R _ _)) := by
   have h : (appendMap φ a) ∘ₗ (LinearMap.inl R M R) = φ := by ext x; simp
   ext m
-  · have hrm2 : ∀ j : Fin (n + 1 + 1), j.removeNth (⇑(LinearMap.inl R M R) ∘ m) =
-      ⇑(LinearMap.inl R M R) ∘ j.removeNth m := fun j => rfl
-    have hinl : ∀ x : ⋀[R]^(n + 1) M, (exteriorPowerProdEquivProd R M n) (x, 0) =
-        ((exteriorPowerProdEquivProd R M n).toLinearMap ∘ₗ LinearMap.inl R _ _) x :=
-      fun x => rfl
+  · have hrm2 (j : Fin (n + 1 + 1)) : j.removeNth (⇑(LinearMap.inl R M R) ∘ m) =
+      (LinearMap.inl R M R) ∘ j.removeNth m := rfl
+    have hinl (x : ⋀[R]^(n + 1) M) : (exteriorPowerProdEquivProd R M n) (x, 0) =
+      ((exteriorPowerProdEquivProd R M n).toLinearMap ∘ₗ LinearMap.inl R _ _) x := rfl
     simp only [LinearMap.compAlternatingMap_apply, LinearMap.coe_comp, Function.comp_apply,
       LinearEquiv.coe_coe, LinearMap.add_apply, LinearMap.coe_fst, LinearMap.coe_inl,
       LinearMap.smul_apply, LinearMap.coe_snd, smul_zero, add_zero, map_zero, Prod.mk_zero_zero]
@@ -259,11 +252,10 @@ lemma koszulComplexAux_eq_pos (n : ℕ) :
       koszulComplexAuxAlternating_apply]
     simp only [hrm2, ← exteriorPowerProdEquivProd_apply_inl_ιMulti, hinl, map_sum, map_smul]
     simp [appendMap]
-  · have hrm : ∀ j : Fin (n + 1), j.removeNth (⇑(LinearMap.inl R M R) ∘ m) =
-        ⇑(LinearMap.inl R M R) ∘ j.removeNth m := fun j => rfl
-    have hinr : ∀ x : ⋀[R]^n M, (exteriorPowerProdEquivProd R M n) (0, x) =
-        ((exteriorPowerProdEquivProd R M n).toLinearMap ∘ₗ LinearMap.inr R _ _) x :=
-      fun x => rfl
+  · have hrm (j : Fin (n + 1)) : j.removeNth (⇑(LinearMap.inl R M R) ∘ m) =
+      (LinearMap.inl R M R) ∘ j.removeNth m := rfl
+    have hinr (x : ⋀[R]^n M) : (exteriorPowerProdEquivProd R M n) (0, x) =
+      ((exteriorPowerProdEquivProd R M n).toLinearMap ∘ₗ LinearMap.inr R _ _) x := rfl
     simp only [LinearMap.compAlternatingMap_apply, LinearMap.coe_comp, Function.comp_apply,
       LinearEquiv.coe_coe, LinearMap.add_apply, LinearMap.coe_fst, LinearMap.coe_inr, zero_add,
       LinearMap.smul_apply, LinearMap.coe_snd, map_zero, LinearMap.coe_inl, Prod.mk_zero_zero]
@@ -275,11 +267,7 @@ lemma koszulComplexAux_eq_pos (n : ℕ) :
     rw [← exteriorPowerProdEquivProd_apply_inl_ιMulti]
     simp only [← exteriorPowerProdEquivProd_apply_inr_eq_snoc, hinr, map_sum, map_smul,
       map_add, map_zsmul]
-    simp only [appendMap, LinearMap.add_apply, LinearMap.coe_comp, Function.comp_apply,
-      LinearMap.coe_fst, LinearMap.coe_snd, LinearMap.smul_apply, LinearMap.inl_apply,
-      map_zero, add_zero, zero_add, smul_eq_mul, mul_one, mul_zero]
-    rw [← Int.cast_smul_eq_zsmul R ((-1) ^ (n + 1))]
-    simp [smul_smul]
+    simp [appendMap, ← Int.cast_smul_eq_zsmul R ((-1) ^ (n + 1)), smul_smul]
 
 noncomputable def from_ofList_hom_zero :
     (koszulComplex φ).X 0 ⟶ (koszulComplex (appendMap φ a)).X 0 :=
@@ -458,13 +446,12 @@ lemma shortComplexProd_δ_eq (i : ℕ) :
         exact h0
       have h := LinearMap.congr_fun (koszulComplexAux_eq_pos φ a n)
         (0, ((upOne φ).iCycles (n + 2)).hom z)
-      simp only [LinearMap.coe_comp, Function.comp_apply, LinearEquiv.coe_coe,
-        LinearMap.add_apply, LinearMap.coe_fst, LinearMap.coe_snd, LinearMap.smul_apply,
-        LinearMap.inl_apply, map_zero, zero_add, hcyc, add_zero] at h
       have hsc : ((-1 : ℤ) ^ (n + 1)) • a • (((upOne φ).iCycles (n + 2)).hom z, 0) =
           ((((-1 : R) ^ (n + 1) * a) • ((upOne φ).iCycles (n + 2)).hom z), (0 : ⋀[R]^n M)) := by
         simp [← Int.cast_smul_eq_zsmul R, smul_smul]
-      exact (h.trans (congrArg (exteriorPowerProdEquivProd R M n) hsc)).symm
+      simpa only [LinearMap.coe_comp, Function.comp_apply, LinearEquiv.coe_coe,
+        LinearMap.add_apply, LinearMap.coe_fst, LinearMap.coe_snd, LinearMap.smul_apply,
+        LinearMap.inl_apply, map_zero, zero_add, hcyc, hsc] using! h.symm
   have hδ := (shortComplexProd_shortExact φ a).δ_eq (i + 1) i rfl
     ((upOne φ).iCycles (i + 1)) hx₃ ((upOne φ).iCycles (i + 1) ≫ ModuleCat.ofHom compinr) hx₂
     (((-1 : R) ^ i * a) • (upOne φ).iCycles (i + 1)) hx₁ (i - 1) hk
@@ -482,8 +469,7 @@ lemma shortComplexProd_δ_eq (i : ℕ) :
     (koszulComplex φ).homologyπ i = (upOne φ).homologyπ (i + 1) ≫ (upOneHomologyIso φ i).hom := by
     rcases i with _ | n
     · refine (cancel_mono ((koszulComplex φ).isoHomologyι₀.hom)).mp ?_
-      trans ((upOne φ).iCycles 1 : (upOne φ).cycles 1 ⟶ (koszulComplex φ).X 0) ≫
-        (koszulComplex φ).pOpcycles 0
+      trans ((upOne φ).iCycles 1) ≫ (koszulComplex φ).pOpcycles 0
       · rw [Category.assoc, HomologicalComplex.isoHomologyι_hom, HomologicalComplex.homology_π_ι,
           ← Category.assoc, HomologicalComplex.liftCycles_i]
       · have : HomologicalComplex.pOpcycles (koszulComplex φ) 0 =
@@ -495,37 +481,17 @@ lemma shortComplexProd_δ_eq (i : ℕ) :
             ← HomologicalComplex.pOpcycles_opcyclesIsoSc'_inv, ← assoc, Iso.cancel_iso_inv_right]
           exact (CategoryTheory.Limits.cokernel.π_desc _ _ _).symm
         simp [upOneHomologyIso, this]
-    · have e1 : (upOne φ).homologyπ (n + 2) ≫ (upOneHomologyIso φ (n + 1)).hom =
-          ((upOne φ).cyclesIsoSc' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).hom ≫
-            (((koszulComplex φ).cyclesIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv ≫
-              (koszulComplex φ).homologyπ (n + 1)) := by
-        calc
-          _ = (upOne φ).homologyπ (n + 2) ≫
-                ((upOne φ).homologyIsoSc' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).hom ≫
-                  ((koszulComplex φ).homologyIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv :=
-              rfl
-          _ = (((upOne φ).cyclesIsoSc' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).hom ≫
-                ((upOne φ).sc' (n + 3) (n + 2) (n + 1)).homologyπ) ≫
-                ((koszulComplex φ).homologyIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv := by
-              rw [← Category.assoc, HomologicalComplex.π_homologyIsoSc'_hom]
-          _ = ((upOne φ).cyclesIsoSc' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).hom ≫
-                (((koszulComplex φ).sc' (n + 2) (n + 1) n).homologyπ ≫
-                ((koszulComplex φ).homologyIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv) := by
-              rw [Category.assoc]
-              exact rfl
-          _ = _ := congrArg (fun t => _ ≫ t) ((koszulComplex φ).π_homologyIsoSc'_inv _ _ _ _ _)
-      have e3 : (koszulComplex φ).liftCycles ((upOne φ).iCycles (n + 2) :
-          (upOne φ).cycles (n + 2) ⟶ (koszulComplex φ).X (n + 1)) (n + 1 - 1) hk hd =
-          ((upOne φ).cyclesIsoSc' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).hom ≫
-            ((koszulComplex φ).cyclesIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv := by
-        refine (cancel_mono ((koszulComplex φ).iCycles (n + 1))).mp ?_
+    · have e3 : (koszulComplex φ).liftCycles ((upOne φ).iCycles (n + 2)) (n + 1 - 1) hk hd =
+        ((upOne φ).cyclesIsoSc' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).hom ≫
+          ((koszulComplex φ).cyclesIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv := by
+        apply (cancel_mono ((koszulComplex φ).iCycles (n + 1))).mp
         rw [HomologicalComplex.liftCycles_i, Category.assoc,
           ← (upOne φ).cyclesIsoSc'_hom_iCycles (n + 3) (n + 2) (n + 1) (by simp) (by simp),
           (koszulComplex φ).cyclesIsoSc'_inv_iCycles (n + 2) (n + 1) n (by simp) (by simp)]
         rfl
-      rw [e1]
-      exact (congrArg (fun L => L ≫ (koszulComplex φ).homologyπ (n + 1)) e3).trans
-        (Category.assoc _ _ _)
+      simp only [e3, assoc, upOneHomologyIso, Iso.trans_hom, Iso.symm_hom,
+        HomologicalComplex.π_homologyIsoSc'_hom_assoc, Iso.cancel_iso_hom_left]
+      exact ((koszulComplex φ).π_homologyIsoSc'_inv (n + 2) (n + 1) n (by simp) (by simp)).symm
   apply (cancel_epi ((upOne φ).homologyπ (i + 1))).mp
   rw [hδ', Linear.comp_smul, ← hmain]
 
@@ -563,11 +529,6 @@ section regular
 
 open RingTheory.Sequence
 
-/-
-Proof route: proof exactness using vanishing of homology, using the inductivity above,
-obtain homology `IsZero` from long exact sequence of homology and sequence being regular.
--/
-
 variable (R) in
 /-- Splitting off the last coordinate of a tuple, as a linear equivalence. -/
 def snocLinearEquiv (n : ℕ) : (Fin (n + 1) → R) ≃ₗ[R] (Fin n → R) × R where
@@ -576,37 +537,30 @@ def snocLinearEquiv (n : ℕ) : (Fin (n + 1) → R) ≃ₗ[R] (Fin n → R) × R
   map_smul' c f := rfl
   invFun p := Fin.snoc p.1 p.2
   left_inv f := Fin.snoc_init_self f
-  right_inv p := by
-    refine Prod.ext ?_ ?_
-    · simp
-    · simp
+  right_inv p := Prod.ext (by simp) (by simp)
 
 def ofListIsoOfEqAux {rs' rs : List R} {a : R} (eq : rs = rs' ++ [a]) :
     (Fin rs.length → R) ≃ₗ[R] (Fin rs'.length → R) × R :=
-  (LinearEquiv.funCongrLeft R R (finCongr (show rs'.length + 1 = rs.length by
-    rw [eq, List.length_append, List.length_singleton]))).trans (snocLinearEquiv R rs'.length)
+  (LinearEquiv.funCongrLeft R R (finCongr (by simp [eq]))).trans (snocLinearEquiv R rs'.length)
 
 lemma ofListIsoOfEqAux_comp {rs' rs : List R} {a : R} (eq : rs = rs' ++ [a]) :
     (appendMap (Fintype.linearCombination R rs'.get) a).comp (ofListIsoOfEqAux eq).toLinearMap =
       Fintype.linearCombination R rs.get := by
   subst eq
-  have h : rs'.length + 1 = (rs' ++ [a]).length := by
-    rw [List.length_append, List.length_singleton]
-  refine LinearMap.ext fun f => ?_
-  simp only [LinearMap.comp_apply, LinearEquiv.coe_coe, ofListIsoOfEqAux,
-    LinearEquiv.trans_apply, LinearEquiv.funCongrLeft_apply, appendMap, LinearMap.add_apply,
-    LinearMap.coe_fst, LinearMap.coe_snd, LinearMap.smul_apply, snocLinearEquiv,
-    LinearEquiv.coe_mk]
-  change Fintype.linearCombination R rs'.get (Fin.init (f ∘ finCongr h)) +
-      a • (f ∘ finCongr h) (Fin.last rs'.length) =
-    Fintype.linearCombination R (rs' ++ [a]).get f
-  rw [Fintype.linearCombination_apply, Fintype.linearCombination_apply,
-    ← Equiv.sum_comp (finCongr h) (fun j => f j • (rs' ++ [a]).get j), Fin.sum_univ_castSucc]
-  congr 1
-  · refine Finset.sum_congr rfl fun i _ => ?_
+  have h : rs'.length + 1 = (rs' ++ [a]).length := by simp
+  apply LinearMap.ext
+  intro f
+  have : Fintype.linearCombination R rs'.get (Fin.init (f ∘ finCongr h)) +
+    a • (f ∘ finCongr h) (Fin.last rs'.length) =
+      (Fintype.linearCombination R (rs' ++ [a]).get) f := by
+    rw [Fintype.linearCombination_apply, Fintype.linearCombination_apply,
+      ← (finCongr h).sum_comp, Fin.sum_univ_castSucc]
     congr 1
-    simp [List.getElem_append_left, i.isLt]
-  · simp [mul_comm, Fin.last]
+    · refine Finset.sum_congr rfl fun i _ => ?_
+      congr 1
+      simp [List.getElem_append_left, i.isLt]
+    · simp [mul_comm, Fin.last]
+  simpa [ofListIsoOfEqAux, appendMap]
 
 noncomputable def ofListIsoOfEq {rs' rs : List R} {a : R} (eq : rs = rs' ++ [a]) : ofList rs ≅
     koszulComplex (appendMap (Fintype.linearCombination R rs'.get) a) :=
@@ -622,22 +576,16 @@ lemma exactAt_of_isRegular (rs : List R) (reg : IsRegular R rs)
   | succ n ih =>
     have nenil : rs ≠ [] := List.ne_nil_of_length_eq_add_one h
     let rs' := rs.dropLast
-    have hw : IsWeaklyRegular R (rs.dropLast ++ [rs.getLast nenil]) := by
-      rw [List.dropLast_concat_getLast nenil]
-      exact reg.toIsWeaklyRegular
-    have reg' : IsRegular R rs' :=
-      { toIsWeaklyRegular := ((isWeaklyRegular_append_iff R _ _).mp hw).1
-        top_ne_smul := fun heq => reg.top_ne_smul (le_antisymm
-          (heq.le.trans (Submodule.smul_mono_left (Ideal.span_mono
-            fun x hx => List.dropLast_subset rs hx))) le_top) }
     let a := rs.getLast nenil
-    have areg : IsSMulRegular (R ⧸ Ideal.ofList rs') a := by
-      have h2 := ((isWeaklyRegular_append_iff R rs' [a]).mp hw).2
-      rw [isWeaklyRegular_singleton_iff] at h2
-      have e : (Ideal.ofList rs' • ⊤ : Submodule R R) = (Ideal.ofList rs' : Submodule R R) := by
-        rw [smul_eq_mul, Ideal.mul_top]
-      exact ((Submodule.quotEquivOfEq _ _ e).isSMulRegular_congr a).mp h2
     have eq : rs = rs' ++ [a] := (List.dropLast_concat_getLast nenil).symm
+    have hw : IsWeaklyRegular R (rs' ++ [a]) := by simpa [eq] using reg.toIsWeaklyRegular
+    have reg' : IsRegular R rs' := by
+      refine ⟨((isWeaklyRegular_append_iff R _ _).mp hw).1, Ne.symm ?_⟩
+      apply ne_top_of_le_ne_top reg.top_ne_smul.symm
+      exact Submodule.smul_mono_left (Ideal.span_mono fun x hx => List.dropLast_subset rs hx)
+    have areg : IsSMulRegular (R ⧸ Ideal.ofList rs') a := by
+      have := (isWeaklyRegular_singleton_iff _ a).mp ((isWeaklyRegular_append_iff R _ _).mp hw).2
+      exact ((Submodule.quotEquivOfEq _ _ (by simp)).isSMulRegular_congr a).mp this
     apply HomologicalComplex.ExactAt.of_iso _ (ofListIsoOfEq eq).symm
     set φ := Fintype.linearCombination R rs'.get
     have ih' (i : ℕ) (ne : i ≠ 0) : IsZero ((koszulComplex φ).homology i) :=
