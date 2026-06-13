@@ -429,259 +429,105 @@ set_option backward.isDefEq.respectTransparency false in
 lemma shortComplexProd_δ_eq (i : ℕ) :
     (shortComplexProd_shortExact φ a).δ (i + 1) i rfl =
       ((-1 : R) ^ i * a) • (upOneHomologyIso φ i).hom := by
-  have hx₃ : (upOne φ).iCycles (i + 1) ≫ (upOne φ).d (i + 1) i = 0 :=
-    HomologicalComplex.iCycles_d _ _ _
-  have hx₂ : ((upOne φ).iCycles (i + 1) ≫ ModuleCat.ofHom
-      ((exteriorPowerProdEquivProd R M i).toLinearMap ∘ₗ
-        LinearMap.inr R (↥(⋀[R]^(i + 1) M)) (↥(⋀[R]^i M)))) ≫
-        (shortComplexProd φ a).g.f (i + 1) = (upOne φ).iCycles (i + 1) := by
+  have hx₃ := (upOne φ).iCycles_d (i + 1) i
+  let compinr := (exteriorPowerProdEquivProd R M i).toLinearMap ∘ₗ LinearMap.inr R _ _
+  have hx₂ : ((upOne φ).iCycles (i + 1) ≫ ModuleCat.ofHom compinr) ≫
+      (shortComplexProd φ a).g.f (i + 1) = (upOne φ).iCycles (i + 1) := by
     refine ModuleCat.hom_ext (LinearMap.ext fun z => ?_)
     change (LinearMap.snd R _ _) ((exteriorPowerProdEquivProd R M i).symm
       ((exteriorPowerProdEquivProd R M i) (0, ((upOne φ).iCycles (i + 1)).hom z))) =
       ((upOne φ).iCycles (i + 1)).hom z
     simp [LinearEquiv.symm_apply_apply]
-  have hk : (ComplexShape.down ℕ).next i = i - 1 := by
-    rcases i with _ | n <;> simp
-  have hd : ((upOne φ).iCycles (i + 1) : (upOne φ).cycles (i + 1) ⟶ (koszulComplex φ).X i) ≫
-      (koszulComplex φ).d i (i - 1) = 0 := by
+  have hk : (ComplexShape.down ℕ).next i = i - 1 := by rcases i with _ | n <;> simp
+  have hd : ((upOne φ).iCycles (i + 1)) ≫ (koszulComplex φ).d i (i - 1) = 0 := by
     rcases i with _ | n
     · rw [(koszulComplex φ).shape 0 0 (by simp), comp_zero]
     · exact hx₃
-  have hx₁ : (((-1 : R) ^ i * a) • ((upOne φ).iCycles (i + 1) :
-      (upOne φ).cycles (i + 1) ⟶ (koszulComplex φ).X i)) ≫ (shortComplexProd φ a).f.f i =
-      ((upOne φ).iCycles (i + 1) ≫ ModuleCat.ofHom
-        ((exteriorPowerProdEquivProd R M i).toLinearMap ∘ₗ
-          LinearMap.inr R (↥(⋀[R]^(i + 1) M)) (↥(⋀[R]^i M)))) ≫
-          (koszulComplex (appendMap φ a)).d (i + 1) i := by
+  have hx₁ : (((-1 : R) ^ i * a) • ((upOne φ).iCycles (i + 1))) ≫ (shortComplexProd φ a).f.f i =
+    ((upOne φ).iCycles (i + 1) ≫ ModuleCat.ofHom compinr) ≫
+      (koszulComplex (appendMap φ a)).d (i + 1) i := by
     rw [d_eq_aux]
     rcases i with _ | n
     · ext z
-      have h := LinearMap.congr_fun (koszulComplexAux_eq_zero φ a)
-        (0, (((upOne φ).iCycles 1).hom z : ↥(⋀[R]^0 M)))
-      simp only [LinearMap.coe_comp, Function.comp_apply, LinearEquiv.coe_coe,
-        LinearMap.add_apply, LinearMap.coe_fst, LinearMap.coe_snd, LinearMap.smul_apply,
-        map_zero, zero_add] at h
-      rw [pow_zero, one_mul]
-      exact h.symm
+      have h := LinearMap.congr_fun (koszulComplexAux_eq_zero φ a) (0, ((upOne φ).iCycles 1).hom z)
+      simpa using! h.symm
     · ext z
-      have hcyc : koszulComplexAux φ n
-          ((((upOne φ).iCycles (n + 2)).hom z : ↥(⋀[R]^(n + 1) M))) = 0 := by
+      have hcyc : koszulComplexAux φ n (((upOne φ).iCycles (n + 2)).hom z) = 0 := by
         have h0 := congrArg (fun F => ModuleCat.Hom.hom F z) hx₃
         simp only [ChainComplex.augment_d_succ_succ, d_eq_aux] at h0
         exact h0
       have h := LinearMap.congr_fun (koszulComplexAux_eq_pos φ a n)
-        (0, (((upOne φ).iCycles (n + 2)).hom z : ↥(⋀[R]^(n + 1) M)))
+        (0, ((upOne φ).iCycles (n + 2)).hom z)
       simp only [LinearMap.coe_comp, Function.comp_apply, LinearEquiv.coe_coe,
         LinearMap.add_apply, LinearMap.coe_fst, LinearMap.coe_snd, LinearMap.smul_apply,
         LinearMap.inl_apply, map_zero, zero_add, hcyc, add_zero] at h
       have hsc : ((-1 : ℤ) ^ (n + 1)) • a • (((upOne φ).iCycles (n + 2)).hom z, 0) =
-          (((((-1 : R) ^ (n + 1) * a) •
-            (((upOne φ).iCycles (n + 2)).hom z : ↥(⋀[R]^(n + 1) M))), 0) :
-            ↥(⋀[R]^(n + 1) M) × ↥(⋀[R]^n M)) := by
-        rw [← Int.cast_smul_eq_zsmul R, smul_smul]
-        simp only [Int.reduceNeg, Int.cast_pow, Int.cast_neg, Int.cast_one,
-          ChainComplex.augment_X_succ, Prod.smul_mk, smul_zero]
+          ((((-1 : R) ^ (n + 1) * a) • ((upOne φ).iCycles (n + 2)).hom z), (0 : ⋀[R]^n M)) := by
+        simp [← Int.cast_smul_eq_zsmul R, smul_smul]
       exact (h.trans (congrArg (exteriorPowerProdEquivProd R M n) hsc)).symm
   have hδ := (shortComplexProd_shortExact φ a).δ_eq (i + 1) i rfl
-    ((upOne φ).iCycles (i + 1)) hx₃
-    ((upOne φ).iCycles (i + 1) ≫ ModuleCat.ofHom
-      ((exteriorPowerProdEquivProd R M i).toLinearMap ∘ₗ
-        LinearMap.inr R (↥(⋀[R]^(i + 1) M)) (↥(⋀[R]^i M)))) hx₂
-    (((-1 : R) ^ i * a) • ((upOne φ).iCycles (i + 1) :
-      (upOne φ).cycles (i + 1) ⟶ (koszulComplex φ).X i)) hx₁ (i - 1) hk
-  have pf0 : (((-1 : R) ^ i * a) • ((upOne φ).iCycles (i + 1) :
-      (upOne φ).cycles (i + 1) ⟶ (koszulComplex φ).X i)) ≫ (koszulComplex φ).d i (i - 1) = 0 := by
-    refine ModuleCat.hom_ext (LinearMap.ext fun z => ?_)
-    have h0 : ((koszulComplex φ).d i (i - 1)).hom
-        ((((upOne φ).iCycles (i + 1)).hom z : ↑((koszulComplex φ).X i))) = 0 :=
-      congrArg (fun F => ModuleCat.Hom.hom F z) hd
-    exact ((((koszulComplex φ).d i (i - 1)).hom.map_smul ((-1 : R) ^ i * a)
-      ((((upOne φ).iCycles (i + 1)).hom z : ↑((koszulComplex φ).X i)))).trans
-        (by rw [h0, smul_zero]; rfl))
-  have hsmul2 : ∀ (pf : (((-1 : R) ^ i * a) • ((upOne φ).iCycles (i + 1) :
-      (upOne φ).cycles (i + 1) ⟶ (koszulComplex φ).X i)) ≫
-        (koszulComplex φ).d i (i - 1) = 0),
-      (koszulComplex φ).liftCycles ((((-1 : R) ^ i * a) •
-      ((upOne φ).iCycles (i + 1) : (upOne φ).cycles (i + 1) ⟶ (koszulComplex φ).X i)))
-        (i - 1) hk pf =
-      ((-1 : R) ^ i * a) • (koszulComplex φ).liftCycles ((upOne φ).iCycles (i + 1) :
-        (upOne φ).cycles (i + 1) ⟶ (koszulComplex φ).X i) (i - 1) hk hd := by
-    intro pf
-    rw [← cancel_mono ((koszulComplex φ).iCycles i), HomologicalComplex.liftCycles_i,
-      Linear.smul_comp, HomologicalComplex.liftCycles_i]
-  have hδ' : (upOne φ).liftCycles ((upOne φ).iCycles (i + 1)) i
-      ((ComplexShape.down ℕ).next_eq' rfl) hx₃ ≫ (upOne φ).homologyπ (i + 1) ≫
-        (shortComplexProd_shortExact φ a).δ (i + 1) i rfl =
-      (((-1 : R) ^ i * a) • (koszulComplex φ).liftCycles ((upOne φ).iCycles (i + 1) :
-        (upOne φ).cycles (i + 1) ⟶ (koszulComplex φ).X i) (i - 1) hk hd) ≫
-          (koszulComplex φ).homologyπ i := by
-    refine hδ.trans ?_
-    exact congrArg (fun L => L ≫ (koszulComplex φ).homologyπ i) (hsmul2 pf0)
-  have hlift : (upOne φ).liftCycles ((upOne φ).iCycles (i + 1)) i
-      ((ComplexShape.down ℕ).next_eq' rfl) hx₃ = 𝟙 _ := by
-    rw [← cancel_mono ((upOne φ).iCycles (i + 1)), HomologicalComplex.liftCycles_i,
-      Category.id_comp]
+    ((upOne φ).iCycles (i + 1)) hx₃ ((upOne φ).iCycles (i + 1) ≫ ModuleCat.ofHom compinr) hx₂
+    (((-1 : R) ^ i * a) • (upOne φ).iCycles (i + 1)) hx₁ (i - 1) hk
+  have hδ' : (upOne φ).liftCycles ((upOne φ).iCycles (i + 1)) i (by simp) hx₃ ≫
+    (upOne φ).homologyπ (i + 1) ≫ (shortComplexProd_shortExact φ a).δ (i + 1) i rfl =
+      (((-1 : R) ^ i * a) • (koszulComplex φ).liftCycles ((upOne φ).iCycles (i + 1)) (i - 1)
+        hk hd) ≫ (koszulComplex φ).homologyπ i := by
+    apply hδ.trans
+    congr 1
+    simp [← cancel_mono ((koszulComplex φ).iCycles i), shortComplexProd]
+  have hlift : (upOne φ).liftCycles ((upOne φ).iCycles (i + 1)) i (by simp) hx₃ = 𝟙 _ := by
+    simp [← cancel_mono ((upOne φ).iCycles (i + 1))]
   rw [hlift, Category.id_comp, Linear.smul_comp] at hδ'
-  have hmain : (koszulComplex φ).liftCycles ((upOne φ).iCycles (i + 1) :
-      (upOne φ).cycles (i + 1) ⟶ (koszulComplex φ).X i) (i - 1) hk hd ≫
-        (koszulComplex φ).homologyπ i =
-      (upOne φ).homologyπ (i + 1) ≫ (upOneHomologyIso φ i).hom := by
+  have hmain : (koszulComplex φ).liftCycles ((upOne φ).iCycles (i + 1)) (i - 1) hk hd ≫
+    (koszulComplex φ).homologyπ i = (upOne φ).homologyπ (i + 1) ≫ (upOneHomologyIso φ i).hom := by
     rcases i with _ | n
     · refine (cancel_mono ((koszulComplex φ).isoHomologyι₀.hom)).mp ?_
-      have hB : (upOne φ).pOpcycles 1 ≫
-          ((upOne φ).opcyclesIsoSc' 2 1 0 (by simp) (by simp)).hom =
-          ((upOne φ).sc' 2 1 0).pOpcycles :=
-        (upOne φ).pOpcycles_opcyclesIsoSc'_hom 2 1 0 (by simp) (by simp)
-      have hC : ((upOne φ).sc' 2 1 0).pOpcycles ≫
-          (ShortComplex.opcyclesIsoCokernel (S := (upOne φ).sc' 2 1 0)).hom =
-          cokernel.π ((upOne φ).sc' 2 1 0).f := by
-        rw [ShortComplex.opcyclesIsoCokernel_hom, ShortComplex.p_descOpcycles]
-      have hD : cokernel.π ((upOne φ).sc' 2 1 0).f ≫
-          (ShortComplex.opcyclesIsoCokernel (S := (koszulComplex φ).sc' 1 0 0)).inv =
-          ((koszulComplex φ).sc' 1 0 0).pOpcycles := by
-        rw [ShortComplex.opcyclesIsoCokernel_inv]
-        exact cokernel.π_desc _ _ _
-      have hE : ((koszulComplex φ).sc' 1 0 0).pOpcycles ≫
-          ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv =
-          (koszulComplex φ).pOpcycles 0 :=
-        (koszulComplex φ).pOpcycles_opcyclesIsoSc'_inv 1 0 0 (by simp) (by simp)
-      have hL : ((koszulComplex φ).liftCycles ((upOne φ).iCycles 1 :
-          (upOne φ).cycles 1 ⟶ (koszulComplex φ).X 0) (0 - 1) hk hd ≫
-            (koszulComplex φ).homologyπ 0) ≫ (koszulComplex φ).isoHomologyι₀.hom =
-          ((upOne φ).iCycles 1 : (upOne φ).cycles 1 ⟶ (koszulComplex φ).X 0) ≫
-            (koszulComplex φ).pOpcycles 0 := by
-        rw [Category.assoc, HomologicalComplex.isoHomologyι_hom,
-          HomologicalComplex.homology_π_ι, ← Category.assoc,
-          HomologicalComplex.liftCycles_i]
-      have t2 : (upOneHomologyIso φ 0).hom ≫ (koszulComplex φ).isoHomologyι₀.hom =
-          ((upOne φ).isoHomologyι 1 0 (by simp)
-              (ChainComplex.augment_d_one_zero _ _ _)).hom ≫
-            (((upOne φ).opcyclesIsoSc' 2 1 0 (by simp) (by simp)).hom ≫
-              ((ShortComplex.opcyclesIsoCokernel (S := (upOne φ).sc' 2 1 0)).hom ≫
-                ((ShortComplex.opcyclesIsoCokernel (S := (koszulComplex φ).sc' 1 0 0)).inv ≫
-                  ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv))) := by
-        have : (upOneHomologyIso φ 0).hom =
-          ((upOne φ).isoHomologyι 1 0 (by simp) (ChainComplex.augment_d_one_zero _ _ _)).hom ≫
-            (((upOne φ).opcyclesIsoSc' 2 1 0 (by simp) (by simp)).hom ≫
-              ((ShortComplex.opcyclesIsoCokernel (S := (upOne φ).sc' 2 1 0)).hom ≫
-                ((ShortComplex.opcyclesIsoCokernel (S := (koszulComplex φ).sc' 1 0 0)).inv ≫
-                  (((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv ≫
-                    (koszulComplex φ).isoHomologyι₀.inv)))) := rfl
-        simp only [this, Category.assoc, Iso.inv_hom_id, Category.comp_id]
-      have t4 : (upOne φ).homologyπ 1 ≫
-          ((upOne φ).isoHomologyι 1 0 (by simp)
-            (ChainComplex.augment_d_one_zero _ _ _)).hom =
-          (upOne φ).iCycles 1 ≫ (upOne φ).pOpcycles 1 := by
-        rw [HomologicalComplex.isoHomologyι_hom]
-        exact HomologicalComplex.homology_π_ι _
-      have u2 : ((upOne φ).pOpcycles 1 ≫
-          ((upOne φ).opcyclesIsoSc' 2 1 0 (by simp) (by simp)).hom) ≫
-            ((ShortComplex.opcyclesIsoCokernel (S := (upOne φ).sc' 2 1 0)).hom ≫
-              ((ShortComplex.opcyclesIsoCokernel (S := (koszulComplex φ).sc' 1 0 0)).inv ≫
-                ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv)) =
-          ((upOne φ).sc' 2 1 0).pOpcycles ≫
-            ((ShortComplex.opcyclesIsoCokernel (S := (upOne φ).sc' 2 1 0)).hom ≫
-              ((ShortComplex.opcyclesIsoCokernel (S := (koszulComplex φ).sc' 1 0 0)).inv ≫
-                ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv)) :=
-        congrArg (fun t => t ≫
-          ((ShortComplex.opcyclesIsoCokernel (S := (upOne φ).sc' 2 1 0)).hom ≫
-            ((ShortComplex.opcyclesIsoCokernel (S := (koszulComplex φ).sc' 1 0 0)).inv ≫
-              ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv))) hB
-      have u4 : (((upOne φ).sc' 2 1 0).pOpcycles ≫
-          (ShortComplex.opcyclesIsoCokernel (S := (upOne φ).sc' 2 1 0)).hom) ≫
-            ((ShortComplex.opcyclesIsoCokernel (S := (koszulComplex φ).sc' 1 0 0)).inv ≫
-              ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv) =
-          cokernel.π ((upOne φ).sc' 2 1 0).f ≫
-            ((ShortComplex.opcyclesIsoCokernel (S := (koszulComplex φ).sc' 1 0 0)).inv ≫
-              ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv) :=
-        congrArg (fun t => t ≫
-          ((ShortComplex.opcyclesIsoCokernel (S := (koszulComplex φ).sc' 1 0 0)).inv ≫
-            ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv)) hC
-      have u6 : (cokernel.π ((upOne φ).sc' 2 1 0).f ≫
-          (ShortComplex.opcyclesIsoCokernel (S := (koszulComplex φ).sc' 1 0 0)).inv) ≫
-            ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv =
-          ((koszulComplex φ).sc' 1 0 0).pOpcycles ≫
-            ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv :=
-        congrArg (fun t => t ≫
-          ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv) hD
-      have hPchain : (upOne φ).pOpcycles 1 ≫
-          (((upOne φ).opcyclesIsoSc' 2 1 0 (by simp) (by simp)).hom ≫
-            ((ShortComplex.opcyclesIsoCokernel (S := (upOne φ).sc' 2 1 0)).hom ≫
-              ((ShortComplex.opcyclesIsoCokernel (S := (koszulComplex φ).sc' 1 0 0)).inv ≫
-                ((koszulComplex φ).opcyclesIsoSc' 1 0 0 (by simp) (by simp)).inv))) =
-          ((koszulComplex φ).pOpcycles 0 :
-            (upOne φ).X 1 ⟶ (koszulComplex φ).opcycles 0) :=
-        ((Category.assoc _ _ _).symm.trans u2).trans
-          (((Category.assoc _ _ _).symm.trans u4).trans
-            (((Category.assoc _ _ _).symm.trans u6).trans hE))
-      have hR : ((upOne φ).homologyπ 1 ≫ (upOneHomologyIso φ 0).hom) ≫
-          (koszulComplex φ).isoHomologyι₀.hom =
-          ((upOne φ).iCycles 1 : (upOne φ).cycles 1 ⟶ (koszulComplex φ).X 0) ≫
-            (koszulComplex φ).pOpcycles 0 :=
-        (Category.assoc _ _ _).trans
-          ((congrArg (fun t => (upOne φ).homologyπ 1 ≫ t) t2).trans
-            (((Category.assoc _ _ _).symm.trans
-              (congrArg (fun t => t ≫
-                (((upOne φ).opcyclesIsoSc' 2 1 0 (by simp) (by simp)).hom ≫
-                  ((ShortComplex.opcyclesIsoCokernel (S := (upOne φ).sc' 2 1 0)).hom ≫
-                    ((ShortComplex.opcyclesIsoCokernel
-                        (S := (koszulComplex φ).sc' 1 0 0)).inv ≫
-                      ((koszulComplex φ).opcyclesIsoSc' 1 0 0
-                        (by simp) (by simp)).inv)))) t4)).trans
-              ((Category.assoc _ _ _).trans
-                (congrArg (fun t => (upOne φ).iCycles 1 ≫ t) hPchain))))
-      exact hL.trans hR.symm
+      trans ((upOne φ).iCycles 1 : (upOne φ).cycles 1 ⟶ (koszulComplex φ).X 0) ≫
+        (koszulComplex φ).pOpcycles 0
+      · rw [Category.assoc, HomologicalComplex.isoHomologyι_hom, HomologicalComplex.homology_π_ι,
+          ← Category.assoc, HomologicalComplex.liftCycles_i]
+      · have : HomologicalComplex.pOpcycles (koszulComplex φ) 0 =
+          cokernel.π (HomologicalComplex.sc' (upOne φ) 2 1 0).f ≫
+          cokernel.desc (HomologicalComplex.sc' (koszulComplex φ) 1 0 0).f
+          (HomologicalComplex.sc' (koszulComplex φ) 1 0 0).pOpcycles (ShortComplex.f_pOpcycles _) ≫
+          (HomologicalComplex.opcyclesIsoSc' (koszulComplex φ) 1 0 0 (by simp) (by simp)).inv := by
+          simp only [ChainComplex.prev, zero_add, ChainComplex.next_nat_zero,
+            ← HomologicalComplex.pOpcycles_opcyclesIsoSc'_inv, ← assoc, Iso.cancel_iso_inv_right]
+          exact (CategoryTheory.Limits.cokernel.π_desc _ _ _).symm
+        simp [upOneHomologyIso, this]
     · have e1 : (upOne φ).homologyπ (n + 2) ≫ (upOneHomologyIso φ (n + 1)).hom =
           ((upOne φ).cyclesIsoSc' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).hom ≫
             (((koszulComplex φ).cyclesIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv ≫
               (koszulComplex φ).homologyπ (n + 1)) := by
-        have step2 : ((koszulComplex φ).sc' (n + 2) (n + 1) n).homologyπ ≫
-            ((koszulComplex φ).homologyIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv =
-            ((koszulComplex φ).cyclesIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv ≫
-              (koszulComplex φ).homologyπ (n + 1) :=
-          (koszulComplex φ).π_homologyIsoSc'_inv _ _ _ _ _
-        calc (upOne φ).homologyπ (n + 2) ≫ (upOneHomologyIso φ (n + 1)).hom
-            = (upOne φ).homologyπ (n + 2) ≫
+        calc
+          _ = (upOne φ).homologyπ (n + 2) ≫
                 ((upOne φ).homologyIsoSc' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).hom ≫
-                ((koszulComplex φ).homologyIsoSc' (n + 2) (n + 1) n
-                  (by simp) (by simp)).inv := rfl
+                  ((koszulComplex φ).homologyIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv :=
+              rfl
           _ = (((upOne φ).cyclesIsoSc' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).hom ≫
                 ((upOne φ).sc' (n + 3) (n + 2) (n + 1)).homologyπ) ≫
-                ((koszulComplex φ).homologyIsoSc' (n + 2) (n + 1) n
-                  (by simp) (by simp)).inv := by
+                ((koszulComplex φ).homologyIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv := by
               rw [← Category.assoc, HomologicalComplex.π_homologyIsoSc'_hom]
           _ = ((upOne φ).cyclesIsoSc' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).hom ≫
                 (((koszulComplex φ).sc' (n + 2) (n + 1) n).homologyπ ≫
-                ((koszulComplex φ).homologyIsoSc' (n + 2) (n + 1) n
-                  (by simp) (by simp)).inv) := by
+                ((koszulComplex φ).homologyIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv) := by
               rw [Category.assoc]
               exact rfl
-          _ = _ := congrArg (fun t => ((upOne φ).cyclesIsoSc' (n + 3) (n + 2) (n + 1)
-                (by simp) (by simp)).hom ≫ t) step2
-      have e2 : ((upOne φ).cyclesIsoSc' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).hom ≫
-          ((koszulComplex φ).sc' (n + 2) (n + 1) n).iCycles = ((upOne φ).iCycles (n + 2) :
-            (upOne φ).cycles (n + 2) ⟶ (koszulComplex φ).X (n + 1)) :=
-        (upOne φ).cyclesIsoSc'_hom_iCycles (n + 3) (n + 2) (n + 1) (by simp) (by simp)
+          _ = _ := congrArg (fun t => _ ≫ t) ((koszulComplex φ).π_homologyIsoSc'_inv _ _ _ _ _)
       have e3 : (koszulComplex φ).liftCycles ((upOne φ).iCycles (n + 2) :
           (upOne φ).cycles (n + 2) ⟶ (koszulComplex φ).X (n + 1)) (n + 1 - 1) hk hd =
           ((upOne φ).cyclesIsoSc' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).hom ≫
             ((koszulComplex φ).cyclesIsoSc' (n + 2) (n + 1) n (by simp) (by simp)).inv := by
         refine (cancel_mono ((koszulComplex φ).iCycles (n + 1))).mp ?_
-        rw [HomologicalComplex.liftCycles_i, Category.assoc]
-        exact e2.symm.trans (congrArg
-          (fun t => ((upOne φ).cyclesIsoSc' (n + 3) (n + 2) (n + 1)
-            (by simp) (by simp)).hom ≫ t)
-          ((koszulComplex φ).cyclesIsoSc'_inv_iCycles (n + 2) (n + 1) n
-            (by simp) (by simp)).symm)
+        rw [HomologicalComplex.liftCycles_i, Category.assoc,
+          ← (upOne φ).cyclesIsoSc'_hom_iCycles (n + 3) (n + 2) (n + 1) (by simp) (by simp),
+          (koszulComplex φ).cyclesIsoSc'_inv_iCycles (n + 2) (n + 1) n (by simp) (by simp)]
+        rfl
       rw [e1]
       exact (congrArg (fun L => L ≫ (koszulComplex φ).homologyπ (n + 1)) e3).trans
         (Category.assoc _ _ _)
-  have goal' : ((upOne φ).homologyπ (i + 1)) ≫
-      (shortComplexProd_shortExact φ a).δ (i + 1) i rfl =
-      ((upOne φ).homologyπ (i + 1)) ≫
-        (((-1 : R) ^ i * a) • (upOneHomologyIso φ i).hom) := by
-    rw [hδ', Linear.comp_smul, ← hmain]
-  exact (cancel_epi ((upOne φ).homologyπ (i + 1))).mp goal'
+  apply (cancel_epi ((upOne φ).homologyπ (i + 1))).mp
+  rw [hδ', Linear.comp_smul, ← hmain]
 
 end induction
 
