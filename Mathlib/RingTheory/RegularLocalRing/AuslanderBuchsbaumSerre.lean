@@ -6,7 +6,6 @@ Authors: Nailin Guan
 module
 
 public import Mathlib.RingTheory.Depth.AuslanderBuchsbaum
-public import Mathlib.RingTheory.GlobalDimension
 public import Mathlib.RingTheory.Ideal.AssociatedPrime.Finiteness
 public import Mathlib.RingTheory.Regular.Free
 public import Mathlib.RingTheory.RegularLocalRing.Basic
@@ -407,12 +406,3 @@ theorem IsRegularLocalRing.of_maximalIdeal_hasProjectiveDimensionLE
   use rs, reg
   simp only [← span, exists_prop, and_true]
   exact fun r hr ↦ Ideal.subset_span hr
-
-theorem IsRegularLocalRing.of_globalDimension_lt_top [IsLocalRing R] [IsNoetherianRing R]
-    [Small.{v} R] (h : globalDimension.{v} R < ⊤) : IsRegularLocalRing R := by
-  apply IsRegularLocalRing.of_maximalIdeal_hasProjectiveDimensionLE
-  rw [← projectiveDimension_ne_top_iff]
-  by_contra eqtop
-  absurd h
-  simp only [globalDimension, ← eqtop, not_lt]
-  exact le_iSup _ (ModuleCat.of R (Shrink.{v} (maximalIdeal R)))
