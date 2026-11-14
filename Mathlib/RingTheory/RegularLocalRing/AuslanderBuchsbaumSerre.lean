@@ -6,8 +6,9 @@ Authors: Nailin Guan
 module
 
 public import Mathlib.RingTheory.Depth.AuslanderBuchsbaum
-public import Mathlib.RingTheory.Depth.Ischebeck
+public import Mathlib.RingTheory.Depth.Finite
 public import Mathlib.RingTheory.GlobalDimension
+public import Mathlib.RingTheory.Ideal.AssociatedPrime.Finiteness
 public import Mathlib.RingTheory.Regular.Free
 public import Mathlib.RingTheory.RegularLocalRing.Basic
 
