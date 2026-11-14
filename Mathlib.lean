@@ -6860,6 +6860,7 @@ public import Mathlib.RingTheory.DedekindDomain.SInteger
 public import Mathlib.RingTheory.DedekindDomain.SelmerGroup
 public import Mathlib.RingTheory.Depth.AuslanderBuchsbaum
 public import Mathlib.RingTheory.Depth.Basic
+public import Mathlib.RingTheory.Depth.Finite
 public import Mathlib.RingTheory.Depth.Ischebeck
 public import Mathlib.RingTheory.Depth.Rees
 public import Mathlib.RingTheory.Derivation.Basic
