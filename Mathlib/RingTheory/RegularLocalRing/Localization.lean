@@ -23,6 +23,16 @@ universe u v
 
 variable (R : Type u) [CommRing R]
 
+variable {R} in
+theorem IsRegularLocalRing.of_globalDimension_lt_top [IsLocalRing R] [IsNoetherianRing R]
+    [Small.{v} R] (h : globalDimension.{v} R < ⊤) : IsRegularLocalRing R := by
+  apply IsRegularLocalRing.of_maximalIdeal_hasProjectiveDimensionLE
+  rw [← CategoryTheory.projectiveDimension_ne_top_iff]
+  by_contra eqtop
+  absurd h
+  simp only [globalDimension, ← eqtop, not_lt]
+  exact le_iSup _ (ModuleCat.of R (Shrink.{v} (IsLocalRing.maximalIdeal R)))
+
 theorem Auslander_Buchsbaum_Serre [IsLocalRing R] [IsNoetherianRing R] [Small.{v} R] :
     IsRegularLocalRing R ↔ globalDimension.{v} R < ⊤ := by
   refine ⟨fun h ↦ ?_, fun h ↦ IsRegularLocalRing.of_globalDimension_lt_top h⟩
