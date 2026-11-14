@@ -77,15 +77,16 @@ lemma projectiveDimension_eq_quotient [Small.{v} R] [IsLocalRing R] [IsNoetheria
       rw [← IsProjective.iff_projective, ← IsProjective.iff_projective]
       have := Module.finitePresentation_of_finite R M
       have := Module.Finite.of_restrictScalars_finite R (R ⧸ Ideal.span {x}) (QuotSMulTop x M)
+      have mem' : x ∈ Ring.jacobson R := by simpa [IsLocalRing.ringJacobson_eq_maximalIdeal]
       refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
-      · have := (Module.free_quotSMulTop_iff_free R M (maximalIdeal_le_jacobson _ mem) reg2).mpr
+      · have := (Module.free_quotSMulTop_iff_free R M mem' reg2).mpr
           Module.free_of_flat_of_isLocalRing
         exact Module.Projective.of_free
       · have : IsLocalRing (R ⧸ Ideal.span {x}) :=
           have : Nontrivial (R ⧸ Ideal.span {x}) :=
             Quotient.nontrivial_iff.mpr (by simpa [← Submodule.ideal_span_singleton_smul])
           IsLocalRing.of_surjective' _ Ideal.Quotient.mk_surjective
-        have := (Module.free_quotSMulTop_iff_free R M (maximalIdeal_le_jacobson _ mem) reg2).mp
+        have := (Module.free_quotSMulTop_iff_free R M mem' reg2).mp
           Module.free_of_flat_of_isLocalRing
         exact Module.Projective.of_free
     | succ n ih =>
@@ -119,16 +120,14 @@ lemma projectiveDimension_eq_quotient [Small.{v} R] [IsLocalRing R] [IsNoetheria
         (Sx_exact.hasProjectiveDimensionLT_X₃_iff n inferInstance).symm
   refine eq_of_forall_ge_iff (fun N ↦ ?_)
   induction N with
+  | top => simp
   | bot =>
     simp only [le_bot_iff, projectiveDimension_eq_bot_iff,
       projectiveDimension_eq_bot_iff, ModuleCat.isZero_iff_subsingleton]
     refine ⟨fun h ↦ (Submodule.Quotient.mk_surjective _).subsingleton, fun h ↦ ?_⟩
     by_contra! ntr
     exact (not_subsingleton_iff_nontrivial.mpr (nontrivial_quotSMulTop_of_mem_maximalIdeal M mem)) h
-  | coe N =>
-    induction N with
-    | top => simp
-    | coe n => exact aux n
+  | coe n => exact aux n
 
 variable {R}
 
