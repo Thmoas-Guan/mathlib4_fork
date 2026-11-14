@@ -6,8 +6,8 @@ Authors: Nailin Guan
 module
 
 public import Mathlib.RingTheory.CohenMacaulay.Maximal
-public import Mathlib.RingTheory.GlobalDimension
 public import Mathlib.RingTheory.Depth.AuslanderBuchsbaum
+public import Mathlib.RingTheory.GlobalDimension
 
 /-!
 
@@ -57,7 +57,7 @@ lemma finite_projectiveDimension_of_isRegularLocalRing_aux [IsRegularLocalRing R
 
 lemma projectiveDimension_ne_top_of_isRegularLocalRing [IsRegularLocalRing R] [Small.{v, u} R]
     (M : ModuleCat.{v} R) [Module.Finite R M] : projectiveDimension M ≠ ⊤ := by
-  rcases FiniteRingKrullDim.ringKrullDim_eq_nat R with ⟨m, hm⟩
+  obtain ⟨m, hm⟩ := FiniteRingKrullDim.ringKrullDim_eq_nat R
   obtain ⟨n, hn⟩ := finite_projectiveDimension_of_isRegularLocalRing_aux M m
     (by simpa [hm] using! WithBot.coe_le_coe.mpr le_add_self)
   exact ne_top_of_le_ne_top (WithBot.coe_inj.not.mpr (ENat.natCast_ne_top n))
@@ -70,7 +70,7 @@ theorem IsRegularLocalRing.globalDimension_eq_ringKrullDim [Small.{v} R] [IsRegu
     rw [(isCohenMacaulayLocalRing_def R).mp isCohenMacaulayLocalRing_of_isRegularLocalRing]
     exact WithBot.coe_inj.mpr (maximalIdeal R).depth_shrink
   apply le_antisymm
-  · simp only [globalDimension_eq_sup_projectiveDimension_finite, iSup_le_iff]
+  · simp only [globalDimension_eq_biSup_module_finite_projectiveDimension, iSup_le_iff]
     intro M hM
     rcases subsingleton_or_nontrivial M with sub|ntr
     · simp [(projectiveDimension_eq_bot_iff M).mpr (ModuleCat.isZero_iff_subsingleton.mpr sub)]
